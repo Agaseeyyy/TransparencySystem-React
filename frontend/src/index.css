@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+@theme {
+  --color-jpcsred: oklch(39.59% 0.1454 12.1);
+}

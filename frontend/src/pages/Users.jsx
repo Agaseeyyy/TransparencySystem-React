@@ -11,10 +11,10 @@ function Users() {
       key: "role",
       label: "Role",
       render: (role) => {
-        let roleColor = "bg-gray-200 text-gray-800"; // Default style
+        let roleColor = "bg-gray-200 text-gray-800"; 
         if (role === "Admin") roleColor = "text-blue-800 bg-blue-100";
-        if (role === "User") roleColor = "text-green-800 bg-green-100";
-        if (role === "Guest") roleColor = "text-yellow-800 bg-yellow-100";
+        if (role === "Class Treasurer") roleColor = "text-green-800 bg-green-100";
+        if (role === "Org Treasurer") roleColor = "text-yellow-800 bg-yellow-100";
 
         return (
           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${roleColor}`}>
@@ -28,7 +28,7 @@ function Users() {
     {
       key: "actions",
       label: "Actions",
-      render: (_, row) => <ActionButton row={row} />, // Use the ActionButton component
+      render: (_, row) => <ActionButton row={row} />, 
     },
   ];
 
@@ -39,12 +39,11 @@ function Users() {
       role: "Admin",
       email: "agbustarga@my.cspc.edu.ph",
       created: "Feb 12, 2025",
-      image: "https://randomuser.me/api/portraits/men/1.jpg", // Add image URL
     },
     {
       id: 2,
       name: "Ducay",
-      role: "Treasurer",
+      role: "Class Treasurer",
       email: "agbustarga@my.cspc.edu.ph",
       created: "Feb 12, 2025",
     },
@@ -61,6 +60,20 @@ function Users() {
     console.log('User Form Data:', data);
     toggleModal();
   };
+
+  const handleAdd = () => {
+    fetch('http://localhost:8080/api/v1/users', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(user)
+    }) 
+    .then(res => res.json)
+    .then(data => console.log('user saved', data))
+
+
+  }
   
 
   return(
@@ -71,6 +84,7 @@ function Users() {
         title={'user'}
         showAdd={toggleModal} 
       />
+      
       <Modal isOpen={isModalOpen} onClose={toggleModal} title="User">
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 mb-4">

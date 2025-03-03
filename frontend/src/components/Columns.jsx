@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 
 function Columns({ columns, data, title, showAdd }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const totalRows = Object.keys(data).length;
-
-  const toggleModal = () => setIsModalOpen(!isModalOpen);
 
   const changeRowsPerPage = (rows) => {
     setRowsPerPage(rows);
@@ -26,9 +23,9 @@ function Columns({ columns, data, title, showAdd }) {
     return `${start}-${end}`;
   };
 
+  
   return (
     <div className="bg-gray-100">
-      {/* Navbar and Sidebar would be imported or included here */}
       <div className="max-w-full p-6 mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-semibold">All Users: 1,356,546</h1>
@@ -76,7 +73,7 @@ function Columns({ columns, data, title, showAdd }) {
                   data
                     .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
                     .map((row, rowIndex) => (
-                      <tr key={rowIndex} className="hover:bg-gray-50 text-left">
+                      <tr key={rowIndex} className="text-left hover:bg-gray-50">
                         {columns.map((column) => (
                           <td
                             key={column.key}

@@ -1,4 +1,4 @@
-package com.agaseeyyy.transparencysystem.service;
+package com.agaseeyyy.transparencysystem.users;
 
 import java.util.List;
 import java.util.Map;
@@ -7,9 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import com.agaseeyyy.transparencysystem.model.Users;
-import com.agaseeyyy.transparencysystem.repository.UserRepository;
 
 import jakarta.annotation.PostConstruct;
 

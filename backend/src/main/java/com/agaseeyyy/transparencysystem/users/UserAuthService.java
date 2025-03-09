@@ -1,4 +1,4 @@
- package com.agaseeyyy.transparencysystem.service;
+ package com.agaseeyyy.transparencysystem.users;
 
 import java.util.List;
 
@@ -6,9 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
-
-import com.agaseeyyy.transparencysystem.repository.UserRepository;
-import com.agaseeyyy.transparencysystem.model.Users;
 
 public class UserAuthService implements UserDetailsService {
     @Autowired

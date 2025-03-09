@@ -1,4 +1,4 @@
-package com.agaseeyyy.transparencysystem.model;
+package com.agaseeyyy.transparencysystem.users;
 
 import java.time.LocalDate;
 
@@ -32,7 +32,6 @@ public class Users {
 
   @Column(name = "created_at", nullable = false)
   private LocalDate createdAt = LocalDate.now();
-
 
   public Users() {
   }

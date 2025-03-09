@@ -1,11 +1,10 @@
-package com.agaseeyyy.transparencysystem.repository;
+package com.agaseeyyy.transparencysystem.users;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.agaseeyyy.transparencysystem.model.Users;
 import java.util.*;
 
 

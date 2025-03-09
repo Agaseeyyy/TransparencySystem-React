@@ -1,4 +1,4 @@
-package com.agaseeyyy.transparencysystem.controller;
+package com.agaseeyyy.transparencysystem.users;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,9 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import com.agaseeyyy.transparencysystem.model.Users;
-import com.agaseeyyy.transparencysystem.service.UserService;
 
 @RestController
 @RequestMapping(path = "api/v1/users")

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import Columns from "../components/Columns";
 import ActionButton from "../components/ActionButton";
 import Modal from '../components/Modal';
+import FormField from '../components/FormField';
+import SelectField from '../components/SelectField';
 import { useAuth } from '../context/AuthProvider';
 import axios from 'axios';
-
 
 function Users() {
   const { user } = useAuth();
@@ -63,8 +64,7 @@ function Users() {
 
   useEffect(() => {
     fetchUsers();
-  }
-  , []);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -144,95 +144,76 @@ function Users() {
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 mb-4">
             <div className="col-span-2">
-              <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="lastName"
+              <FormField
+                label="Last Name"
                 id="lastName"
                 defaultValue={editingUser?.lastName || ''}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-jpcsred focus:border-jpcsred block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-jpcsred dark:focus:border-jpcsred focus:outline-jpcsred"
                 placeholder="Doe"
                 required
+                index={0}
               />
             </div>
             <div className="col-span-1">
-              <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="firstName"
+              <FormField
+                label="First Name"
                 id="firstName"
                 defaultValue={editingUser?.firstName || ''}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-jpcsred focus:border-jpcsred block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-jpcsred dark:focus:border-jpcsred focus:outline-jpcsred"
                 placeholder="John"
                 required
+                index={1}
               />
             </div>
             <div className="col-span-1">
-              <label htmlFor="middleInitial" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Middle Initial
-              </label>
-              <input
-                type="text"
-                name="middleInitial"
+              <FormField
+                label="Middle Initial"
                 id="middleInitial"
                 defaultValue={editingUser?.middleInitial || ''}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-jpcsred focus:border-jpcsred block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-jpcsred dark:focus:border-jpcsred focus:outline-jpcsred"
                 placeholder="C"
                 maxLength={1}
+                index={2}
               />
             </div>
             <div className="col-span-2">
-              <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
+              <FormField
+                label="Email"
                 id="email"
+                type="email"
                 defaultValue={editingUser?.email || ''}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-jpcsred focus:border-jpcsred block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-jpcsred dark:focus:border-jpcsred focus:outline-jpcsred"
                 placeholder="john.doe@example.com"
                 required
+                index={3}
               />
             </div>
             <div className="col-span-2">
-              <label htmlFor="role" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Role
-              </label>
-              <select
+              <SelectField
+                label="Role"
                 id="role"
-                name="role"
                 defaultValue={editingUser?.role || ''}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-jpcsred focus:border-jpcsred block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-jpcsred dark:focus:border-jpcsred focus:outline-jpcsred"
                 required
-              >
-                <option value="">Select role</option>
-                <option value="Admin">Administrator</option>
-                <option value="editor">Editor</option>
-                <option value="viewer">Viewer</option>
-              </select>
+                index={4}
+                options={[
+                  { value: "", label: "Select role" },
+                  { value: "Admin", label: "Administrator" },
+                  { value: "editor", label: "Editor" },
+                  { value: "viewer", label: "Viewer" }
+                ]}
+              />
             </div>
             <div className="col-span-2">
-              <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
+              <FormField
+                label="Password"
                 id="password"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-jpcsred focus:border-jpcsred block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-jpcsred dark:focus:border-jpcsred focus:outline-jpcsred"
+                type="password"
                 placeholder="••••••••"
                 required
+                index={5}
               />
             </div>
           </div>
           <button
             type="submit"
-            className="text-white inline-flex items-center bg-jpcsred hover:bg-jpcsred focus:ring-4 focus:outline-none focus:ring-jpcsred font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-jpcsred dark:hover:bg-jpcsred dark:focus:ring-jpcsred"
+            className="text-white inline-flex items-center bg-jpcsred hover:bg-jpcsred focus:ring-4 focus:outline-none focus:ring-jpcsred font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-jpcsred dark:hover:bg-jpcsred dark:focus:ring-jpcsred transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] animate-fade-in-up"
+            style={{ animationDelay: '300ms' }}
           >
             {modalMode === 'add' ? 'Add User' : 'Save Changes'}
           </button>
@@ -242,4 +223,4 @@ function Users() {
   );
 }
 
-export default Users
+export default Users;

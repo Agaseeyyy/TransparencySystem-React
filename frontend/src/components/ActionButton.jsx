@@ -1,6 +1,6 @@
-import React from "react";
 
-const ActionButton = ({ row }) => {
+
+const ActionButton = ({ row, onEdit, onDelete }) => {
   return (
     <button
       className="relative text-gray-400 hover:text-gray-500"
@@ -20,17 +20,14 @@ const ActionButton = ({ row }) => {
       </svg>
       <div
         id={`actionMenu-${row.id}`}
-        className="absolute right-0 z-10 hidden w-48 mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+        className="absolute right-0 z-30 hidden w-48 mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-gray-200 ring-opacity-5 focus:outline-none"
         role="menu"
       >
         <div className="py-1">
           <a
             href="#"
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={(e) => {
-              e.preventDefault();
-              console.log("Edit:", row);
-            }}
+            onClick={onEdit}
           >
             <svg
               className="w-5 h-5 mr-3 text-gray-400"
@@ -52,10 +49,7 @@ const ActionButton = ({ row }) => {
           <a
             href="#"
             className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
-            onClick={(e) => {
-              e.preventDefault();
-              console.log("Delete:", row);
-            }}
+            onClick={onDelete}
           >
             <svg
               className="w-5 h-5 mr-3 text-red-400"

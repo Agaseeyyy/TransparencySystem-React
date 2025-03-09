@@ -1,7 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import bg from '../assets/bg.png'
+import { useAuth } from '../context/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [credential, setCredential] = useState({ email: '', password: '' });
+  const [message, setMessage] = useState({ type: '', content: '' });
+
+  useEffect(() => {
+    isAuthenticated && navigate('/dashboard');
+  }, []);
+
+
+  const handleInput = (e) => {
+    setCredential((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    fetch('http://localhost:8080/api/v1/users/login', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credential)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+      return response.json();
+    })
+    .then(data => {
+      login(data);
+      setMessage({ type: 'success', content: 'Login successfully!' });
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000)
+    })
+    .catch((error) => {
+      setMessage({ type: 'error', content: error.message });
+      console.error('Error:', error);
+    });
+  }
+
+
   return (
     <>
       <section
@@ -29,7 +75,16 @@ const LoginPage = () => {
               <h1 className="mb-6 text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
                 Sign in to your account
               </h1>
-              <form className="space-y-6" action="/login" method="post">
+              {message.content && (
+                <div className={`p-4 mb-4 text-sm rounded-lg ${
+                  message.type === 'success' 
+                    ? 'text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400' 
+                    : 'text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400'
+                }`} role="alert">
+                  {message.content}
+                </div>
+              )}
+              <form onSubmit={handleSubmit} className="space-y-6" action="/login" method="post">
                 {/* Email input */}
                 <div>
                   <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -39,6 +94,8 @@ const LoginPage = () => {
                     type="email"
                     name="email"
                     id="email"
+                    onChange={handleInput}
+                    value={credential.email}
                     className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-jpcsred focus:border-jpcsred block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-jpcsred dark:focus:border-jpcsred"
                     placeholder="name@company.com"
                     required
@@ -55,6 +112,8 @@ const LoginPage = () => {
                     name="password"
                     id="password"
                     placeholder="••••••••"
+                    onChange={handleInput}
+                    value={credential.password}
                     className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-jpcsred focus:border-jpcsred block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-jpcsred dark:focus:border-jpcsred"
                     required
                   />
@@ -68,7 +127,7 @@ const LoginPage = () => {
                         id="remember"
                         aria-describedby="remember"
                         type="checkbox"
-                        className="w-4 h-4 border accent-jpcsred border-gray-300 rounded bg-gray-50 focus:ring-jpcsred dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-jpcsred"
+                        className="w-4 h-4 border border-gray-300 rounded accent-jpcsred bg-gray-50 focus:ring-jpcsred dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-jpcsred"
                       />
                     </div>
                     <div className="ml-3 text-sm">

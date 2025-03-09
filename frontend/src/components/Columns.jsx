@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-function Columns({ columns, data, title, showAdd }) {
+const Columns = ({ columns, data, title, showAdd, user }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const totalRows = Object.keys(data).length;
@@ -25,70 +25,69 @@ function Columns({ columns, data, title, showAdd }) {
 
   
   return (
-    <div className="bg-gray-100">
-      <div className="max-w-full p-6 mx-auto">
+    <div className="min-h-screen p-6 bg-gray-100">
+      <div className="p-6 mx-auto bg-white rounded-lg shadow-lg max-w-[1920px]">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold">All Users: 1,356,546</h1>
-          <button
-            id="addUserButton"
-            className="flex items-center px-4 py-2 text-white rounded-md bg-jpcsred hover:bg-jpcsred"
-            onClick={showAdd}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <h1 className="text-xl font-semibold">All Users:</h1>
+          {user?.role === 'Admin' || user?.role === 'ORG_TREASURER' ? (
+             <button
+              id="addUserButton"
+              className="flex items-center px-4 py-2 text-white rounded-md bg-jpcsred hover:bg-jpcsred"
+              onClick={showAdd}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            Add new {title}
-          </button>
+             <svg
+               xmlns="http://www.w3.org/2000/svg"
+               className="w-5 h-5 mr-2"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke="currentColor"
+             >
+               <path
+                 strokeLinecap="round"
+                 strokeLinejoin="round"
+                 strokeWidth="2"
+                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+               />
+             </svg>
+             Add new {title}
+           </button>
+          ) : null}
         </div>
 
         {/* Table Container */}
-        <div className="overflow-visible bg-white rounded-lg shadow">
-          <div className="overflow-x-auto rounded-t-lg">
+        <div className="border border-gray-200 rounded-lg overflow">
+          <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  {columns.map((column, index) => 
-                    <th key={index} 
-                      scope="col" 
+                  {columns.map((column, index) => (
+                    <th
+                      key={index}
+                      scope="col"
                       className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
                     >
                       {column.label}
-                  </th>
-                  )}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data.length > 0 ? (
-                  data
-                    .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-                    .map((row, rowIndex) => (
-                      <tr key={rowIndex} className="text-left hover:bg-gray-50">
-                        {columns.map((column) => (
-                          <td
-                            key={column.key}
-                            className="px-6 py-4 whitespace-nowrap"
-                          >
-                            {column.render
-                              ? column.render(row[column.key], row)
-                              : row[column.key]}
-                          </td>
-                        ))}
-                      </tr>
-                    ))
+                {data && data.length > 0 ? (
+                  data.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage).map((row, rowIndex) => (
+                    <tr key={rowIndex} className="hover:bg-gray-50">
+                      {columns.map((column, colIndex) => (
+                        <td
+                          key={`${rowIndex}-${colIndex}`}
+                          className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap"
+                        >
+                          {column.render ? column.render(row[column.key], row) : row[column.key]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
                 ) : (
                   <tr>
-                    <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan={columns.length} className="px-6 py-4 text-sm text-center text-gray-500">
                       No data available
                     </td>
                   </tr>
@@ -125,7 +124,7 @@ function Columns({ columns, data, title, showAdd }) {
                 </button>
                 <div
                   id="rowsPerPageMenu"
-                  className="absolute z-10 hidden w-24 mt-1 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5"
+                  className="absolute z-10 hidden w-24 mt-1 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-gray-300 ring-opacity-5"
                 >
                   <div className="py-1" role="menu">
                     <a

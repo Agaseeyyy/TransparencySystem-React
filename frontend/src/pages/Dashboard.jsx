@@ -1,8 +1,11 @@
+import { useAuth } from '../context/AuthProvider';
 
-function Dashboard() {
+const Dashboard = () => {
+  const { user, isAuthenticated } = useAuth();
   
   return(
     <>
+      {isAuthenticated && <h1>Welcome, {user.name}</h1>}
       <h1>Dash</h1>
     </>
   );

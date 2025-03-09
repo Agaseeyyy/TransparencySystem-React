@@ -1,9 +1,9 @@
-import React from "react";
+
 
 const Footer = () => {
   return (
-    <footer className=" bg-white rounded-lg shadow-sm dark:bg-gray-900 ml-64 max-lg:ml-0">
-      <div className="w-full max-w-screen-xl p-4 py-8 mx-auto">
+    <footer className="px-6 bg-white rounded-lg shadow-sm dark:bg-gray-900">
+      <div className="w-full p-4 py-8 mx-auto">
         <div className="flex items-center justify-between max-md:flex-col md:items-center">
           {/* Logo and Institution Name */}
           <a
@@ -61,4 +61,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default Footer

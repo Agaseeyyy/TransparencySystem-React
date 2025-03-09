@@ -1,9 +1,9 @@
-import Navbar from '../components/Navigation'
+import Navbar from '../components/Navbar'
 
-function Home() {
+const Home = () => {
   return(
     <>
-      <h1>Home</h1>
+      <h1>Home Transparency Board</h1>
     </>
   );
 }

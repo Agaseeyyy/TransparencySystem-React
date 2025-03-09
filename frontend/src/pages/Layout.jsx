@@ -1,17 +1,28 @@
 import { Outlet } from "react-router-dom"
-import Navigation from '../components/Navigation'
+import Navbar from '../components/Navbar'
+import Sidebar from '../components/Sidebar'
+import { useState } from 'react'
 import Footer from '../components/Footer'
 
-const Layout = () => {
+const Layout = () =>{
+  const [collapsed, setCollapsed] = useState(false)
+
+  const toggleSidebar = () => {
+    setCollapsed(!collapsed)
+  }
+
   return (
     <>
-      <Navigation />
-      <div className="content min-h-screen ml-64 max-lg:ml-0 bg-gray-100">
-        <Outlet />
+      <Navbar collapsed={collapsed} toggleSidebar={toggleSidebar} />
+      <Sidebar collapsed={collapsed} />
+      <div className={`transition-all duration-300 ${collapsed ? "lg:ml-20" : "lg:ml-64"}`}>
+        <main className="min-h-screen bg-gray-100">
+          <Outlet />
+        </main>
+        <Footer />
       </div>
-      <Footer />
     </>
-  );
-};
+  )
+}
 
-export default Layout;
+export default Layout

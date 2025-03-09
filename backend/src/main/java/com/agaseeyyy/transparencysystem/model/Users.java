@@ -12,19 +12,32 @@ public class Users {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer userId;
 
-  private String firstName;
+  @Column(name = "last_name", nullable = false)
   private String lastName;
+
+  @Column(name = "first_name", nullable = false)
+  private String firstName;
+
+  @Column(name = "middle_initial", nullable = true)
   private char middleInitial;
-  private String role;
+  
+  @Enumerated(EnumType.STRING)
+  private Role role;
+
+  @Column(name = "email", nullable = false, unique = true)
   private String email;
+
+  @Column(name = "password", nullable = false)
   private String password;
+
+  @Column(name = "created_at", nullable = false)
   private LocalDate createdAt = LocalDate.now();
 
 
   public Users() {
   }
 
-  public Users(Integer userId, String firstName, String lastName, char middleInitial, String role, String email, String password) {
+  public Users(Integer userId, String firstName, String lastName, char middleInitial, Role role, String email, String password) {
     this.userId = userId;
     this.lastName = lastName;
     this.firstName = firstName;
@@ -68,11 +81,11 @@ public class Users {
     this.middleInitial = middleInitial;
   }
 
-  public String getRole() {
+  public Role getRole() {
     return this.role;
   }
 
-  public void setRole(String role) {
+  public void setRole(Role role) {
     this.role = role;
   }
 
@@ -99,5 +112,22 @@ public class Users {
   public void setCreatedAt(LocalDate createdAt) {
     this.createdAt = createdAt;
   }
+
+  public enum Role {
+    Admin("ROLE_ADMIN"),
+    ORG_TREASURER("ROLE_ORG_TREASURER"),
+    CLASS_TREASURER("ROLE_CLASS_TREASURER");
+
+    private final String value;
+
+    Role(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+}
   
 }
+

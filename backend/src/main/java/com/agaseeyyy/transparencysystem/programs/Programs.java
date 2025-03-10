@@ -1,13 +1,14 @@
 package com.agaseeyyy.transparencysystem.programs;
 
-import jakarta.persistence.Entity;
-
 import com.agaseeyyy.transparencysystem.departments.Departments;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "programs")
+@JsonIgnoreProperties({"department"})
 public class Programs {
   @Id
   @Column(name = "program_id")
@@ -19,6 +20,11 @@ public class Programs {
   @ManyToOne
   @JoinColumn(name = "department_id", nullable = false)
   private Departments department ;
+
+  @JsonProperty("departmentId")
+  public String getDepartmentId() {
+    return department != null ? department.getDepartmentId() : null;
+  }
 
 
   public Programs() {

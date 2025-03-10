@@ -60,11 +60,10 @@ const Program = () => {
     const formData = new FormData(e.target);
     const saveFormData = Object.fromEntries(formData.entries());
 
-    console.log(saveFormData)
 
     const url = modalMode === 'edit' 
-      ? `http://localhost:8080/api/v1/programs/${editingDepartment.id}`
-      : "http://localhost:8080/api/v1/programs";
+      ? `http://localhost:8080/api/v1/departments/${saveFormData.departmentId}/programs/${editingProgram.programId}`
+      : `http://localhost:8080/api/v1/departments/${saveFormData.departmentId}/programs`;
 
     const method = modalMode === 'edit' ? 'put' : 'post';
 
@@ -75,6 +74,7 @@ const Program = () => {
       headers: { "Content-Type": "application/json" }
     })
     .then(() => {
+      console.log(saveFormData)
       fetchPrograms();
       closeModal();
     })
@@ -83,17 +83,18 @@ const Program = () => {
     });
   };
 
-  const handleEdit = (department) => {  
+  const handleEdit = (program) => {  
       setEditingProgram({
-        id: department.departmentId,
-        departmentName: department.departmentName,
+        departmentId: program.departmentId,
+        programId: program.programId,
+        programName: program.programName,
       });
       setModalMode('edit');
       setIsModalOpen(true);
   };
 
   const handleDelete = (id) => {
-    axios.delete(`http://localhost:8080/api/v1/departments/${id}`)
+    axios.delete(`http://localhost:8080/api/v1/programs/${id}`)
       .then(res => {
         fetchPrograms();
       })
@@ -121,7 +122,7 @@ const Program = () => {
               <FormField
                 label="Program ID"
                 id="programId"
-                defaultValue={editingProgram?.id || ''}
+                defaultValue={editingProgram?.programId || ''}
                 placeholder="e.g. BSIT, BSCS, etc"
                 required
                 index={0}

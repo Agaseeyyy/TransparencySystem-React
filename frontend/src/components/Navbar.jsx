@@ -1,6 +1,31 @@
-
+import { useLocation } from 'react-router-dom'
 
 const Navbar = ({ collapsed, toggleSidebar }) => {
+  const location = useLocation();
+  const getPageTitle = (pathname) => {
+    switch (pathname) {
+      case '/':
+        return 'Dashboard';
+      case '/users':
+        return 'Users';
+      case '/programs':
+        return 'Programs';
+      case '/departments':
+        return 'Departments';
+      case '/payments':
+        return 'Payments';
+      case '/remittance':
+        return 'Remittance';
+      case '/events':
+        return 'Events';
+      case '/settings':
+        return 'Settings';
+      default:
+        return 'Dashboard';
+    }
+  }
+
+
   return (
     <nav className="sticky top-0 z-30 w-full py-3 bg-white border-b border-gray-200 shadow-sm">
       <div
@@ -62,8 +87,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
 
         <div className="flex-1">
           <h1 className="text-xl font-semibold text-gray-800 lg:block">
-            {/* Dynamic title based on current route would go here */}
-            Users
+            {getPageTitle(location.pathname)}
           </h1>
         </div>
 

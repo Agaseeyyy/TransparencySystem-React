@@ -80,7 +80,7 @@ const Columns = ({ columns, data, title, showAdd, user }) => {
                           key={`${rowIndex}-${colIndex}`}
                           className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap"
                         >
-                          {column.render ? column.render(row[column.key], row) : row[column.key]}
+                          {column.render ? column.render(row[column.key], row) : (row[column.key])}
                         </td>
                       ))}
                     </tr>

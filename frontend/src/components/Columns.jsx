@@ -28,11 +28,11 @@ const Columns = ({ columns, data, title, showAdd, user }) => {
     <div className="min-h-screen p-6 bg-gray-100">
       <div className="p-6 mx-auto bg-white rounded-lg shadow-lg max-w-[1920px]">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold">All Users:</h1>
+          <h1 className="text-xl font-semibold">Total: {/*dynamic count*/}</h1>
           {user?.role === 'Admin' || user?.role === 'ORG_TREASURER' ? (
              <button
               id="addUserButton"
-              className="flex items-center px-4 py-2 text-white rounded-md bg-jpcsred hover:bg-jpcsred"
+              className="flex items-center px-4 py-2 text-white rounded-md bg-rose-700 hover:bg-rose-900"
               onClick={showAdd}
             >
              <svg

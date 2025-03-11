@@ -10,7 +10,7 @@ import jakarta.persistence.*;
 @Table(name = "departments")
 public class Departments {
   @Id
-  @Column(name = "department_id", nullable = false)
+  @Column(name = "department_id")
   private String departmentId;
 
   @Column(name = "department_name", nullable = false)
@@ -19,7 +19,7 @@ public class Departments {
   @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
   private List<Programs> programs;
 
-
+  // Constructors
   public Departments() {
   }
 
@@ -28,6 +28,7 @@ public class Departments {
     this.departmentName = departmentName;
   }
 
+  // Getters and Setters
   public String getDepartmentId() {
     return this.departmentId;
   }

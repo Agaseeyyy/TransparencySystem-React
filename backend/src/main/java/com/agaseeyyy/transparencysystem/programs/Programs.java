@@ -26,7 +26,7 @@ public class Programs {
     return department != null ? department.getDepartmentId() : null;
   }
 
-
+  // Constructors
   public Programs() {
   }
 
@@ -36,6 +36,7 @@ public class Programs {
     this.department = department;
   }
 
+  // Getters and Setters
   public String getProgramId() {
     return this.programId;
   }

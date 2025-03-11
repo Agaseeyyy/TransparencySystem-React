@@ -1,12 +1,14 @@
 
 
-const ActionButton = ({ row, onEdit, onDelete }) => {
+const ActionButton = ({ row, onEdit, onDelete, idField = 'id' }) => {
+  const rowId = row[idField]; 
+  
   return (
     <button
       className="relative text-gray-400 hover:text-gray-500"
       onClick={() => {
         // Toggle the actions menu
-        const actionMenu = document.getElementById(`actionMenu-${row.id}`);
+        const actionMenu = document.getElementById(`actionMenu-${rowId}`);
         actionMenu.classList.toggle("hidden");
       }}
     >
@@ -19,7 +21,7 @@ const ActionButton = ({ row, onEdit, onDelete }) => {
         <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
       </svg>
       <div
-        id={`actionMenu-${row.id}`}
+        id={`actionMenu-${rowId}`}
         className="absolute right-0 z-30 hidden w-48 mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-gray-200 ring-opacity-5 focus:outline-none"
         role="menu"
       >

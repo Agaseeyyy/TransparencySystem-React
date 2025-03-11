@@ -4,7 +4,6 @@ import java.time.LocalDate;
 
 import jakarta.persistence.*;
 
-
 @Entity
 @Table(name = "users")
 public class Users {
@@ -33,6 +32,7 @@ public class Users {
   @Column(name = "created_at", nullable = false)
   private LocalDate createdAt = LocalDate.now();
 
+  // Constructors
   public Users() {
   }
 
@@ -46,8 +46,7 @@ public class Users {
     this.password = password;
   }
 
-  
-
+  // Getters and Setters
   public Integer getUserId() {
     return this.userId;
   }
@@ -113,20 +112,7 @@ public class Users {
   }
 
   public enum Role {
-    Admin("ROLE_ADMIN"),
-    ORG_TREASURER("ROLE_ORG_TREASURER"),
-    CLASS_TREASURER("ROLE_CLASS_TREASURER");
+    Admin, Org_Treasurer, Class_TreasurerRER;
+  }
 
-    private final String value;
-
-    Role(String value) {
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
 }
-  
-}
-

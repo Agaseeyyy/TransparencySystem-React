@@ -20,7 +20,11 @@ const Department = () => {
       key: "actions",
       label: "Actions",
       render: (_, row) => (
-        <ActionButton row={row} onEdit={() => handleEdit(row)} onDelete={() => handleDelete(row.departmentId)} />
+        <ActionButton 
+          row={row} idField="departmentId" 
+          onEdit={() => handleEdit(row)} 
+          onDelete={() => handleDelete(row.departmentId)} 
+        />
       ),
     },
   ]

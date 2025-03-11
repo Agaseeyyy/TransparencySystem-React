@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import com.agaseeyyy.transparencysystem.departments.DepartmentRepository;
 import com.agaseeyyy.transparencysystem.departments.Departments;
 
+import jakarta.annotation.PostConstruct;
+
 
 
 @Service
@@ -55,6 +57,34 @@ public class ProgramService {
     }
     programRepository.deleteById(programId);
   }
+
+  @PostConstruct
+    public void initializeDefaultProgram() {
+        try {
+            if (programRepository.findById("BSIT").isEmpty()) {
+                // Get the CCS department first
+                Departments ccsDepartment = departmentRepository.findByDepartmentId("CCS");
+                
+                if (ccsDepartment != null) {
+                    Programs defaultProgram = new Programs();
+                    defaultProgram.setProgramId("BSIT");
+                    defaultProgram.setProgramName("BS Information Technology");
+                    defaultProgram.setDepartment(ccsDepartment);
+                    
+                    programRepository.save(defaultProgram);
+                    System.out.println("Default program (BSIT) created successfully!");
+                } else {
+                    System.out.println("Could not create default program: CCS department not found");
+                }
+            } else {
+                System.out.println("Default program (BSIT) already exists.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating default program: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
 
 
  

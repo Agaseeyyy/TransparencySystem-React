@@ -23,7 +23,11 @@ const Program = () => {
       key: "actions",
       label: "Actions",
       render: (_, row) => (
-        <ActionButton row={row} onEdit={() => handleEdit(row)} onDelete={() => handleDelete(row.programId)} />
+        <ActionButton 
+          row={row} idField="programId" 
+          onEdit={() => handleEdit(row)} 
+          onDelete={() => handleDelete(row.programId)} 
+        />
       ),
     },
   ]
@@ -74,7 +78,6 @@ const Program = () => {
       headers: { "Content-Type": "application/json" }
     })
     .then(() => {
-      console.log(saveFormData)
       fetchPrograms();
       closeModal();
     })
@@ -98,7 +101,7 @@ const Program = () => {
       .then(res => {
         fetchPrograms();
       })
-      .catch(err => console.log(err))
+      .catch(err => console.log(err.me))
   }
 
 

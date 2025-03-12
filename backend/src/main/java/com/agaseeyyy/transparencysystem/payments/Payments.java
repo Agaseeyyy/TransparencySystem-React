@@ -30,7 +30,50 @@ public class Payments {
     return student != null ? student.getStudentId() : null;
   }
 
+
+  public Payments() {
+  }
+
+  public Payments(Long paymentId, Status status, LocalDate paymentDate, Students student) {
+    this.paymentId = paymentId;
+    this.status = status;
+    this.paymentDate = paymentDate;
+    this.student = student;
+  }
+
+  public Long getPaymentId() {
+    return this.paymentId;
+  }
+
+  public void setPaymentId(Long paymentId) {
+    this.paymentId = paymentId;
+  }
+
+  public Status getStatus() {
+    return this.status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  public LocalDate getPaymentDate() {
+    return this.paymentDate;
+  }
+
+  public void setPaymentDate(LocalDate paymentDate) {
+    this.paymentDate = paymentDate;
+  }
+
+  public Students getStudent() {
+    return this.student;
+  }
+
+  public void setStudent(Students student) {
+    this.student = student;
+  }
+
   public enum Status{
-    Completed,  Pending, Overdue
+    Completed,  Pending, Overdue;
   } 
 }

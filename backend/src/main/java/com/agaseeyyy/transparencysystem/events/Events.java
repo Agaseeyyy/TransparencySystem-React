@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "events")
-public class Event {
+public class Events {
   @Id
   private Integer eventId;
 
@@ -23,10 +23,10 @@ public class Event {
   private LocalDate createdAt = LocalDate.now();
 
   // Constructors
-  public Event() {
+  public Events() {
   }
 
-  public Event(Integer eventId, String eventName, Double amountDue, LocalDate dueDate) {
+  public Events(Integer eventId, String eventName, Double amountDue, LocalDate dueDate) {
     this.eventId = eventId;
     this.eventName = eventName;
     this.amountDue = amountDue;

@@ -16,47 +16,55 @@ public class ProgramService {
   private final ProgramRepository programRepository;
   private final DepartmentRepository departmentRepository;
 
+  // Constructors
   public ProgramService(ProgramRepository programRepository, DepartmentRepository departmentRepository) {
     this.programRepository = programRepository;
     this.departmentRepository = departmentRepository;
   }
 
-  public List <Programs> getPrograms() {
+
+  // Named Methods and Business Logics
+  public List <Programs> getAllPrograms() {
     return programRepository.findAll();
   }
 
-  public Programs createProgramInDepartment(String departmentId, Programs program) {
-    Departments department = departmentRepository.findById(departmentId).orElse(null);
 
-    if (department == null) {
-      throw new RuntimeException("Department not found with id " + departmentId);
-    } 
+  public Programs addNewProgram(String departmentId, Programs program) {
+    if (program == null) {
+      throw new RuntimeException("Failed to add new program!");
+    }
+
+    Departments department = departmentRepository.findById(departmentId).orElseThrow(
+      () -> new RuntimeException("Department not found with id " + departmentId)
+    );
     program.setDepartment(department);
+    
     return programRepository.save(program);
   }
 
-  Programs editProgramInDepartment(String departmentId, Programs updatedProgram, String programId) {
-    Programs existingProgram = programRepository.findById(programId).orElse(null);
-    Departments updatedDepartment = departmentRepository.findById(departmentId).orElse(null);
 
-    if (existingProgram == null) {
-      throw new RuntimeException("Program not found with id " + programId);
-    }
-    if (updatedDepartment == null) {
-      throw new RuntimeException("Department not found with id " + departmentId);
-    }
+  Programs editProgram(String programId, String departmentId, Programs updatedProgram) {
+    Programs existingProgram = programRepository.findById(programId).orElseThrow(
+      () -> new RuntimeException("Program not found with id " + programId)
+    );
+    Departments updatedDepartment = departmentRepository.findById(departmentId).orElseThrow(
+      () ->  new RuntimeException("Department not found with id " + departmentId)
+    );
 
     existingProgram.setProgramName(updatedProgram.getProgramName());
     existingProgram.setDepartment(updatedDepartment);
     return programRepository.save(existingProgram);
   }
+  
 
   void deleteProgram(String programId) {
     if(!programRepository.existsById(programId)) {
       throw new RuntimeException("Program not found with id " + programId);
     }
+    
     programRepository.deleteById(programId);
   }
+  
 
   @PostConstruct
     public void initializeDefaultProgram() {

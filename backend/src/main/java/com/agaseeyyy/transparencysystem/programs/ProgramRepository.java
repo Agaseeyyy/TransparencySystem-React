@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProgramRepository extends JpaRepository<Programs, String> {
-  Programs findByDepartmentDepartmentId(String departmentId);
+
 }

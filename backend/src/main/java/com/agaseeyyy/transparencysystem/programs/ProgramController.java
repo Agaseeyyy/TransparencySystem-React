@@ -14,33 +14,36 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 
 @RestController
-@RequestMapping(path = "api/v1/")
+@RequestMapping(path = "/api/v1/programs")
 public class ProgramController {
   private final ProgramService programService;
 
+  // Constructors
   public ProgramController(ProgramService programService) {
     this.programService = programService;
   }
 
-  @GetMapping("/programs")
+
+  // REST APIs
+  @GetMapping
   public List <Programs> getPrograms() {
-    return programService.getPrograms();
+    return programService.getAllPrograms();
   }
 
-  @PostMapping("/departments/{departmentId}/programs")
+  @PostMapping("/departments/{departmentId}")
   public Programs addNewProgram(@PathVariable String departmentId,
                                 @RequestBody Programs program) {
-      return programService.createProgramInDepartment(departmentId, program);
+      return programService.addNewProgram(departmentId, program);
   }
   
-  @PutMapping("/departments/{departmentId}/programs/{programId}")
-  public Programs updateProgram(@PathVariable String departmentId, 
-                            @RequestBody Programs program, 
-                            @PathVariable String programId) {
-    return programService.editProgramInDepartment(departmentId, program, programId);
+  @PutMapping("/{programId}/departments/{departmentId}")
+  public Programs editProgram(@PathVariable String programId,
+                                @PathVariable String departmentId, 
+                                @RequestBody Programs program) {
+    return programService.editProgram(programId, departmentId, program);
   }
 
-  @DeleteMapping("/programs/{programId}")
+  @DeleteMapping("/{programId}")
   void deleteProgram(@PathVariable String programId) {
     programService.deleteProgram(programId);
   }

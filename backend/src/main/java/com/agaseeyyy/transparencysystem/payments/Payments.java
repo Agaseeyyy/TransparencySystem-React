@@ -2,50 +2,50 @@ package com.agaseeyyy.transparencysystem.payments;
 
 import java.time.LocalDate;
 
+import com.agaseeyyy.transparencysystem.fees.Fees;
 import com.agaseeyyy.transparencysystem.students.Students;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
-
+import jakarta.persistence.*;
+@Entity
+@Table(name = "payments")
 public class Payments {
   @Id
-  @Column(name = "payment_id")
-  private Long paymentId;
+  @Column(name = "payment_id", columnDefinition = "VARCHAR(40)")
+  private String paymentId;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   private Status status;
 
   @Column(name = "payment_date", nullable = false)
   private LocalDate paymentDate = LocalDate.now();
 
-  @ManyToMany
+  @ManyToOne
+  @JoinColumn(name = "fee_id", nullable = false)
+  private Fees fee;
+  // @JsonProperty("feeId")
+  // public 
+
+  @ManyToOne
   @JoinColumn(name = "student_id", nullable = false)
   private Students student;
-
   @JsonProperty("studentId")
   public Long getStudentId() {
     return student != null ? student.getStudentId() : null;
   }
 
-
+  // Constructors
   public Payments() {
   }
 
-  public Payments(Long paymentId, Status status, LocalDate paymentDate, Students student) {
-    this.paymentId = paymentId;
-    this.status = status;
-    this.paymentDate = paymentDate;
-    this.student = student;
-  }
-
-  public Long getPaymentId() {
+  
+  // Getters and Setters
+  public String getPaymentId() {
     return this.paymentId;
   }
 
-  public void setPaymentId(Long paymentId) {
+  public void setPaymentId(String paymentId) {
     this.paymentId = paymentId;
   }
 
@@ -65,6 +65,14 @@ public class Payments {
     this.paymentDate = paymentDate;
   }
 
+  public Fees getFee() {
+    return this.fee;
+  }
+
+  public void setFee(Fees fee) {
+    this.fee = fee;
+  }
+
   public Students getStudent() {
     return this.student;
   }
@@ -73,6 +81,8 @@ public class Payments {
     this.student = student;
   }
 
+  
+  // Enumerations
   public enum Status{
     Completed,  Pending, Overdue;
   } 

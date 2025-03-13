@@ -1,8 +1,10 @@
 package com.agaseeyyy.transparencysystem.students;
 
 import java.time.Year;
+import java.util.List;
 
 import com.agaseeyyy.transparencysystem.departments.Departments;
+import com.agaseeyyy.transparencysystem.payments.Payments;
 import com.agaseeyyy.transparencysystem.programs.Programs;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -51,6 +53,9 @@ public class Students {
     return program != null ? program.getDepartmentId() : null;
   }
 
+  @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private List <Payments> payments;
+
   // Constructors
   public Students() {
   }
@@ -66,6 +71,7 @@ public class Students {
     this.status = status;
     this.program = program;
   }
+
 
   // Getters and Setters
   public Long getStudentId() {
@@ -140,6 +146,8 @@ public class Students {
     this.program = program;
   }
 
+
+  // Enumerations
   public enum Status {
     Active, Inactive, Graduated
   }

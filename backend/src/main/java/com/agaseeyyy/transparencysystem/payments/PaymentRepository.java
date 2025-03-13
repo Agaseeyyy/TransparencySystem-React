@@ -1,7 +1,9 @@
 package com.agaseeyyy.transparencysystem.payments;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface PaymentRepository extends JpaRepository<Long, Payments> {
+@Repository
+public interface PaymentRepository extends JpaRepository<Payments, String> {
   
 }

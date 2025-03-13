@@ -35,6 +35,7 @@ public class Programs {
     this.programName = programName;
     this.department = department;
   }
+  
 
   // Getters and Setters
   public String getProgramId() {

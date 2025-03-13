@@ -14,28 +14,28 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 
 @RestController
-@RequestMapping(path = "/api/v1")
+@RequestMapping(path = "/api/v1/students")
 public class StudentController {
   private final StudentService studentService;
 
-  // Constructor
+  // Constructors
   public StudentController(StudentService studentService) {
     this.studentService = studentService;
   }
 
-  //REST API
-  @GetMapping("/students")
+  //REST APIs
+  @GetMapping
   public List <Students> displayAllStudents() {
     return studentService.getAllStudents();
   }
 
-  @PostMapping("/students/programs/{programId}")
+  @PostMapping("/programs/{programId}")
   public Students addNewStudent(@PathVariable String programId, 
                                 @RequestBody Students student) {
     return studentService.addNewStudent(student, programId);
   }
 
-  @PutMapping("/students/{studentId}/programs/{programId}")
+  @PutMapping("/{studentId}/programs/{programId}")
   public Students editStudent(@PathVariable Long studentId, 
                               @PathVariable String programId, 
                               @RequestBody Students student) {

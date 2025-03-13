@@ -15,7 +15,14 @@ function Users() {
   const [data, setData] = useState([]);
 
   const columns = [
-    { key: "full_name", label: "Full Name" },
+    { 
+      key: "fullName", label: "Full Name" ,
+      render: (_, row) => (
+        <span className="font-medium text-gray-900">
+          {`${row.lastName}, ${row.firstName} ${row.middleInitial || ''}.`}
+        </span>
+      )
+    },
     {
       key: "role",
       label: "Role",
@@ -34,7 +41,7 @@ function Users() {
     },
     { key: "email", label: "Email" },
     { 
-      key: "created_at", 
+      key: "createdAt", 
       label: "Created At",
       render: (date) => {
         const d = new Date(date);
@@ -49,7 +56,11 @@ function Users() {
       key: "actions",
       label: "Actions",
       render: (_, row) => (
-        <ActionButton row={row} onEdit={() => handleEdit(row)} onDelete={() => handleDelete(row.id)} />
+        <ActionButton 
+          row={row} idField="userId" 
+          onEdit={() => handleEdit(row)} 
+          onDelete={() => handleDelete(row.userId)} 
+        />
       ),
     },
   ];
@@ -92,23 +103,16 @@ function Users() {
     });
   };
 
-  const handleEdit = (user) => {
-    const [lastName, restOfName] = user.full_name.split(', ');
-    const matches = restOfName.match(/(.*) ([A-Z]\.)/);
-  
-    if (matches) {
-      const firstName = matches[1];  
-      const middleInitial = matches[2].replace('.', '');  
-      
+  const handleEdit = (user) => {   
       setEditingUser({
         id: user.id,
-        lastName: lastName,
-        firstName: firstName,
-        middleInitial: middleInitial,
+        lastName: user.lastName,
+        firstName: user.firstName,
+        middleInitial: user.middleInitial,
         email: user.email,
         role: user.role
       });
-    }
+    
     setModalMode('edit');
     setIsModalOpen(true);
   };

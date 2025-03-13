@@ -45,6 +45,7 @@ public class Users {
     this.email = email;
     this.password = password;
   }
+  
 
   // Getters and Setters
   public Integer getUserId() {

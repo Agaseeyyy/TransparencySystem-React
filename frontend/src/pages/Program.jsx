@@ -66,8 +66,8 @@ const Program = () => {
 
 
     const url = modalMode === 'edit' 
-      ? `http://localhost:8080/api/v1/departments/${saveFormData.departmentId}/programs/${editingProgram.programId}`
-      : `http://localhost:8080/api/v1/departments/${saveFormData.departmentId}/programs`;
+      ? `http://localhost:8080/api/v1/programs/${editingProgram.programId}/departments/${saveFormData.departmentId}`
+      : `http://localhost:8080/api/v1/programs/departments/${saveFormData.departmentId}`;
 
     const method = modalMode === 'edit' ? 'put' : 'post';
 

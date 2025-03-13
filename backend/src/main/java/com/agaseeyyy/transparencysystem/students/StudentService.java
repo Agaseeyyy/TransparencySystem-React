@@ -27,28 +27,27 @@ public class StudentService {
     return studentRepository.findAll();
   }
 
+
   public Students addNewStudent(Students newStudent, String programId) {
     Programs program = programRepository.findById(programId).orElse(null);
     
     if (program == null) {
       throw new RuntimeException("Program not found with id " + programId);
     }
+    
     newStudent.setProgram(program);
     return studentRepository.save(newStudent);
   }
 
+
   public Students editStudent(Students updatedStudent, Long studentId, String programId) {
-    Students existingStudent = studentRepository.findById(studentId).orElse(null);
-    if (existingStudent == null) {
-      throw new RuntimeException("Student not found with id " + studentId);
-    }
-
-    Programs program = programRepository.findById(programId).orElse(null);
-    if (program == null) {
-      throw new RuntimeException("Program not found with id " + programId);
-    }
-    updatedStudent.setProgram(program);
-
+    Students existingStudent = studentRepository.findById(studentId).orElseThrow(
+      () -> new RuntimeException("Student not found with id " + studentId)
+    );
+    Programs program = programRepository.findById(programId).orElseThrow(
+      () -> new RuntimeException("Program not found with id " + programId)
+    );
+  
     existingStudent.setLastName(updatedStudent.getLastName());
     existingStudent.setFirstName(updatedStudent.getFirstName());
     existingStudent.setMiddleInitial(updatedStudent.getMiddleInitial());
@@ -56,8 +55,11 @@ public class StudentService {
     existingStudent.setProgram(updatedStudent.getProgram());
     existingStudent.setYearLevel(updatedStudent.getYearLevel());
     existingStudent.setStatus(updatedStudent.getStatus());
+    existingStudent.setProgram(program);
+
     return studentRepository.save(updatedStudent);
   }
+
 
   public void deleteStudent(Long studentId) {
     if (!studentRepository.existsById(studentId)) {

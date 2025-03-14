@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
-import Columns from '../components/DataTable';
+import DataTable from '../components/DataTable';
 import ActionButton from '../components/ActionButton';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -134,7 +134,7 @@ const Student = () => {
 
   return (
     <>
-      <Columns 
+      <DataTable 
       columns={columns} 
       data={students}
       title={'student'}
@@ -175,7 +175,6 @@ const Student = () => {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {/* Student ID Field */}
               <div className="col-span-2">
                 <Label htmlFor="studentId">Student ID</Label>
                 <Input
@@ -188,7 +187,6 @@ const Student = () => {
                 />
               </div>
 
-              {/* Name Fields - Better arrangement */}
               <div className="col-span-1">
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input
@@ -213,7 +211,6 @@ const Student = () => {
                 />
               </div>
 
-              {/* Middle Initial and Email on the same row */}
               <div className="col-span-1">
                 <Label htmlFor="middleInitial">Middle Initial</Label>
                 <Input
@@ -239,7 +236,6 @@ const Student = () => {
                 />
               </div>
 
-              {/* Program and Status on the same row */}
               <div className="w-full col-span-1">
                 <Label htmlFor="programId">Program</Label>
                 <Select 
@@ -278,7 +274,6 @@ const Student = () => {
                 </Select>
               </div>
 
-              {/* Year Level and Section in one row */}
               <div className="w-full col-span-1">
                 <Label htmlFor="yearLevel">Year Level</Label>
                 <Select 

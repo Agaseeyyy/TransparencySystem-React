@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
-import Columns from '../components/DataTable';
+import DataTable from '../components/DataTable';
 import ActionButton from '../components/ActionButton';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -95,7 +95,7 @@ const Department = () => {
 
   return (
     <>
-      <Columns 
+      <DataTable 
         columns={columns} 
         data={data}
         title={'department'}

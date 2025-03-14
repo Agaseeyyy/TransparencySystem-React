@@ -10,7 +10,6 @@ import { Pencil, UserPlus } from "lucide-react"
 import axios from "axios"
 
 function Users() {
-  // Using a mock for useAuth since we don't have the actual implementation
   const { user } = { user: { role: "Admin" } }
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState("add")

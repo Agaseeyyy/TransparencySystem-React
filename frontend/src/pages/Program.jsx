@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
-import Columns from '../components/DataTable';
-import FormField from '../components/FormField';
-import SelectField from '../components/SelectField';
+import DataTable from '../components/DataTable';
 import ActionButton from '../components/ActionButton';
-import Modal from '../components/Modal';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -113,7 +110,7 @@ const Program = () => {
 
   return (
     <>
-      <Columns 
+      <DataTable 
       columns={columns} 
       data={programs}
       title={'program'}

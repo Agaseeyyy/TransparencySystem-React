@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
-import Columns from '../components/Columns';
-import FormField from '../components/FormField';
-import SelectField from '../components/SelectField';
+import Columns from '../components/DataTable';
 import ActionButton from '../components/ActionButton';
-import Modal from '../components/Modal';
 import axios from 'axios';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UserPlus, Pencil } from "lucide-react";
 
 const Student = () => {
   const { user } = useAuth();
@@ -97,7 +100,6 @@ const Student = () => {
       headers: { "Content-Type": "application/json" }
     })
     .then(() => {
-      console.log(saveFormData)
       fetchStudents();
       closeModal();
     })
@@ -143,149 +145,190 @@ const Student = () => {
       user={user}
       />
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={modalMode === 'add' ? 'Add Student' : 'Edit Student'}>
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            {/* Student ID Field */}
-            <div className="col-span-2">
-              <FormField
-                label="Student ID"
-                id="studentId"
-                defaultValue={editingStudent?.studentId || ''}
-                placeholder="231000000"
-                required
-                index={0}
-              />
-            </div>
+      <Dialog 
+        open={isModalOpen} 
+        onOpenChange={(open) => {
+          if (!open) closeModal();
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {modalMode === "add" ? (
+                <div className="flex items-center text-rose-600">
+                  <UserPlus className="w-5 h-5 mr-2 text-rose-600" />
+                  Add Student
+                </div>
+              ) : (
+                <div className="flex items-center text-rose-600">
+                  <Pencil className="w-5 h-5 mr-2 text-rose-600" />
+                  Edit Student
+                </div>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {modalMode === "add" 
+                ? "Fill in the details to create a new student record."
+                : "Make changes to update the student record."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Student ID Field */}
+              <div className="col-span-2">
+                <Label htmlFor="studentId">Student ID</Label>
+                <Input
+                  id="studentId"
+                  name="studentId"
+                  defaultValue={editingStudent?.studentId || ''}
+                  placeholder="231000000"
+                  className="mt-1"
+                  required
+                />
+              </div>
 
-            {/* Name Fields */}
-            <div className="col-span-2 md:col-span-1">
-              <FormField
-                label="Last Name"
-                id="lastName"
-                defaultValue={editingStudent?.lastName || ''}
-                placeholder="Dela Cruz"
-                required
-                index={1}
-              />
-            </div>
-            <div className="col-span-2 md:col-span-1">
-              <FormField
-                label="First Name"
-                id="firstName"
-                defaultValue={editingStudent?.firstName || ''}
-                placeholder="Juan"
-                required
-                index={2}
-              />
-            </div>
-            <div className="col-span-2 md:col-span-1">
-              <FormField
-                label="Middle Initial"
-                id="middleInitial"
-                defaultValue={editingStudent?.middleInitial || ''}
-                placeholder="D"
-                maxLength={1}
-                index={3}
-              />
-            </div>
+              {/* Name Fields - Better arrangement */}
+              <div className="col-span-1">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  defaultValue={editingStudent?.lastName || ''}
+                  placeholder="Dela Cruz"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              
+              <div className="col-span-1">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  defaultValue={editingStudent?.firstName || ''}
+                  placeholder="Juan"
+                  className="mt-1"
+                  required
+                />
+              </div>
 
-            {/* Email Field */}
-            <div className="col-span-2">
-              <FormField
-                label="Email"
-                id="email"
-                type="email"
-                defaultValue={editingStudent?.email || ''}
-                placeholder="juan.delacruz@my.cspc.edu.ph"
-                required
-                index={4}
-              />
-            </div>
+              {/* Middle Initial and Email on the same row */}
+              <div className="col-span-1">
+                <Label htmlFor="middleInitial">Middle Initial</Label>
+                <Input
+                  id="middleInitial"
+                  name="middleInitial"
+                  defaultValue={editingStudent?.middleInitial || ''}
+                  placeholder="D"
+                  className="mt-1"
+                  maxLength={1}
+                />
+              </div>
+              
+              <div className="col-span-1">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  defaultValue={editingStudent?.email || ''}
+                  placeholder="juan.delacruz@student.edu.ph"
+                  className="mt-1"
+                  required
+                />
+              </div>
 
-            {/* Program Selection */}
-            <div className="col-span-2">
-              <SelectField
-                label="Program"
-                id="programId"
-                defaultValue={editingStudent?.program || ''}
-                required
-                index={5}
-                options={[
-                  { value: "", label: "Select program" },
-                  ...programs.map(prog => ({
-                    value: prog.programId,
-                    label: prog.programName
-                  }))
-                ]}
-              />
-            </div>
+              {/* Program and Status on the same row */}
+              <div className="w-full col-span-1">
+                <Label htmlFor="programId">Program</Label>
+                <Select 
+                  name="programId" 
+                  defaultValue={editingStudent?.program || ''}
+                  required
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select program" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {programs.map(prog => (
+                      <SelectItem key={prog.programId} value={prog.programId}>
+                        {prog.programName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="w-full col-span-1">
+                <Label htmlFor="status">Status</Label>
+                <Select 
+                  name="status" 
+                  defaultValue={editingStudent?.status || ''}
+                  required
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Graduated">Graduated</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Year Level Selection */}
-            <div className="col-span-1">
-              <SelectField
-                label="Year Level"
-                id="yearLevel"
-                defaultValue={editingStudent?.yearLevel || ''}
-                required
-                index={6}
-                options={[
-                  { value: "", label: "Select year" },
-                  { value: "1", label: "1st Year" },
-                  { value: "2", label: "2nd Year" },
-                  { value: "3", label: "3rd Year" },
-                  { value: "4", label: "4th Year" }
-                ]}
-              />
+              {/* Year Level and Section in one row */}
+              <div className="w-full col-span-1">
+                <Label htmlFor="yearLevel">Year Level</Label>
+                <Select 
+                  name="yearLevel" 
+                  defaultValue={editingStudent?.yearLevel || ''}
+                  required
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1st Year</SelectItem>
+                    <SelectItem value="2">2nd Year</SelectItem>
+                    <SelectItem value="3">3rd Year</SelectItem>
+                    <SelectItem value="4">4th Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="w-full col-span-1">
+                <Label htmlFor="section">Section</Label>
+                <Select 
+                  name="section" 
+                  defaultValue={editingStudent?.section || ''}
+                  required
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['A','B','C','D','E','F','G','H','I','J'].map(letter => (
+                      <SelectItem key={letter} value={letter}>{letter}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-
-            {/* Section Selection */}
-            <div className="col-span-1">
-              <SelectField
-                label="Section"
-                id="section"
-                defaultValue={editingStudent?.section || ''}
-                required
-                index={7}
-                options={[
-                  { value: "", label: "Select section" },
-                  ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(letter => ({
-                    value: letter,
-                    label: `Section ${letter}`
-                  }))
-                ]}
-              />
-            </div>
-
-            {/* Status Selection */}
-            <div className="col-span-2">
-              <SelectField
-                label="Status"
-                id="status"
-                defaultValue={editingStudent?.status || ''}
-                required
-                index={8}
-                options={[
-                  { value: "", label: "Select status" },
-                  { value: "Active", label: "Active" },
-                  { value: "Inactive", label: "Inactive" },
-                  { value: "Graduated", label: "Graduated" }
-                ]}
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="text-white inline-flex items-center bg-jpcsred hover:bg-jpcsred focus:ring-4 focus:outline-none focus:ring-jpcsred font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-jpcsred dark:hover:bg-jpcsred dark:focus:ring-jpcsred transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] animate-fade-in-up"
-            style={{ animationDelay: '300ms' }}
-          >
-            {modalMode === 'add' ? 'Add Student' : 'Save Changes'}
-          </button>
-        </form>
-      </Modal>
+            <DialogFooter className="flex justify-end gap-2 mt-6">
+              <Button type="button" className="cursor-pointer" variant="outline" onClick={closeModal}>
+                Cancel
+              </Button>
+              <Button type="submit" className="cursor-pointer bg-rose-600 hover:bg-rose-600/90">
+                {modalMode === "add" ? "Add Student" : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
 
-export default Student
+export default Student;

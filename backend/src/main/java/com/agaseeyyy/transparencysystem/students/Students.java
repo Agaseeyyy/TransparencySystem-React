@@ -72,6 +72,11 @@ public class Students {
     this.program = program;
   }
 
+   // Enumerations
+   public enum Status {
+    Active, Inactive, Graduated
+  }
+
 
   // Getters and Setters
   public Long getStudentId() {
@@ -147,10 +152,7 @@ public class Students {
   }
 
 
-  // Enumerations
-  public enum Status {
-    Active, Inactive, Graduated
-  }
+ 
 }
 
 

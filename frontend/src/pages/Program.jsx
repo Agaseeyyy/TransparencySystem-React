@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthProvider';
-import Columns from '../components/Columns';
+import Columns from '../components/DataTable';
 import FormField from '../components/FormField';
 import SelectField from '../components/SelectField';
 import ActionButton from '../components/ActionButton';
 import Modal from '../components/Modal';
 import axios from 'axios';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { FolderPlus, Pencil } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const Program = () => {
   const { user } = useAuth();
@@ -117,56 +123,85 @@ const Program = () => {
       }} 
       user={user}
       />
-
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={modalMode === 'add' ? 'Add Program' : 'Edit Program'}>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 mb-4">
-            <div className="col-span-2">
-              <FormField
-                label="Program ID"
-                id="programId"
-                defaultValue={editingProgram?.programId || ''}
-                placeholder="e.g. BSIT, BSCS, etc"
-                required
-                index={0}
-              />
+      <Dialog 
+        open={isModalOpen} 
+        onOpenChange={(open) => {
+          if (!open) closeModal();
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {modalMode === "add" ? (
+                <div className="flex items-center text-rose-600">
+                  <FolderPlus className="w-5 h-5 mr-2 text-rose-600" />
+                  Add Program
+                </div>
+              ) : (
+                <div className="flex items-center text-rose-600">
+                  <Pencil className="w-5 h-5 mr-2 text-rose-600" />
+                  Edit Program
+                </div>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {modalMode === "add" 
+                ? "Fill in the details to create a new program."
+                : "Make changes to update the program."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <Label htmlFor="programId">Program ID</Label>
+                <Input
+                  id="programId"
+                  name="programId"
+                  defaultValue={editingProgram?.programId || ""}
+                  placeholder="e.g. BSIT, BSCS, etc"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="programName">Program Name</Label>
+                <Input
+                  id="programName"
+                  name="programName"
+                  defaultValue={editingProgram?.programName || ""}
+                  placeholder="e.g. BS Information Technology"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="departmentId">Department</Label>
+                <Select name="departmentId" defaultValue={editingProgram?.departmentId || ""} required>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map(dept => (
+                      <SelectItem key={dept.departmentId} value={dept.departmentId}>
+                        {dept.departmentName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="col-span-2">
-              <FormField
-                label="Program Name"
-                id="programName"
-                defaultValue={editingProgram?.programName || ''}
-                placeholder="e.g. BS Information Technology"
-                required
-                index={1}
-              />
-            </div>
-            <div className="col-span-2">
-              <SelectField
-                label="Department"
-                id="departmentId"
-                defaultValue={editingProgram?.departmentId || ''}
-                required
-                index={2}
-                options={[
-                  { value: "", label: "Select department" },
-                  ...departments.map(dept => ({
-                    value: dept.departmentId,
-                    label: dept.departmentName
-                  }))
-                ]}
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="text-white inline-flex items-center bg-jpcsred hover:bg-jpcsred focus:ring-4 focus:outline-none focus:ring-jpcsred font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-jpcsred dark:hover:bg-jpcsred dark:focus:ring-jpcsred transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] animate-fade-in-up"
-            style={{ animationDelay: '300ms' }}
-          >
-            {modalMode === 'add' ? 'Add Program' : 'Save Changes'}
-          </button>
-        </form>
-      </Modal>
+            <DialogFooter className="flex justify-end gap-2 mt-6">
+              <Button type="button" className="cursor-pointer" variant="outline" onClick={closeModal}>
+                Cancel
+              </Button>
+              <Button type="submit" className="cursor-pointer bg-rose-600 hover:bg-rose-600/90">
+                {modalMode === "add" ? "Add Program" : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

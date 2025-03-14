@@ -16,7 +16,7 @@ const Layout = () =>{
       <Navbar collapsed={collapsed} toggleSidebar={toggleSidebar} />
       <Sidebar collapsed={collapsed} />
       <div className={`transition-all duration-300 ${collapsed ? "lg:ml-20" : "lg:ml-64"}`}>
-        <main className="min-h-screen bg-gray-100">
+        <main className="min-h-screen p-5 bg-gray-100">
           <Outlet />
         </main>
         <Footer />

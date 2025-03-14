@@ -11,6 +11,8 @@ import LoginPage from './pages/Login';
 import { AuthProvider } from './context/AuthProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import Program from './pages/Program';
+import Fees from './pages/Fees';
+import Payments from './pages/Payments';
 
 
 const App =() => {
@@ -25,10 +27,10 @@ const App =() => {
           element: <ProtectedRoute /> ,
           children: [
             { path: '/dashboard', element: <Dashboard /> },
-            { path: '/payments', element: <></> },
+            { path: '/payments', element: <Payments /> },
             { path: '/students', element: <Student /> },
             { path: '/remittance', element: <></> },
-            { path: '/events', element: <></> },
+            { path: '/fees', element: <Fees/> },
             { path: '/programs', element: <Program /> },
             { path: '/departments', element: <Department /> },
             { path: '/users', element: <Users /> },

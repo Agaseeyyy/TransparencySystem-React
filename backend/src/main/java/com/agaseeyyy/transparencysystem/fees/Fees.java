@@ -11,8 +11,8 @@ public class Fees {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer feeId;
 
-  @Column(name = "name", nullable = false)
-  private String name;
+  @Column(name = "fee_type", nullable = false)
+  private String feeType;
 
   @Column(name = "amount", nullable = false)
   private Double amount;
@@ -27,9 +27,9 @@ public class Fees {
   public Fees() {
   }
 
-  public Fees(Integer feeId, String name, Double amount, LocalDate dueDate, LocalDate createdAt) {
+  public Fees(Integer feeId, String feeType, Double amount, LocalDate dueDate, LocalDate createdAt) {
     this.feeId = feeId;
-    this.name = name;
+    this.feeType = feeType;
     this.amount = amount;
     this.dueDate = dueDate;
     this.createdAt = createdAt;
@@ -45,12 +45,12 @@ public class Fees {
     this.feeId = feeId;
   }
 
-  public String getName() {
-    return this.name;
+  public String getFeeType() {
+    return this.feeType;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setFeeType(String feeType) {
+    this.feeType = feeType;
   }
 
   public Double getAmount() {

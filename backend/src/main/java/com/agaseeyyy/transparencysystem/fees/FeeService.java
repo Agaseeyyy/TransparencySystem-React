@@ -35,7 +35,7 @@ public class FeeService {
       () -> new RuntimeException("Fee not found with id " + feeId)
     );
 
-    existingFee.setName(updatedFee.getName());
+    existingFee.setFeeType(updatedFee.getFeeType());
     existingFee.setAmount(updatedFee.getAmount());
     existingFee.setDueDate(updatedFee.getDueDate());
 
@@ -57,13 +57,13 @@ public class FeeService {
             if (feeRepository.count() == 0) {
                 // Create default fees
                 Fees membershipFee = new Fees();
-                membershipFee.setName("JPCS Membership Fee");
+                membershipFee.setFeeType("JPCS Membership Fee");
                 membershipFee.setAmount(150.00);
                 membershipFee.setDueDate(LocalDate.now().plusMonths(1));
                 feeRepository.save(membershipFee);
 
                 Fees semestralFee = new Fees();
-                semestralFee.setName("JPCS Semestral Fee");
+                semestralFee.setFeeType("JPCS Semestral Fee");
                 semestralFee.setAmount(250.00);
                 semestralFee.setDueDate(LocalDate.now().plusMonths(1));
                 feeRepository.save(semestralFee);

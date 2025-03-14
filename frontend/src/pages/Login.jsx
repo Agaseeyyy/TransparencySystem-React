@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import bg from '../assets/bg.png'
+import jpcs from '../assets/jpcs.png';
 import { useAuth } from '../context/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 
@@ -62,7 +63,7 @@ const LoginPage = () => {
           {/* Logo and title */}
           <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-white">
             <img
-              src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/352989952_643047974523812_4941044588117788236_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeFJ7pZTJHYbhZctPoH16gc3lIqKag6D6ryUiopqDoPqvBbvJgj1OKVfqIEqsRSr5zhsptB6Ny9ChXusYC-uf4x_&_nc_ohc=V-gG8iZdpycQ7kNvgE3mYsx&_nc_oc=AdgtqZ3NtqjH16vvYDp9RLa2Y4TAbObvvGg6jOX6zQXmAN7DHDrtoS9dozdQiCLCu98&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=Axuu8HmpdcwyEWW5afi6LEO&oh=00_AYDlpm5TfgCqUo28qp_cFiIcr0FGdQm9NiaUx2RXrrlIHg&oe=67C24BAD"
+              src={jpcs}
               className="h-6 rounded-full me-3 sm:h-7"
               alt="Org Logo"
             />

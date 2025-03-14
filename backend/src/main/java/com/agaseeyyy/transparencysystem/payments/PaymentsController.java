@@ -37,9 +37,9 @@ public class PaymentsController {
   
   @PutMapping("/{paymentId}/fees/{feeId}/students/{studentId}")
   public Payments editPayment(@PathVariable String paymentId,
-                                @PathVariable Integer feeId,
-                                @PathVariable Long studentId,
-                                @RequestBody Payments payment) {
+                              @PathVariable Integer feeId,
+                              @PathVariable Long studentId,
+                              @RequestBody Payments payment) {
     return paymentService.editPayment(paymentId, feeId, studentId, payment);
   }
 

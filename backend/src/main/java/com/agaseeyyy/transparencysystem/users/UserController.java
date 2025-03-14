@@ -17,8 +17,9 @@ public class UserController {
   
 
   // Constructors
-  public UserController(UserService userService) {
+  public UserController(UserService userService, PasswordEncoder passwordEncoder) {
     this.userService = userService;
+    this.passwordEncoder = passwordEncoder;
   }
 
 

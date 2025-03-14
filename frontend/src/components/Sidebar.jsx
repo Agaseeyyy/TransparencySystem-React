@@ -1,4 +1,5 @@
 import profile from "../assets/profile.webp"
+import jpcs from '../assets/jpcs.png';
 import { useAuth } from "../context/AuthProvider"
 import { Link, useLocation } from "react-router-dom"
 import { 
@@ -43,8 +44,8 @@ const Sidebar = ({ collapsed }) => {
       icon: <CircleDollarSign className="w-5 h-5" />,
     },
     {
-      title: "Events",
-      path: "/events",
+      title: "Fees",
+      path: "/fees",
       icon: <Calendar className="w-5 h-5" />,
     },
     {
@@ -84,7 +85,7 @@ const Sidebar = ({ collapsed }) => {
           <div className={`flex items-center ${collapsed ? "" : ""}`}>
             <div className={`${collapsed ? "w-8 h-8" : "mr-3 w-10 h-10"}`}>
             <img
-              src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/352989952_643047974523812_4941044588117788236_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeFJ7pZTJHYbhZctPoH16gc3lIqKag6D6ryUiopqDoPqvBbvJgj1OKVfqIEqsRSr5zhsptB6Ny9ChXusYC-uf4x_&_nc_ohc=V-gG8iZdpycQ7kNvgE3mYsx&_nc_oc=AdgtqZ3NtqjH16vvYDp9RLa2Y4TAbObvvGg6jOX6zQXmAN7DHDrtoS9dozdQiCLCu98&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=Axuu8HmpdcwyEWW5afi6LEO&oh=00_AYDlpm5TfgCqUo28qp_cFiIcr0FGdQm9NiaUx2RXrrlIHg&oe=67C24BAD"
+              src={jpcs}
               className="rounded-full mr-3 sm:h-7`"
               alt="Org Logo"
             />

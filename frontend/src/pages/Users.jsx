@@ -10,12 +10,15 @@ import { Pencil, UserPlus } from "lucide-react"
 import axios from "axios"
 
 function Users() {
+  // State hooks
   const { user } = { user: { role: "Admin" } }
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState("add")
   const [editingUser, setEditingUser] = useState(null)
   const [data, setData] = useState([])
+  const [students, setStudents] = useState([]);
 
+  // Table columns definition
   const columns = [
     {
       key: "fullName",
@@ -62,6 +65,7 @@ function Users() {
     },
   ]
 
+  // Data fetching functions
   const fetchUsers = () => {
     axios
       .get("http://localhost:8080/api/v1/users")
@@ -71,19 +75,42 @@ function Users() {
       .catch((err) => console.log(err))
   }
 
+  const fetchStudents = () => {
+    axios.get('http://localhost:8080/api/v1/students')
+      .then(res => {
+        setStudents(res.data)
+      })  
+      .catch(err => console.log(err))
+  };
+
+  // Side effects (useEffect hooks)
   useEffect(() => {
     fetchUsers()
   }, [])
 
+  // Modal state management functions
+  const handleAdd = () => {
+    fetchStudents()
+    setModalMode("add")
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setModalMode("add")
+    setEditingUser(null)
+    setStudents([])
+  }
+
+  // Event handlers
   const handleSubmit = (e) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const userData = Object.fromEntries(formData.entries())
-    console.log(userData)
-    const url =
-      modalMode === "edit"
-        ? `http://localhost:8080/api/v1/users/${editingUser?.id}`
-        : "http://localhost:8080/api/v1/users"
+    
+    const url = modalMode === "edit"
+      ? `http://localhost:8080/api/v1/users/${editingUser?.id}`
+      : `http://localhost:8080/api/v1/users/${userData.studentId}`
 
     const method = modalMode === "edit" ? "put" : "post"
 
@@ -103,6 +130,7 @@ function Users() {
   }
 
   const handleEdit = (user) => {
+    fetchStudents()
     setEditingUser({
       id: user.userId,
       lastName: user.lastName,
@@ -111,15 +139,8 @@ function Users() {
       email: user.email,
       role: user.role,
     })
-
     setModalMode("edit")
     setIsModalOpen(true)
-  }
-
-  const closeModal = () => {
-    setIsModalOpen(false)
-    setModalMode("add")
-    setEditingUser(null)
   }
 
   const handleDelete = (id) => {
@@ -130,17 +151,15 @@ function Users() {
       })
       .catch((err) => console.log(err))
   }
-
+  
+  // Component render
   return (
     <>
       <DataTable
         columns={columns}
         data={data}
         title="user"
-        showAdd={() => {
-          setModalMode("add")
-          setIsModalOpen(true)
-        }}
+        showAdd={handleAdd}
         user={user}
       />
     
@@ -173,37 +192,29 @@ function Users() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  defaultValue={editingUser?.lastName || ""}
-                  placeholder="Doe"
-                  className="mt-1"
+                <Label htmlFor="studentId">Student</Label>
+                <Select
+                  name="studentId"
+                  value={editingUser?.studentId ? String(editingUser.studentId) : ""}
+                  onValueChange={(value) => {
+                    setEditingUser(prev => ({
+                      ...prev || {}, 
+                      studentId: value
+                    }));
+                  }}
                   required
-                />
-              </div>
-              <div className="col-span-1">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  defaultValue={editingUser?.firstName || ""}
-                  placeholder="John"
-                  className="mt-1"
-                  required
-                />
-              </div>
-              <div className="col-span-1">
-                <Label htmlFor="middleInitial">Middle Initial</Label>
-                <Input
-                  id="middleInitial"
-                  name="middleInitial"
-                  defaultValue={editingUser?.middleInitial || ""}
-                  placeholder="C"
-                  className="mt-1"
-                  maxLength={1}
-                />
+                >
+                  <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Select student" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map(student => (
+                      <SelectItem key={student.studentId} value={String(student.studentId)}>
+                        {student.lastName}, {student.firstName} {student.middleInitial || ''}.  ({student.studentId})               
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="col-span-2">
                 <Label htmlFor="email">Email</Label>

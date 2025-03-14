@@ -3,9 +3,12 @@ package com.agaseeyyy.transparencysystem.students;
 import java.time.Year;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
+
 import com.agaseeyyy.transparencysystem.departments.Departments;
 import com.agaseeyyy.transparencysystem.payments.Payments;
 import com.agaseeyyy.transparencysystem.programs.Programs;
+import com.agaseeyyy.transparencysystem.users.Users;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
@@ -43,18 +46,11 @@ public class Students {
   @JoinColumn(name = "program_id")
   private Programs program;
 
-  @JsonProperty("program")
-  public String getProgramId() {
-    return program != null ? program.getProgramId() : null;
-  }
-
-  @JsonProperty("department")
-  public String getDepartmentId() {
-    return program != null ? program.getDepartmentId() : null;
-  }
-
   @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List <Payments> payments;
+
+  @OneToOne(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private Users user;
 
   // Constructors
   public Students() {
@@ -151,7 +147,32 @@ public class Students {
     this.program = program;
   }
 
+  public List<Payments> getPayments() {
+    return this.payments;
+  }
 
+  public void setPayments(List<Payments> payments) {
+    this.payments = payments;
+  }
+
+  public Users getUser() {
+    return this.user;
+  }
+
+  public void setUser(Users user) {
+    this.user = user;
+  }
+
+  // Json Properties
+  @JsonProperty("program")
+  public String getProgramId() {
+    return program != null ? program.getProgramId() : null;
+  }
+
+  @JsonProperty("department")
+  public String getDepartmentId() {
+    return program != null ? program.getDepartmentId() : null;
+  }
  
 }
 

@@ -2,24 +2,21 @@ package com.agaseeyyy.transparencysystem.users;
 
 import java.time.LocalDate;
 
+import com.agaseeyyy.transparencysystem.students.Students;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties("student")
 public class Users {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer userId;
 
-  @Column(name = "last_name", nullable = false)
-  private String lastName;
-
-  @Column(name = "first_name", nullable = false)
-  private String firstName;
-
-  @Column(name = "middle_initial", nullable = true)
-  private char middleInitial;
-  
+ 
   @Enumerated(EnumType.STRING)
   private Role role;
 
@@ -32,18 +29,25 @@ public class Users {
   @Column(name = "created_at", nullable = false)
   private LocalDate createdAt = LocalDate.now();
 
+  @OneToOne
+  @JoinColumn(name = "student_id")
+  private Students student;
+
   // Constructors
   public Users() {
   }
 
-  public Users(Integer userId, String firstName, String lastName, char middleInitial, Role role, String email, String password) {
+  // Enumerated Role
+  public enum Role {
+    Admin, Org_Treasurer, Class_Treasurer;
+  }
+
+  public Users(Integer userId, Role role, String email, String password, LocalDate createdAt) {
     this.userId = userId;
-    this.lastName = lastName;
-    this.firstName = firstName;
-    this.middleInitial = middleInitial;
     this.role = role;
     this.email = email;
     this.password = password;
+    this.createdAt = createdAt;
   }
   
 
@@ -54,30 +58,6 @@ public class Users {
 
   public void setUserId(Integer userId) {
     this.userId = userId;
-  }
-
-  public String getFirstName() {
-    return this.firstName;
-  }
-
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
-
-  public String getLastName() {
-    return this.lastName;
-  }
-
-  public void setLastName(String lastName) {
-    this.lastName = lastName;
-  }
-
-  public char getMiddleInitial() {
-    return this.middleInitial;
-  }
-
-  public void setMiddleInitial(char middleInitial) {
-    this.middleInitial = middleInitial;
   }
 
   public Role getRole() {
@@ -112,8 +92,40 @@ public class Users {
     this.createdAt = createdAt;
   }
 
-  public enum Role {
-    Admin, Org_Treasurer, Class_TreasurerRER;
+  public Students getStudent() {
+    return this.student;
   }
+
+  public void setStudent(Students student) {
+    this.student = student;
+  }
+
+  // Json Properties
+  @JsonProperty("firstName")
+  public String getFirstName() {
+    return student != null ? student.getFirstName() : null;
+  }
+
+  @JsonProperty("lastName")
+  public String getLastName() {
+    return student != null ? student.getLastName() : null;
+  }
+
+  @JsonProperty("middleInitial")
+  public Character getMiddleInitial() {
+    return student != null ? student.getMiddleInitial() : null;
+  }
+
+  @JsonProperty("studentId")
+  public Long getStudentId() {
+    return student != null ? student.getStudentId() : null;
+  }
+
+  @JsonProperty("section")
+  public Character getSection() {
+    return student != null ? student.getSection() : null;
+  }
+
+ 
 
 }

@@ -4,17 +4,17 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RestController
-@RequestMapping(path = "api/v1/users")
+@RequestMapping(path = "/api/v1/users")
 public class UserController {
   private final UserService userService;
   private PasswordEncoder passwordEncoder;
-  
 
   // Constructors
   public UserController(UserService userService, PasswordEncoder passwordEncoder) {
@@ -53,9 +53,9 @@ public class UserController {
 
 
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-  @PostMapping
-  public void addNewUser(@RequestBody Users user) {
-    userService.addNewUser(user);
+  @PostMapping("/{studentId}")
+  public void addNewUser(@PathVariable Long studentId, @RequestBody Users user) {
+    userService.addNewUser(studentId, user);
   }
 
   @PreAuthorize("hasAnyRole('ROLE_ADMIN')")

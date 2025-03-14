@@ -1,24 +1,28 @@
 package com.agaseeyyy.transparencysystem.users;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.agaseeyyy.transparencysystem.students.StudentRepository;
+import com.agaseeyyy.transparencysystem.students.Students;
+
 import jakarta.annotation.PostConstruct;
 
 @Service
 public class UserService {
   private final UserRepository userRepository;
+  private final StudentRepository studentRepository;
   private final PasswordEncoder passwordEncoder;
     
   // Constructors
-  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+  public UserService(UserRepository userRepository, StudentRepository studentRepository, PasswordEncoder passwordEncoder) {
     this.passwordEncoder = passwordEncoder;
     this.userRepository = userRepository;
+    this.studentRepository = studentRepository;
   }
 
 
@@ -40,13 +44,18 @@ public class UserService {
   }
 
 
-  public Users addNewUser(Users user) {
-    if (user == null) {
-        throw new RuntimeException("Failed to add user!");
+  public Users addNewUser(Long studentId, Users newUser) {
+    Students student = studentRepository.findById(studentId).orElseThrow(
+      () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student with id " + studentId + " does not exist")
+    );
+
+    if(userRepository.existsByEmail(newUser.getEmail())) {
+      throw new RuntimeException("newUser with email " + newUser.getEmail() + " already exists");
     }
 
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    return userRepository.save(user);
+    newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+    newUser.setStudent(student);
+    return userRepository.save(newUser);
   }
 
 
@@ -54,10 +63,7 @@ public class UserService {
     Users existingUser = userRepository.findById(userId).orElseThrow(
       () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with id " + userId + " does not exist")
     );
-            
-    existingUser.setFirstName(updatedUser.getFirstName());
-    existingUser.setLastName(updatedUser.getLastName());
-    existingUser.setMiddleInitial(updatedUser.getMiddleInitial());
+
     existingUser.setEmail(updatedUser.getEmail());
     existingUser.setRole(updatedUser.getRole());
 
@@ -81,9 +87,7 @@ public class UserService {
     
     if (existingAdmin == null) {
       Users admin = new Users();
-      admin.setFirstName("Administrator");
-      admin.setLastName("System");
-      admin.setMiddleInitial('A');
+
       admin.setEmail("admin@admin.com");
       String rawPassword = "admin123";
       String encodedPassword = passwordEncoder.encode(rawPassword);

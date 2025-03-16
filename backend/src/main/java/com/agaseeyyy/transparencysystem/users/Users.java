@@ -36,6 +36,10 @@ public class Users {
   // Constructors
   public Users() {
   }
+  public Users(String email, String password) {
+    this.email = email;
+    this.password = password;
+  }
 
   // Enumerated Role
   public enum Role {

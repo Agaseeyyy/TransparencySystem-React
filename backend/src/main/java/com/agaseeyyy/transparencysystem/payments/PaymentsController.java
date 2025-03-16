@@ -1,14 +1,9 @@
 package com.agaseeyyy.transparencysystem.payments;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
 
 
 @RestController
@@ -24,6 +19,7 @@ public class PaymentsController {
   
   // REST APIs
   @GetMapping
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
   public List <Payments> displayAllPayments() {
       return paymentService.getAllPayments();
   }

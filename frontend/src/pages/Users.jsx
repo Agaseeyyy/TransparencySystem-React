@@ -68,12 +68,18 @@ function Users() {
 
   // Data fetching functions
   const fetchUsers = () => {
-    axios
-      .get("http://localhost:8080/api/v1/users")
-      .then((res) => {
-        setData(res.data)
+    axios.get('http://localhost:8080/api/v1/users')
+      .then(res => {
+        setData(res.data);
       })
-      .catch((err) => console.log(err))
+      .catch(err => {
+        console.error("Error:", err);
+        
+        // Handle 403 errors by showing an access denied message
+        if (err.response && err.response.status === 403) {
+          alert("Access denied: You don't have permission to view users");
+        }
+      });
   }
 
   const fetchStudents = () => {

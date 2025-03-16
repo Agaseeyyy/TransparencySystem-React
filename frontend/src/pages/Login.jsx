@@ -9,6 +9,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [credential, setCredential] = useState({ email: '', password: '' });
   const [message, setMessage] = useState({ type: '', content: '' });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     isAuthenticated && navigate('/dashboard');
@@ -21,30 +22,25 @@ const LoginPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    fetch('http://localhost:8080/api/v1/users/login', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(credential)
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
+    login(credential.email, credential.password)
+    .then(success => {
+      if (success) {
+        setMessage({ type: 'success', content: 'Login successful!' });
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
+      } else {
+        setMessage({ type: 'error', content: 'Invalid email or password' });
       }
-      return response.json();
     })
-    .then(data => {
-      login(data);
-      setMessage({ type: 'success', content: 'Login successfully!' });
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000)
-    })
-    .catch((error) => {
-      setMessage({ type: 'error', content: error.message });
+    .catch(error => {
+      setMessage({ type: 'error', content: 'An error occurred during login' });
       console.error('Error:', error);
+    })
+    .finally(() => {
+      setIsLoading(false);
     });
   }
 
@@ -145,9 +141,10 @@ const LoginPage = () => {
                 {/* Sign in button */}
                 <button
                   type="submit"
+                  disabled={isLoading}
                   className="w-full text-white bg-jpcsred hover:bg-jpcsred/90 focus:ring-4 focus:outline-none focus:ring-jpcsred font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-jpcsred dark:hover:bg-jpcsred/90 dark:focus:ring-jpcsred"
                 >
-                  Sign in
+                   {isLoading ? "Signing in..." : "Sign in"}
                 </button>
 
               </form>

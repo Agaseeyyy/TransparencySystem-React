@@ -96,7 +96,7 @@ const Sidebar = ({ collapsed }) => {
           </div>
         </a>
 
-        {/* Profile Section - Only show when not collapsed */}
+        {/* Profile Section */}
         {isAuthenticated && (
           <div className="px-6 pb-6 mb-6 border-b border-red-200">
             <div className={`flex items-center ${collapsed ? "content-center" : ""}`}>
@@ -104,7 +104,7 @@ const Sidebar = ({ collapsed }) => {
               {!collapsed && (
                 <div>
                   <div className="font-medium text-gray-800">
-                    {user?.lastName} {user?.firstName} {user?.middleInitial}.
+                    {user?.lastName} {user?.firstName} {user?.middleInitial}
                   </div>
                   <div className="text-sm text-red-600">{user?.role}</div>
                 </div>

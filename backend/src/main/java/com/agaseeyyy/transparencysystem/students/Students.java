@@ -3,8 +3,6 @@ package com.agaseeyyy.transparencysystem.students;
 import java.time.Year;
 import java.util.List;
 
-import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
-
 import com.agaseeyyy.transparencysystem.departments.Departments;
 import com.agaseeyyy.transparencysystem.payments.Payments;
 import com.agaseeyyy.transparencysystem.programs.Programs;

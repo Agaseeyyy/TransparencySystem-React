@@ -71,8 +71,6 @@ const Payments = () => {
     setEditingPayments(null);
   };
 
-  const openModal = () => { setIsModalOpen(true) };
-
   const fetchPayments = () => {
     axios.get('http://localhost:8080/api/v1/payments')
       .then(res => {
@@ -160,7 +158,7 @@ const Payments = () => {
       <DataTable 
         columns={columns} 
         data={payments}
-        title={'payments'}
+        title={'payment'}
         showAdd={() => {
           setModalMode('add');
           setIsModalOpen(true);

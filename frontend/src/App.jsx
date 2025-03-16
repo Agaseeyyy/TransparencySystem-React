@@ -13,6 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Program from './pages/Program';
 import Fees from './pages/Fees';
 import Payments from './pages/Payments';
+import Remittance from './pages/Remittance';
 
 
 const App =() => {
@@ -29,7 +30,7 @@ const App =() => {
             { path: '/dashboard', element: <Dashboard /> },
             { path: '/payments', element: <Payments /> },
             { path: '/students', element: <Student /> },
-            { path: '/remittance', element: <></> },
+            { path: '/remittances', element: <Remittance /> },
             { path: '/fees', element: <Fees/> },
             { path: '/programs', element: <Program /> },
             { path: '/departments', element: <Department /> },

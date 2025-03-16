@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useAuth } from "../context/AuthProvider"
 import DataTable from "../components/DataTable"
 import ActionButton from '../components/ActionButton';
 import { Button } from "@/components/ui/button"
@@ -11,7 +12,7 @@ import axios from "axios"
 
 function Users() {
   // State hooks
-  const { user } = { user: { role: "Admin" } }
+  const { user } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState("add")
   const [editingUser, setEditingUser] = useState(null)
@@ -236,8 +237,8 @@ function Users() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Admin">Administrator</SelectItem>
-                    <SelectItem value="Class Treasurer">Class Treasurer</SelectItem>
-                    <SelectItem value="Org Treasurer">Org Treasurer</SelectItem>
+                    <SelectItem value="Class_Treasurer">Class Treasurer</SelectItem>
+                    <SelectItem value="Org_Treasurer">Org Treasurer</SelectItem>
                     <SelectItem value="Viewer">Viewer</SelectItem>
                   </SelectContent>
                 </Select>

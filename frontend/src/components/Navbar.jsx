@@ -7,6 +7,8 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
     switch (pathname) {
       case '/':
         return 'Dashboard';
+      case '/fees':
+        return 'Fees';
       case '/users':
         return 'Users';
       case '/programs':
@@ -17,7 +19,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
         return 'Departments';
       case '/payments':
         return 'Payments';
-      case '/remittance':
+      case '/remittances':
         return 'Remittance';
       case '/events':
         return 'Events';

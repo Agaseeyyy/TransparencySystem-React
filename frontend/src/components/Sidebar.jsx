@@ -40,7 +40,7 @@ const Sidebar = ({ collapsed }) => {
     },
     {
       title: "Remittance",
-      path: "/remittance",
+      path: "/remittances",
       icon: <CircleDollarSign className="w-5 h-5" />,
     },
     {

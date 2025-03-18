@@ -19,12 +19,13 @@ public class PaymentsController {
   
   // REST APIs
   @GetMapping
-  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
   public List <Payments> displayAllPayments() {
       return paymentService.getAllPayments();
   }
 
   @PostMapping("/fees/{feeId}/students/{studentId}")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
   public Payments addNewPayment(@PathVariable Integer feeId,
                                 @PathVariable Long studentId,
                                 @RequestBody Payments payment) {
@@ -32,6 +33,7 @@ public class PaymentsController {
   }
   
   @PutMapping("/{paymentId}/fees/{feeId}/students/{studentId}")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
   public Payments editPayment(@PathVariable String paymentId,
                               @PathVariable Integer feeId,
                               @PathVariable Long studentId,
@@ -40,6 +42,7 @@ public class PaymentsController {
   }
 
   @DeleteMapping("/{paymentId}")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
   public void deletePayment(@PathVariable String paymentId) {
     paymentService.deletePayment(paymentId);
   }

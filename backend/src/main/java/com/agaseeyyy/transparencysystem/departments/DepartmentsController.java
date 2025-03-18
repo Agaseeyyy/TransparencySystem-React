@@ -2,6 +2,7 @@ package com.agaseeyyy.transparencysystem.departments;
 
 import java.util.List;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,20 +24,24 @@ public class DepartmentsController {
   }
 
   @GetMapping
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
   public List<Departments> getDepartments() {
     return departmentService.getAllDepartments();
   }
 
   @PostMapping
+  @PreAuthorize("hasAuthority('Admin')")
   public Departments addNewDepartment(@RequestBody Departments department) {
       return departmentService.addDepartment(department);
   }
 
+  @PreAuthorize("hasAuthority('Admin')")
   @PutMapping(path = "/{departmentId}")
   public Departments updateDepartment(@PathVariable String departmentId, @RequestBody Departments department) {
       return departmentService.updateDepartment(department, departmentId);
   }
 
+  @PreAuthorize("hasAuthority('Admin')")
   @DeleteMapping(path = "{departmentId}")
   public void deleteDepartment(@PathVariable String departmentId) {
     departmentService.deleteDepartment(departmentId);

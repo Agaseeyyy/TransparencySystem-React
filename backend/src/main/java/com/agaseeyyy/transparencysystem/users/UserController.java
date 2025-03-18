@@ -19,8 +19,8 @@ public class UserController {
 
 
   // REST APIs
-  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
   @GetMapping
+  @PreAuthorize("hasAuthority('Admin')")
   public List<Users> displayUsersInfo() {
     return userService.getUsersInfo();
   }

@@ -47,7 +47,6 @@ public class AuthController {
         return response;
     }
     
-    // No need for logout endpoint with localStorage approach
     
     // This endpoint can be optional if using pure client-side auth
     @GetMapping("/me")

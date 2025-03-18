@@ -57,12 +57,12 @@ const DataTable = ({ columns, data = [], title, showAdd, user }) => {
               {title ? title.charAt(0).toUpperCase() + title.slice(1) + "s" : "Data"}
               <span className="ml-2 text-sm font-normal text-muted-foreground">({totalRows})</span>
             </CardTitle>
-            {isAdmin && showAdd && (
-              <Button onClick={showAdd} className="w-full transition-colors bg-rose-600 hover:bg-rose-600/90 sm:w-auto">
+            
+              <Button onClick={showAdd} className="w-full transition-colors bg-rose-600 hover:bg-rose-700 sm:w-auto">
                 <PlusIcon className="w-4 h-4 mr-2" />
                 Add new {title}
               </Button>
-            )}
+
           </CardHeader>
           
           <CardContent className="p-0">
@@ -87,7 +87,7 @@ const DataTable = ({ columns, data = [], title, showAdd, user }) => {
                           className="transition-colors border-b hover:bg-muted/50"
                         >
                           {columns.map((column, colIndex) => (
-                            <TableCell key={`${rowIndex}-${colIndex}`} className="py-2">
+                            <TableCell key={`${rowIndex}-${colIndex}`} className="h-12 py-2">
                               {column.render ? column.render(row[column.key], row) : row[column.key]}
                             </TableCell>
                           ))}

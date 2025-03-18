@@ -271,7 +271,6 @@ const Payments = () => {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Pending">Pending</SelectItem>
                     <SelectItem value="Paid">Paid</SelectItem>
                   </SelectContent>
                 </Select>

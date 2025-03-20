@@ -27,6 +27,10 @@ public class StudentService {
     return studentRepository.findAll();
   }
 
+  public List <Students> getStudentsByTreasurerDeets(String programCode, Year yearLevel, Character section) {
+    return studentRepository.findStudentsByTreasurerDetails(programCode, yearLevel, section);
+  }
+
 
   public Students addNewStudent(Students newStudent, String programId) {
     Programs program = programRepository.findById(programId).orElse(null);

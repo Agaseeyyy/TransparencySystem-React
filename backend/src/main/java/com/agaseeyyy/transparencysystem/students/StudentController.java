@@ -3,6 +3,7 @@ package com.agaseeyyy.transparencysystem.students;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Year;
 import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +30,14 @@ public class StudentController {
   @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
   public List <Students> displayAllStudents() {
     return studentService.getAllStudents();
+  }
+
+  @GetMapping("/programs/{programCode}/{yearLevel}/{section}")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
+  public List <Students> displayStudentsByTreasurerDeets(@PathVariable String programCode, 
+                                                          @PathVariable Year yearLevel, 
+                                                          @PathVariable Character section) {
+    return studentService.getStudentsByTreasurerDeets(programCode, yearLevel, section);
   }
 
   @PostMapping("/programs/{programId}")

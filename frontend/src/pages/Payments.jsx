@@ -8,23 +8,28 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 import { Pencil, CreditCard } from "lucide-react";
 
 const Payments = () => {
+  // State definitions grouped by purpose
   const { user } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
-  const [editingPayments, setEditingPayments] = useState(null);
+  
+  // Data states
   const [payments, setPayments] = useState([]);
   const [students, setStudents] = useState([]);
   const [fees, setFees] = useState([]);
+  
+  // UI states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
+  const [editingPayments, setEditingPayments] = useState(null);
 
-
+  // Table column definitions
   const columns = [
     { key: 'paymentId', label: 'Payment ID' },
     { 
-      key: 'fullName', label: 'Full Name',
+      key: 'fullName', 
+      label: 'Full Name',
       render: (_, row) => (
         <span className="font-medium text-gray-900">
           {`${row.lastName}, ${row.firstName} ${row.middleInitial || ''}.`}
@@ -33,7 +38,8 @@ const Payments = () => {
     },
     { key: 'program', label: 'Program' },
     { 
-      key: "yearSec", label: 'Year and Section',
+      key: "yearSec", 
+      label: 'Year and Section',
       render: (_, row)=> (
         <span>
           {`${row.yearLevel} - ${row.section}`}
@@ -63,28 +69,43 @@ const Payments = () => {
         />
       ),
     },
-  ]
+  ];
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setModalMode('add');
-    setEditingPayments(null);
-  };
-
+  // Data fetching functions
   const fetchPayments = () => {
-    axios.get('http://localhost:8080/api/v1/payments')
-      .then(res => {
-        setPayments(res.data)
-      })  
-      .catch(err => console.log(err))
+    const endpoint = user.role === 'Class\u00A0Treasurer'
+      ? `http://localhost:8080/api/v1/payments/students/${user.program}/${user.yearLevel}/${user.section}`
+      : 'http://localhost:8080/api/v1/payments';
+      
+    axios.get(endpoint, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(res => {
+      setPayments(res.data);
+    })
+    .catch(err => {
+      console.error("API error:", err);
+    });
   };
 
   const fetchStudents = () => {
-    axios.get('http://localhost:8080/api/v1/students')
-      .then(res => {
-        setStudents(res.data)
-      })  
-      .catch(err => console.log(err))
+    const endpoint = user.role === 'Class\u00A0Treasurer'
+      ? `http://localhost:8080/api/v1/students/programs/${user.program}/${user.yearLevel}/${user.section}`
+      : 'http://localhost:8080/api/v1/students';
+      
+    axios.get(endpoint, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(res => {
+      setStudents(res.data);
+    })
+    .catch(err => {
+      console.error("API error:", err);
+    });
   };
 
   const fetchFees = () => {
@@ -95,20 +116,51 @@ const Payments = () => {
       .catch(err => console.log(err))
   };
 
-  useEffect(() => {
-    fetchPayments();
-  }, []);
+  // Modal action handlers
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalMode('add');
+    setEditingPayments(null);
+    setStudents([]);
+    setFees([]);
+  };
 
-  useEffect(() => {
+  const handleAdd = () => {
     fetchStudents();
     fetchFees();
-  }, [])
+    setModalMode('add');
+    setIsModalOpen(true);
+  };
 
+  const handleEdit = (payment) => { 
+    fetchStudents();
+    fetchFees();
+    setEditingPayments({
+      id: payment.paymentId,
+      studentId: payment.studentId,
+      feeType: payment.feeId,
+      paymentDate: payment.paymentDate,
+      status: payment.status,
+      remarks: payment.remarks || "",
+      createdAt: payment.createdAt,
+    });
+    setModalMode('edit');
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id) => {
+    axios.delete(`http://localhost:8080/api/v1/payments/${id}`)
+      .then(res => {
+        fetchPayments();
+      })
+      .catch(err => console.log(err))
+  };
+
+  // Form submission handler
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const saveFormData = Object.fromEntries(formData.entries());
-    console.log(saveFormData);
 
     const url = modalMode === 'edit' 
       ? `http://localhost:8080/api/v1/payments/${editingPayments.id}/fees/${saveFormData.feeType}/students/${saveFormData.studentId}`
@@ -131,41 +183,23 @@ const Payments = () => {
     });
   };
 
-  const handleEdit = (payment) => {  
-      setEditingPayments({
-        id: payment.paymentId,
-        studentId: payment.studentId,
-        feeType: payment.feeId,  // Changed from paymentType to feeId to match form field name
-        paymentDate: payment.paymentDate, // Changed from dueDate to paymentDate
-        status: payment.status,
-        remarks: payment.remarks || "", // Added remarks field
-        createdAt: payment.createdAt,
-      });
-      setModalMode('edit');
-      setIsModalOpen(true);
-  };
-
-  const handleDelete = (id) => {
-    axios.delete(`http://localhost:8080/api/v1/payments/${id}`)
-      .then(res => {
-        fetchPayments();
-      })
-      .catch(err => console.log(err))
-  }
+  // Initial data loading
+  useEffect(() => {
+    fetchPayments();
+  }, []);
 
   return (
     <>
+      {/* Data Table */}
       <DataTable 
         columns={columns} 
         data={payments}
         title={'payment'}
-        showAdd={() => {
-          setModalMode('add');
-          setIsModalOpen(true);
-        }} 
+        showAdd={handleAdd} 
         user={user}
       />
 
+      {/* Payment Form Dialog */}
       <Dialog 
         open={isModalOpen} 
         onOpenChange={(open) => {
@@ -194,8 +228,11 @@ const Payments = () => {
               }
             </DialogDescription>
           </DialogHeader>
+          
+          {/* Payment Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
+              {/* Student Selection */}
               <div className="col-span-2">
                 <Label htmlFor="studentId">Students</Label>
                 <Select
@@ -222,6 +259,7 @@ const Payments = () => {
                 </Select>
               </div>
               
+              {/* Fee Type Selection */}
               <div className="w-full col-span-1">
                 <Label htmlFor="feeType">Payment Type</Label>
                 <Select 
@@ -229,7 +267,7 @@ const Payments = () => {
                   value={editingPayments?.feeType ? String(editingPayments.feeType) : ""}
                   onValueChange={(value) => {
                     setEditingPayments(prev => ({
-                      ...prev || {}, // Use empty object if prev is null
+                      ...prev || {},
                       feeType: value
                     }));
                   }}
@@ -248,6 +286,7 @@ const Payments = () => {
                 </Select>
               </div>
               
+              {/* Payment Date */}
               <div className="col-span-1">
                 <Label htmlFor="paymentDate">Payment Date</Label>
                 <Input
@@ -260,6 +299,7 @@ const Payments = () => {
                 />
               </div>
               
+              {/* Payment Status */}
               <div className="w-full col-span-1">
                 <Label htmlFor="status">Status</Label>
                 <Select 
@@ -276,6 +316,7 @@ const Payments = () => {
                 </Select>
               </div>
               
+              {/* Remarks */}
               <div className="col-span-2">
                 <Label htmlFor="remarks">Remarks</Label>
                 <Input
@@ -287,6 +328,8 @@ const Payments = () => {
                 />
               </div>
             </div>
+            
+            {/* Form Actions */}
             <DialogFooter className="flex justify-end gap-2 mt-6">
               <Button type="button" className="cursor-pointer" variant="outline" onClick={closeModal}>
                 Cancel
@@ -299,7 +342,7 @@ const Payments = () => {
         </DialogContent>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
 export default Payments;

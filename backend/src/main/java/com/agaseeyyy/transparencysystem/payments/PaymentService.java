@@ -1,6 +1,7 @@
 package com.agaseeyyy.transparencysystem.payments;
 
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -28,6 +29,14 @@ public class PaymentService {
   // Named Methods and Business Logics
   public List <Payments> getAllPayments() {
     return paymentRepository.findAll();
+  }
+
+  public List <Payments> getPaymentByStudentDeets(String programCode, Year yearLevel, Character section) {
+    return paymentRepository.findPaymentsByStudentDetails(programCode, yearLevel, section);
+  }
+
+  public List<Payments> findPaymentsByUserAndFee(String program, Year yearLevel, Character section, Integer feeId) {
+    return paymentRepository.findPaymentsByUserAndFee(program, yearLevel, section, feeId);
   }
 
 

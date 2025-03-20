@@ -1,6 +1,7 @@
 package com.agaseeyyy.transparencysystem.users;
 
 import java.time.LocalDate;
+import java.time.Year;
 
 import com.agaseeyyy.transparencysystem.students.Students;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -123,6 +124,16 @@ public class Users {
   @JsonProperty("studentId")
   public Long getStudentId() {
     return student != null ? student.getStudentId() : null;
+  }
+
+  @JsonProperty("programCode")
+  public String getProgram() {
+    return student != null ? student.getProgram().getProgramId() : null;
+  }
+
+  @JsonProperty("yearLevel")
+  public Year getYearLevel() {
+    return student != null ? student.getYearLevel() : null;
   }
 
   @JsonProperty("section")

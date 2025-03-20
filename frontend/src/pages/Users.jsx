@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useAuth } from "../context/AuthProvider"
 import DataTable from "../components/DataTable"
 import ActionButton from '../components/ActionButton';
@@ -12,15 +12,16 @@ import axios from "axios"
 
 function Users() {
   // State hooks
-  const { user } = useAuth()
+  const { user, can } = useAuth()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState("add")
   const [editingUser, setEditingUser] = useState(null)
   const [data, setData] = useState([])
   const [students, setStudents] = useState([]);
+  console.log(user)
 
   // Table columns definition
-  const columns = [
+  const allColumns = [
     {
       key: "fullName",
       label: "Full Name",
@@ -56,6 +57,7 @@ function Users() {
     {
       key: "actions",
       label: "Actions",
+      adminOnly: true,
       render: (_, row) => (
         <ActionButton 
           row={row} idField="userId" 
@@ -66,19 +68,32 @@ function Users() {
     },
   ]
 
+  // Filter columns based on user permissions
+  const columns = useMemo(() => {
+    return allColumns.filter(column => {
+      // If column is marked adminOnly, only show it for admin users
+      if (column.adminOnly) {
+        return can.manageSystem();
+      }
+      // Otherwise show the column
+      return true;
+    });
+  }, [can]);
+
   // Data fetching functions
   const fetchUsers = () => {
     axios.get('http://localhost:8080/api/v1/users')
       .then(res => {
+        if(Array.isArray(res.data)) {
+          res.data = res.data.map(user => ({
+            ...user,
+            role: user.role.replace(/_/g, ' ')
+          }))
         setData(res.data);
+        }
       })
       .catch(err => {
         console.error("Error:", err);
-        
-        // Handle 403 errors by showing an access denied message
-        if (err.response && err.response.status === 403) {
-          alert("Access denied: You don't have permission to view users");
-        }
       });
   }
 

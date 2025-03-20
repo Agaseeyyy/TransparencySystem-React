@@ -42,6 +42,9 @@ public class AuthController {
         response.put("role", user.getRole().toString());
         response.put("firstName", user.getFirstName());
         response.put("lastName", user.getLastName());
+        response.put("program", user.getProgram());
+        response.put("yearLevel", user.getYearLevel());
+        response.put("section", user.getSection());
         response.put("authKey", user.getUserId() + ":" + user.getRole().toString());
         
         return response;

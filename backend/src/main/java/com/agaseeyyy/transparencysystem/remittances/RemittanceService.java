@@ -2,24 +2,25 @@ package com.agaseeyyy.transparencysystem.remittances;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
-import com.agaseeyyy.transparencysystem.payments.PaymentRepository;
-import com.agaseeyyy.transparencysystem.payments.Payments;
+
+import com.agaseeyyy.transparencysystem.fees.FeeRepository;
+import com.agaseeyyy.transparencysystem.fees.Fees;
 import com.agaseeyyy.transparencysystem.users.UserRepository;
 import com.agaseeyyy.transparencysystem.users.Users;
 
 @Service
 public class RemittanceService {
   private final RemittanceRepository remittanceRepository;
-  private final PaymentRepository paymentRepository;
+  private final FeeRepository feeRepository;
   private final UserRepository userRepository;
 
   // Constructors
   public RemittanceService(
           RemittanceRepository remittanceRepository,
-          PaymentRepository paymentRepository,
+          FeeRepository feeRepository,
           UserRepository userRepository) {
     this.remittanceRepository = remittanceRepository;
-    this.paymentRepository = paymentRepository;
+    this.feeRepository = feeRepository;
     this.userRepository = userRepository;
   }
 
@@ -30,9 +31,9 @@ public class RemittanceService {
   }
 
 
-  public Remittances addNewRemittance(String paymentId, Integer userId, Remittances newRemittance) {
-    Payments payment = paymentRepository.findById(paymentId).orElseThrow(
-      () -> new RuntimeException("Payment not found with id " + paymentId)
+  public Remittances addNewRemittance(Integer feeType, Integer userId, Remittances newRemittance) {
+    Fees fee = feeRepository.findById(feeType).orElseThrow(
+      () -> new RuntimeException("Fee not found with id " + feeType)
     );
     
     Users user = userRepository.findById(userId).orElseThrow(
@@ -41,27 +42,26 @@ public class RemittanceService {
 
     String remittanceId = generateRemittanceId(userId);
     newRemittance.setRemittanceId(remittanceId);
-    newRemittance.setPayment(payment);
-    newRemittance.setUser(user);
-    
+    newRemittance.setFee(fee);
+    newRemittance.setUser(user);    
     return remittanceRepository.save(newRemittance);
   }
 
 
-  public Remittances editRemittance(String remittanceId, String paymentId, Integer userId, Remittances updatedRemittance) {
+  public Remittances editRemittance(String remittanceId, Integer feeType, Integer userId, Remittances updatedRemittance) {
     Remittances existingRemittance = remittanceRepository.findById(remittanceId).orElseThrow(
       () -> new RuntimeException("Remittance not found with id " + remittanceId)
     );
     
-    Payments payment = paymentRepository.findById(paymentId).orElseThrow(
-      () -> new RuntimeException("Payment not found with id " + paymentId)
+    Fees fee = feeRepository.findById(feeType).orElseThrow(
+      () -> new RuntimeException("Fee not found with id " + feeType)
     );
     
     Users user = userRepository.findById(userId).orElseThrow(
       () -> new RuntimeException("User not found with id " + userId)
     );
 
-    existingRemittance.setPayment(payment);
+    existingRemittance.setFee(fee);
     existingRemittance.setUser(user);
     existingRemittance.setAmountRemitted(updatedRemittance.getAmountRemitted());
     existingRemittance.setStatus(updatedRemittance.getStatus());

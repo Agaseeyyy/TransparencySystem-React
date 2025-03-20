@@ -20,7 +20,7 @@ public class UserController {
 
   // REST APIs
   @GetMapping
-  @PreAuthorize("hasAuthority('Admin')")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
   public List<Users> displayUsersInfo() {
     return userService.getUsersInfo();
   }

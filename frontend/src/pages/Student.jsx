@@ -59,6 +59,7 @@ const Student = () => {
     setIsModalOpen(false);
     setModalMode('add');
     setEditingStudent(null);
+    setPrograms([]);
   };
 
   const fetchStudents = () => {
@@ -79,7 +80,6 @@ const Student = () => {
 
   useEffect(() => {
     fetchStudents();
-    fetchPrograms();
   }, []);
 
   const handleSubmit = (e) => {
@@ -108,20 +108,27 @@ const Student = () => {
     });
   };
 
+  const handleAdd = () => {
+    fetchPrograms();
+    setModalMode('add');
+    setIsModalOpen(true);
+  }
+
   const handleEdit = (student) => {  
-      setEditingStudent({
-        studentId: student.studentId,
-        lastName: student.lastName,
-        firstName: student.firstName,
-        middleInitial: student.middleInitial,
-        email: student.email,
-        program: student.program,
-        yearLevel: student.yearLevel,
-        section: student.section,
-        status: student.status
-      });
-      setModalMode('edit');
-      setIsModalOpen(true);
+    fetchPrograms();
+    setEditingStudent({
+      studentId: student.studentId,
+      lastName: student.lastName,
+      firstName: student.firstName,
+      middleInitial: student.middleInitial,
+      email: student.email,
+      program: student.program,
+      yearLevel: student.yearLevel,
+      section: student.section,
+      status: student.status
+    });
+    setModalMode('edit');
+    setIsModalOpen(true);
   };
 
   const handleDelete = (id) => {
@@ -131,17 +138,14 @@ const Student = () => {
       })
       .catch(err => console.log(err.message))
   }
-
+  
   return (
     <>
       <DataTable 
       columns={columns} 
       data={students}
       title={'student'}
-      showAdd={() => {
-        setModalMode('add');
-        setIsModalOpen(true);
-      }} 
+      showAdd={handleAdd}
       user={user}
       />
 

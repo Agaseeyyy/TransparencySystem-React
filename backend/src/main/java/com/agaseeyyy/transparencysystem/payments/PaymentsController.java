@@ -1,10 +1,10 @@
 package com.agaseeyyy.transparencysystem.payments;
 
+import java.time.Year;
 import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -22,6 +22,21 @@ public class PaymentsController {
   @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
   public List <Payments> displayAllPayments() {
       return paymentService.getAllPayments();
+  }
+
+  @GetMapping("/students/{program}/{yearLevel}/{section}")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
+  public List <Payments> getPaymentByStudentDeets(@PathVariable String program, @PathVariable Year yearLevel, @PathVariable Character section) {
+      return paymentService.getPaymentByStudentDeets(program, yearLevel, section);
+  }
+
+  @GetMapping("/students/{program}/{yearLevel}/{section}/fees/{feeId}")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
+  public List<Payments> getPaymentsByUserAndFee(@PathVariable String program,
+                                                @PathVariable Year yearLevel,
+                                                @PathVariable Character section,
+                                                @PathVariable Integer feeId) {
+      return paymentService.findPaymentsByUserAndFee(program, yearLevel, section, feeId);
   }
 
   @PostMapping("/fees/{feeId}/students/{studentId}")

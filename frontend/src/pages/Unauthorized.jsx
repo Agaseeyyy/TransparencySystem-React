@@ -28,7 +28,7 @@ const Unauthorized = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900">
       <motion.div
         className="w-full max-w-md px-8 py-12 text-center"
         variants={containerVariants}

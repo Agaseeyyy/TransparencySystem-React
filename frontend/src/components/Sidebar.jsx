@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import profile from "../assets/profile.webp"
 import jpcs from '../assets/jpcs.png';
 import { useAuth } from "../context/AuthProvider"
@@ -11,71 +12,60 @@ import {
   Users, 
   School, 
   Settings, 
-  LogOut 
+  LogOut,
+  X
 } from "lucide-react"
 
-const Sidebar = ({ collapsed }) => {
-  const { user, isAuthenticated, logout } = useAuth()
+const Sidebar = ({ collapsed, mobileOpen, closeMobile }) => {
+  const { user, isAuthenticated, logout, can } = useAuth()
   const location = useLocation()
 
   const handleLogout = () => {
     isAuthenticated && logout()
   }
 
-  const menuList = [
-    {
-      title: "Dashboard",
-      path: "/dashboard",
-      icon: <LayoutDashboard className="w-5 h-5" />,
-    },
-    {
-      title: "Payments",
-      path: "/payments",
-      icon: <CreditCard className="w-5 h-5" />,
-    },
-    {
-      title: "Students",
-      path: "/students",
-      icon: <GraduationCap className="w-5 h-5" />,
-    },
-    {
-      title: "Remittance",
-      path: "/remittances",
-      icon: <CircleDollarSign className="w-5 h-5" />,
-    },
-    {
-      title: "Fees",
-      path: "/fees",
-      icon: <Calendar className="w-5 h-5" />,
-    },
-    {
-      title: "Departments",
-      path: "/departments",
-      icon: <Users className="w-5 h-5" />,
-    },
-    {
-      title: "Programs",
-      path: "/programs",
-      icon: <School className="w-5 h-5" />,
-    },
-    {
-      title: "Users",
-      path: "/users",
-      icon: <Users className="w-5 h-5" />,
-    },
-    {
-      title: "Settings",
-      path: "/settings",
-      icon: <Settings className="w-5 h-5" />,
-    },
-  ]
+  // menu items
+  const menuItems = [
+    { path: "/dashboard", title: "Dashboard", icon: LayoutDashboard, access: "all" },
+    { path: "/payments", title: "Payments", icon: CreditCard, access: "all" },
+    { path: "/students", title: "Students", icon: GraduationCap, access: "orgTreasurer" },
+    { path: "/remittances", title: "Remittance", icon: CircleDollarSign, access: "orgTreasurer" },
+    { path: "/fees", title: "Fees", icon: Calendar, access: "orgTreasurer" },
+    { path: "/departments", title: "Departments", icon: Users, access: "admin" },
+    { path: "/programs", title: "Programs", icon: School, access: "admin" },
+    { path: "/users", title: "Users", icon: Users, access: "admin" },
+    { path: "/settings", title: "Settings", icon: Settings, access: "all" },
+  ];
+  
+  // filter menu based on access levels
+  const visibleMenu = useMemo(() => {
+    return menuItems.filter(item => {
+      if (item.access === "admin") return can.manageSystem();
+      if (item.access === "orgTreasurer") return can.manageTransaction();
+      return true; // "all" items
+    });
+  }, [can]);
 
   return (
     <aside
       id="logo-sidebar"
-      className={`fixed top-0 left-0 z-30 h-screen transition-all duration-300 border border-red-200 ease-in-out bg-rose-100 dark:bg-gray-800 ${collapsed ? "w-20" : "w-64"} max-lg:-translate-x-full`}
+      className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 border border-red-200 ease-in-out bg-rose-100 dark:bg-gray-800 ${
+        collapsed ? "w-20" : "w-64"
+      } ${
+        mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      }`}
       aria-label="Sidebar"
     >
+      {/* Mobile close button */}
+      {mobileOpen && (
+        <button 
+          onClick={closeMobile}
+          className="absolute p-1 text-gray-600 rounded-lg top-4 right-4 lg:hidden hover:bg-red-200"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
+
       <div className="flex flex-col h-full py-4 overflow-y-auto border-jpcsred">
         {/* Logo Section */}
         <a
@@ -104,7 +94,7 @@ const Sidebar = ({ collapsed }) => {
               {!collapsed && (
                 <div>
                   <div className="font-medium text-gray-800">
-                    {user?.lastName} {user?.firstName} {user?.middleInitial}
+                    {user?.firstName} {user?.lastName}
                   </div>
                   <div className="text-sm text-red-600">{user?.role}</div>
                 </div>
@@ -114,32 +104,36 @@ const Sidebar = ({ collapsed }) => {
         )}
 
         {/* Menu List */}
-        <div className="flex-1 px-3">
-          <ul className="space-y-1">
-            {menuList.map((menu) => (
-              <li key={menu.title}>
-                <Link
-                  to={menu.path}
-                  className={`flex items-center ${collapsed ? "justify-center" : "px-3"} py-2.5 rounded-lg text-sm ${
-                    location.pathname === menu.path ? "bg-red-100 text-red-600" : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                  title={collapsed ? menu.title : ""}
-                >
-                  <span className={`${location.pathname === menu.path ? "text-red-600" : "text-gray-500"}`}>
-                    {menu.icon}
-                  </span>
-                  {!collapsed && <span className="ml-3">{menu.title}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {isAuthenticated && (
+          <div className="flex-1 px-3">
+            <ul className="space-y-1">
+              {visibleMenu.map(item => (
+                <li key={item.title}>
+                  <Link
+                    to={item.path}
+                    onClick={window.innerWidth < 1024 ? closeMobile : undefined}
+                    className={`flex items-center ${collapsed ? "justify-center" : "px-3"} py-2.5 rounded-lg text-sm ${
+                      location.pathname === item.path ? "bg-red-100 text-red-600" : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                    title={collapsed ? item.title : ""}
+                  >
+                    <span className={location.pathname === item.path ? "text-red-600" : "text-gray-500"}>
+                      <item.icon className="w-5 h-5" />
+                    </span>
+                    {!collapsed && <span className="ml-3">{item.title}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Logout Button */}
         <div className={`px-3 mt-6 ${collapsed ? "flex justify-center" : ""}`}>
           <button onClick={handleLogout} className={`w-full ${collapsed ? "flex justify-center" : ""}`}>
             <Link
               to="/login"
+              onClick={window.innerWidth < 1024 ? closeMobile : undefined}
               className={`flex items-center ${collapsed ? "justify-center px-2" : "px-3"} py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-100`}
               title={collapsed ? (isAuthenticated ? "Sign Out" : "Sign In") : ""}
             >

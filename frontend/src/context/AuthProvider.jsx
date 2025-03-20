@@ -38,7 +38,9 @@ export const AuthProvider = ({ children }) => {
   const login = (email, password) => {
     return axios.post('http://localhost:8080/api/v1/auth/login', { email, password })
       .then(res => {
+        res.data.role = res.data.role.replace(/_/g, '\u00A0');
         setUser(res.data);
+        console.log('Login successful:', res.data);
         return true;
       })
       .catch(err => {
@@ -55,10 +57,11 @@ export const AuthProvider = ({ children }) => {
   // Permission checks based on role
   const can = {
     view: () => true,
-    edit: () => user && ['Admin', 'Org_Treasurer', 'Class_Treasurer'].includes(user.role),
-    create: () => user && ['Admin', 'Org_Treasurer', 'Class_Treasurer'].includes(user.role),
+    edit: () => user && ['Admin', 'Org\u00A0Treasurer', 'Class\u00A0Treasurer'].includes(user.role),
+    create: () => user && ['Admin', 'Org\u00A0Treasurer', 'Class\u00A0Treasurer'].includes(user.role),
     delete: () => user && user.role === 'Admin',
-    manageUsers: () => user && user.role === 'Admin'
+    manageTransaction: () => user && ['Admin', 'Org\u00A0Treasurer'].includes(user.role),
+    manageSystem: () => user && user.role === 'Admin'
   };
 
   const isAuthenticated = Boolean(user);

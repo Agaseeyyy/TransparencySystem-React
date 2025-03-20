@@ -48,7 +48,7 @@ const LoginPage = () => {
   return (
     <>
       <section
-        className="relative h-screen bg-center bg-cover"
+        className="relative h-screen -m-5 bg-center bg-cove"
         style={{ backgroundImage: `url(${bg})`, }}
       >
         {/* Dark overlay for better readability */}

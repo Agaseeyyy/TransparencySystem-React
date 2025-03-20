@@ -1,11 +1,13 @@
 import { useLocation } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Menu, Search, Bell } from 'lucide-react'
+import { useAuth } from '../context/AuthProvider';
 
 const Navbar = ({ collapsed, toggleSidebar }) => {
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
   const getPageTitle = (pathname) => {
     switch (pathname) {
-      case '/':
+      case '/dashboard':
         return 'Dashboard';
       case '/fees':
         return 'Fees';
@@ -25,11 +27,8 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
         return 'Events';
       case '/settings':
         return 'Settings';
-      default:
-        return 'Dashboard';
     }
   }
-
 
   return (
     <nav className="sticky top-0 z-30 w-full py-3 bg-white border-b border-gray-200 shadow-sm">
@@ -52,39 +51,41 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
 
         {/* Mobile Sidebar Toggle Button */}
         <button
-          data-drawer-target="logo-sidebar"
-          data-drawer-toggle="logo-sidebar"
-          aria-controls="logo-sidebar"
+          onClick={toggleSidebar}
           type="button"
-          className="items-center hidden p-2 text-sm text-gray-500 rounded-lg max-lg:inline-flex hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          className="inline-flex p-2 text-sm text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
         >
           <span className="sr-only">Toggle sidebar</span>
           <Menu className="w-6 h-6" />
         </button>
-
-        <div className="flex-1">
-          <h1 className="text-xl font-semibold text-gray-800 lg:block">
-            {getPageTitle(location.pathname)}
-          </h1>
-        </div>
+        
+        {isAuthenticated && (
+          <div className="flex-1">
+            <h1 className="text-xl font-semibold text-gray-800 lg:block">
+              {getPageTitle(location.pathname)}
+            </h1>
+          </div>
+        )}
 
         {/* Right Side Content */}
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <Search className="w-4 h-4 text-gray-500" />
+        {isAuthenticated && (
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="w-4 h-4 text-gray-500" />
+              </div>
+              <input
+                type="search"
+                className="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-red-500 focus:border-red-500"
+                placeholder="Search..."
+              />
             </div>
-            <input
-              type="search"
-              className="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-red-500 focus:border-red-500"
-              placeholder="Search..."
-            />
-          </div>
 
-          <button className="p-1.5 text-gray-500 rounded-full hover:bg-gray-100">
-            <Bell className="w-5 h-5" />
-          </button>
-        </div>
+            <button className="p-1.5 text-gray-500 rounded-full hover:bg-gray-100">
+              <Bell className="w-5 h-5" />
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   )

@@ -30,7 +30,6 @@ const DataTable = ({ columns, data = [], title, showAdd, user }) => {
     return `${start}-${end} of ${totalRows}`
   }
 
-  const isAdmin = user?.role === "Admin" || user?.role === "ORG_TREASURER"
   const paginatedData = data?.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
 
   const tableVariants = {

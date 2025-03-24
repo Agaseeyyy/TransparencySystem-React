@@ -17,6 +17,9 @@ public class Fees {
   @Column(name = "amount", nullable = false)
   private Double amount;
 
+  @Column(name = "description", columnDefinition = "TEXT")
+  private String description;
+
   @Column(name = "due_date", nullable = false)
   private LocalDate dueDate;
 
@@ -59,6 +62,14 @@ public class Fees {
 
   public void setAmount(Double amount) {
     this.amount = amount;
+  }
+
+  public String getDescription() {
+    return this.description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public LocalDate getDueDate() {

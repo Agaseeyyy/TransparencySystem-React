@@ -1,11 +1,14 @@
 package com.agaseeyyy.transparencysystem.students;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Year;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,10 +58,36 @@ public class StudentController {
     return studentService.editStudent(student, studentId, programId);
   }
   
-  @DeleteMapping("/students/{studentId}")
+  @DeleteMapping("/{studentId}")
   @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
   public void deleteStudent(@PathVariable Long studentId) {
     studentService.deleteStudent(studentId);
+  }
+  
+
+  @GetMapping("/count")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
+  public ResponseEntity<?> countStudentsByFilters(
+          @RequestParam(required = false) String program,
+          @RequestParam(required = false) String yearLevel,
+          @RequestParam(required = false) String section) {
+      
+      try {
+          // If program is "all", set it to null for the service method
+          String programFilter = "all".equals(program) ? null : program;
+          String yearLevelFilter = "all".equals(yearLevel) ? null : yearLevel;
+          String sectionFilter = "all".equals(section) ? null : section;
+          
+          // Use the existing filter method but just return the count
+          List<Students> filteredStudents = studentService.getStudentsByFilters(
+              programFilter, yearLevelFilter, sectionFilter);
+          
+          return ResponseEntity.ok(Map.of("count", filteredStudents.size()));
+      } catch (Exception e) {
+          return ResponseEntity.badRequest().body(Map.of(
+              "message", "Error counting students: " + e.getMessage()
+          ));
+      }
   }
   
 }

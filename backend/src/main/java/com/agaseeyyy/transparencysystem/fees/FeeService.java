@@ -19,6 +19,12 @@ public class FeeService {
   public List <Fees> getAllFees() {
     return feeRepository.findAll();
   }
+
+  public Fees getFeeById(Integer feeId) {
+    return feeRepository.findById(feeId).orElseThrow(
+      () -> new RuntimeException("Fee not found with id " + feeId)
+    );
+  }
   
   
   // Named Methods and Business Logics

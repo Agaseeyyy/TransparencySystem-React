@@ -17,4 +17,7 @@ public interface StudentRepository extends JpaRepository<Students, Long> {
       @Param("yearLevel") Year yearLevel, 
       @Param("section") Character section
     );
-} 
+
+  @Query("SELECT COUNT(s) FROM Students s WHERE s.program.programId = :programId")
+  Long countStudentsByProgram(@Param("programId") String programId);
+}

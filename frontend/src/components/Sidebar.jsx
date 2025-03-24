@@ -13,8 +13,10 @@ import {
   School, 
   Settings, 
   LogOut,
-  X
+  X,
+  Send
 } from "lucide-react"
+import path from "path";
 
 const Sidebar = ({ collapsed, mobileOpen, closeMobile }) => {
   const { user, isAuthenticated, logout, can } = useAuth()
@@ -34,7 +36,8 @@ const Sidebar = ({ collapsed, mobileOpen, closeMobile }) => {
     { path: "/departments", title: "Departments", icon: Users, access: "admin" },
     { path: "/programs", title: "Programs", icon: School, access: "admin" },
     { path: "/users", title: "Users", icon: Users, access: "admin" },
-    { path: "/settings", title: "Settings", icon: Settings, access: "all" },
+    { path: "/email-management", title: "Email Management", icon: Send, access: "orgTreasurer" },
+    { path: "/settings", title: "Settings", icon: Settings, access: "all" }
   ];
   
   // filter menu based on access levels

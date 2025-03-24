@@ -15,6 +15,9 @@ import Fees from './pages/Fees';
 import Payments from './pages/Payments';
 import Remittance from './pages/Remittance';
 import Unauthorized from './pages/Unauthorized';
+import TransparencyBoard from './pages/TransparencyBoard';
+import EmailManagement from './pages/EmailManagement';
+import PaymentAnnouncement from './components/PaymentAnnouncement';
 
 
 const App =() => {
@@ -23,13 +26,13 @@ const App =() => {
     { path: '/', 
       element: <Layout />,
       children:[
-        { path: '/', element: <Home /> },
+        { path: '/', element: <TransparencyBoard /> },
         { path: '/login', element: <LoginPage /> },
         { path: '/unauthorized', element: <Unauthorized /> },
         {
           element: <ProtectedRoute /> ,
           children: [
-            { path: '/dashboard', element: <Dashboard /> },
+            { path: '/dashboard', element: <TransparencyBoard /> },
             { path: '/payments', element: <Payments /> },
             { path: '/settings', element: <></> },
           ]
@@ -48,6 +51,8 @@ const App =() => {
             { path: '/fees', element: <Fees/> },
             { path: '/remittances', element: <Remittance /> },
             { path: '/students', element: <Student /> },
+            { path: '/email-management', element: <EmailManagement /> },
+            { path: '/announcements/payment', element: <PaymentAnnouncement /> },
           ]
         },
         { path: '/*', element: <NoPage />},

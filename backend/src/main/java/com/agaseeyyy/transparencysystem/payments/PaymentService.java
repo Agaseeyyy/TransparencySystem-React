@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -11,18 +12,21 @@ import com.agaseeyyy.transparencysystem.fees.FeeRepository;
 import com.agaseeyyy.transparencysystem.fees.Fees;
 import com.agaseeyyy.transparencysystem.students.StudentRepository;
 import com.agaseeyyy.transparencysystem.students.Students;
+import com.agaseeyyy.transparencysystem.students.StudentService;
 
 @Service
 public class PaymentService {
   private final PaymentRepository paymentRepository;
   private final FeeRepository feeRepository;
   private final StudentRepository studentRepository;
+  private final StudentService studentService;
 
   // Constructors 
-  public PaymentService(PaymentRepository paymentRepository, FeeRepository feeRepository, StudentRepository studentRepository) {
+  public PaymentService(PaymentRepository paymentRepository, FeeRepository feeRepository, StudentRepository studentRepository, StudentService studentService) {
     this.paymentRepository = paymentRepository;
     this.feeRepository = feeRepository;
     this.studentRepository = studentRepository;
+    this.studentService = studentService;
   }
   
 
@@ -95,5 +99,48 @@ public class PaymentService {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
     String timestamp = now.format(formatter);
     return "PMT-" + timestamp + "-" + studentId;
+  }
+
+  /**
+   * Calculate the total amount collected for a specific fee type
+   * 
+   * @param feeId The ID of the fee to calculate collections for
+   * @return The total amount collected
+   */
+  public double calculateTotalCollectedByFeeType(Integer feeId) {
+    List<Payments> payments = paymentRepository.findByFee_FeeId(feeId);
+    
+    return payments.stream()
+        .mapToDouble(Payments::getAmount)
+        .sum();
+  }
+
+  /**
+   * Find payments by fee ID and status
+   */
+  public List<Payments> findByFeeIdAndStatus(Integer feeId, Payments.Status status) {
+    return paymentRepository.findByFee_FeeIdAndStatus(feeId, status);
+  }
+
+  /**
+   * Find students who haven't paid for a specific fee
+   * 
+   * @param feeId The ID of the fee to check
+   * @return List of students who haven't paid for this fee
+   */
+  public List<Students> findStudentsWhoHaventPaid(Integer feeId) {
+    // Get all students
+    List<Students> allStudents = studentService.getAllStudents();
+    
+    // Get IDs of students who have already paid for this fee
+    List<Long> paidStudentIds = paymentRepository.findByFee_FeeId(feeId)
+        .stream()
+        .map(payment -> payment.getStudent().getStudentId())
+        .collect(Collectors.toList());
+    
+    // Return students who aren't in the paid list
+    return allStudents.stream()
+        .filter(student -> !paidStudentIds.contains(student.getStudentId()))
+        .collect(Collectors.toList());
   }
 }

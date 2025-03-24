@@ -83,4 +83,30 @@ public class RemittanceService {
       return String.format("RMT-%d-%d", userId, System.currentTimeMillis());
   }
 
+ /**
+   * Calculate the total amount remitted for a specific fee type
+   * 
+   * @param feeId The ID of the fee to calculate remittances for
+   * @return The total amount remitted
+   */
+  public double calculateTotalRemittedByFeeType(Integer feeId) {
+    List<Remittances> remittances = remittanceRepository.findByFee_FeeId(feeId);
+    
+    return remittances.stream()
+        .mapToDouble(Remittances::getAmountRemitted)
+        .sum();
+}
+
+/**
+ * Get a list of recent remittances
+ * 
+ * @return List of recent remittance records
+ */
+public List<Remittances> getRecentRemittances() {
+    // Get the 10 most recent remittances
+    // You could modify this to use paging or to filter by date
+    return remittanceRepository.findTopByOrderByRemittanceIdDesc();
+}
+
+
 }

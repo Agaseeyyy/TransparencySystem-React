@@ -46,10 +46,10 @@ public class Students {
   @JoinColumn(name = "program_id")
   private Programs program;
 
-  @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
   private List <Payments> payments;
 
-  @OneToOne(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @OneToOne(mappedBy = "student", fetch = FetchType.LAZY)
   private Users user;
 
   // Constructors

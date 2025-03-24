@@ -28,4 +28,8 @@ public interface PaymentRepository extends JpaRepository<Payments, String> {
         @Param("section") Character section,
         @Param("feeId") Integer feeId
     );
+
+  List<Payments> findByFee_FeeId(Integer feeId);
+
+  List<Payments> findByFee_FeeIdAndStatus(Integer feeId, Payments.Status status);
 }

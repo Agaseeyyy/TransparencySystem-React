@@ -1,7 +1,9 @@
 package com.agaseeyyy.transparencysystem.students;
 
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,45 @@ public class StudentService {
 
   public List <Students> getStudentsByTreasurerDeets(String programCode, Year yearLevel, Character section) {
     return studentRepository.findStudentsByTreasurerDetails(programCode, yearLevel, section);
+  }
+
+  /**
+   * Find students based on program, year level, and section filters
+   */
+  public List<Students> getStudentsByFilters(String program, String yearLevel, String section) {
+    // Base query to get all students by default
+    List<Students> filteredStudents = new ArrayList<>(studentRepository.findAll());
+    
+    // Apply program filter if provided
+    if (program != null && !program.isEmpty()) {
+        filteredStudents = filteredStudents.stream()
+            .filter(student -> student.getProgram() != null && 
+                    program.equals(student.getProgram().getProgramId()))
+            .collect(Collectors.toList());
+    }
+    
+    // Apply year level filter if provided
+    if (yearLevel != null && !yearLevel.isEmpty()) {
+        try {
+            int year = Integer.parseInt(yearLevel);
+            filteredStudents = filteredStudents.stream()
+                .filter(student -> student.getYearLevel() != null && 
+                        year == Integer.parseInt(student.getYearLevel().toString()))
+                .collect(Collectors.toList());
+        } catch (NumberFormatException e) {
+            // Invalid year format, ignore this filter
+        }
+    }
+    
+    // Apply section filter if provided
+    if (section != null && !section.isEmpty() && section.length() == 1) {
+        char sectionChar = section.toUpperCase().charAt(0);
+        filteredStudents = filteredStudents.stream()
+            .filter(student -> student.getSection() == sectionChar)
+            .collect(Collectors.toList());
+    }
+    
+    return filteredStudents;
   }
 
 

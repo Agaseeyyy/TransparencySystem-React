@@ -8,6 +8,7 @@ import java.time.Year;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -90,4 +91,40 @@ public class StudentController {
       }
   }
   
+  @GetMapping("/table")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
+  public ResponseEntity<?> getTableData(
+          @RequestParam(required = false) String program,
+          @RequestParam(required = false) String yearLevel,
+          @RequestParam(required = false) String section,
+          @RequestParam(required = false, defaultValue = "lastName") String sortBy,
+          @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+      
+      try {
+          // Create sort object - always provide a default sort
+          Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                  Sort.by(sortBy).descending() : 
+                  Sort.by(sortBy).ascending();
+          
+          // Set null for "all" values
+          String programFilter = "all".equals(program) ? null : program;
+          String yearLevelFilter = "all".equals(yearLevel) ? null : yearLevel;
+          String sectionFilter = "all".equals(section) ? null : section;
+          
+          // Get data using the service method
+          List<Students> students = studentService.getTableData(
+                  programFilter, yearLevelFilter, sectionFilter, sort);
+          
+          return ResponseEntity.ok(Map.of(
+              "success", true,
+              "message", "Students retrieved successfully",
+              "data", students
+          ));
+      } catch (Exception e) {
+          return ResponseEntity.badRequest().body(Map.of(
+              "success", false,
+              "message", "Error retrieving students: " + e.getMessage()
+          ));
+      }
+  }
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.agaseeyyy.transparencysystem.programs.ProgramRepository;
@@ -33,11 +34,7 @@ public class StudentService {
     return studentRepository.findStudentsByTreasurerDetails(programCode, yearLevel, section);
   }
 
-  /**
-   * Find students based on program, year level, and section filters
-   */
   public List<Students> getStudentsByFilters(String program, String yearLevel, String section) {
-    // Base query to get all students by default
     List<Students> filteredStudents = new ArrayList<>(studentRepository.findAll());
     
     // Apply program filter if provided
@@ -145,5 +142,42 @@ public class StudentService {
             e.printStackTrace();
         }
     }
+
+  /**
+   * Get students with optional filtering and sorting
+   * Uses database operations for better performance
+   *
+   * @param program Program ID filter (null for all)
+   * @param yearLevel Year level filter (null for all) 
+   * @param section Section filter (null for all)
+   * @param sort Sort specification
+   * @return List of filtered and sorted students
+   */
+  public List<Students> getTableData(
+          String program, 
+          String yearLevel, 
+          String section, 
+          Sort sort) {
+      
+      // Convert yearLevel string to Year object if present
+      Year yearObj = null;
+      if (yearLevel != null && !yearLevel.isEmpty()) {
+          try {
+              yearObj = Year.of(Integer.parseInt(yearLevel));
+          } catch (NumberFormatException e) {
+              // Invalid year format, ignore this filter
+          }
+      }
+      
+      // Convert section string to Character if present
+      Character sectionChar = null;
+      if (section != null && !section.isEmpty()) {
+          sectionChar = section.toUpperCase().charAt(0);
+      }
+      
+      // Use repository method to get filtered and sorted students
+      return studentRepository.findStudentsWithFilters(
+              program, yearObj, sectionChar, sort);
+  }
 
 }

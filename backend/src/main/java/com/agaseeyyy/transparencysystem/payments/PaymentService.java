@@ -5,8 +5,12 @@ import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+import java.util.Date;
 
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 
 import com.agaseeyyy.transparencysystem.fees.FeeRepository;
 import com.agaseeyyy.transparencysystem.fees.Fees;
@@ -142,5 +146,62 @@ public class PaymentService {
     return allStudents.stream()
         .filter(student -> !paidStudentIds.contains(student.getStudentId()))
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Get payments with optional filtering and sorting
+   * 
+   * @param feeType Filter by fee type ID (null for all)
+   * @param status Filter by status (null for all)
+   * @param dateStr Filter by date string in format 'yyyy-MM-dd' (null for all)
+   * @param sort Sort specification
+   * @return List of filtered and sorted payments
+   */
+  public List<Payments> getTableData(String feeType, String status, String dateStr, Sort sort) {
+    // If no filters are provided, just return sorted data
+    if ((feeType == null || feeType.equals("all")) && 
+        (status == null || status.equals("all")) && 
+        (dateStr == null || dateStr.equals("all"))) {
+        return paymentRepository.findAll(sort);
+    }
+    
+    // Set null for "all" values and parse feeType to Integer
+    Integer feeTypeFilter = null;
+    if (feeType != null && !feeType.equals("all")) {
+        try {
+            feeTypeFilter = Integer.parseInt(feeType);
+        } catch (NumberFormatException e) {
+            // If invalid fee type, treat as null (all)
+            feeTypeFilter = null;
+        }
+    }
+    
+    String statusFilter = "all".equals(status) ? null : status;
+    
+    // If date filter is provided, use the date filter method
+    if (dateStr != null && !dateStr.equals("all")) {
+        try {
+            // Parse the date string to a Date object
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = dateFormat.parse(dateStr);
+            return paymentRepository.findPaymentsWithDateFilter(feeTypeFilter, statusFilter, date, sort);
+        } catch (ParseException e) {
+            throw new RuntimeException("Invalid date format. Use yyyy-MM-dd", e);
+        }
+    }
+    
+    // Otherwise use the regular filter method (without date)
+    return paymentRepository.findPaymentsWithFilters(feeTypeFilter, statusFilter, sort);
+  }
+
+  /**
+   * Get all payments for a specific fee
+   * 
+   * @param feeId The fee ID to filter by
+   * @return List of payments for the given fee
+   */
+  public List<Payments> getPaymentsByFeeId(Integer feeId) {
+    // Use the corrected method name that matches your entity relationship
+    return paymentRepository.findByFee_FeeId(feeId);
   }
 }

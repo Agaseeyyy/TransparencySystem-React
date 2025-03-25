@@ -1,6 +1,8 @@
 package com.agaseeyyy.transparencysystem.remittances;
 
 import java.util.List;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.agaseeyyy.transparencysystem.fees.FeeRepository;
@@ -97,16 +99,55 @@ public class RemittanceService {
         .sum();
 }
 
-/**
- * Get a list of recent remittances
- * 
- * @return List of recent remittance records
- */
-public List<Remittances> getRecentRemittances() {
-    // Get the 10 most recent remittances
-    // You could modify this to use paging or to filter by date
-    return remittanceRepository.findTopByOrderByRemittanceIdDesc();
-}
+  /**
+   * Get a list of recent remittances
+   * 
+   * @return List of recent remittance records
+   */
+  public List<Remittances> getRecentRemittances() {
+      // Get the 10 most recent remittances
+      // You could modify this to use paging or to filter by date
+      return remittanceRepository.findTopByOrderByRemittanceIdDesc();
+  }
 
+  /**
+   * Get remittances with optional filtering and sorting
+   * 
+   * @param feeType Filter by fee type ID (null for all)
+   * @param status Filter by status (null for all)
+   * @param date Filter by date (null for all)
+   * @param sort Sort specification
+   * @return List of filtered and sorted remittances
+   */
+  public List<Remittances> getTableData(Integer feeType, String status, String date, Sort sort) {
+    // If no filters are provided, just return sorted data
+    if (feeType == null && status == null && date == null) {
+        return remittanceRepository.findAll(sort);
+    }
+    
+    // Use repository method to get filtered and sorted data
+    return remittanceRepository.findRemittancesWithFilters(feeType, status, date, sort);
+  }
+
+  /**
+   * Get remittances with optional filtering and sorting
+   * 
+   * @param feeType Filter by fee type ID (null for all)
+   * @param status Filter by status (null for all)
+   * @param date Filter by date (null for all)
+   * @param sort Sort specification
+   * @return List of filtered and sorted remittances
+   */
+  public List<Remittances> getRemittancesWithFilters(Integer feeType, String status, String date, Sort sort) {
+    // If no filters are provided, just return sorted data
+    if ((feeType == null || feeType == 0) && 
+        (status == null || status.isEmpty()) && 
+        (date == null || date.isEmpty())) {
+        return remittanceRepository.findAll(sort);
+    }
+    
+    // Use repository method to get filtered and sorted data
+    return remittanceRepository.findRemittancesWithFilters(feeType, status, date, sort);
+  }
 
 }

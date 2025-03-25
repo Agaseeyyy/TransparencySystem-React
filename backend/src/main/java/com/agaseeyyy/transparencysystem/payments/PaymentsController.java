@@ -6,6 +6,11 @@ import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/payments")
 public class PaymentsController {
@@ -61,5 +66,58 @@ public class PaymentsController {
   public void deletePayment(@PathVariable String paymentId) {
     paymentService.deletePayment(paymentId);
   }
-  
+
+  @GetMapping("/table")
+  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
+  public ResponseEntity<?> getTableData(
+          @RequestParam(required = false) String feeType,
+          @RequestParam(required = false) String status,
+          @RequestParam(required = false) String date,
+          @RequestParam(required = false, defaultValue = "paymentDate") String sortBy,
+          @RequestParam(required = false, defaultValue = "desc") String sortDir) {
+      
+      try {
+          // Map frontend field names to entity paths
+          String sortField = sortBy;
+          switch (sortBy) {
+              case "program":
+                  sortField = "student.program.programId";
+                  break;
+              case "feeType":
+                  sortField = "fee.feeType";  // Fix typo: feeype -> feeType 
+                  break;
+              case "amount":
+                  sortField = "fee.amount";  // Amount is part of the fee entity, not payments
+                  break;
+              case "paymentDate":
+                  sortField = "paymentDate";
+                  break;
+              case "status":
+                  sortField = "status";
+                  break;
+              // Add other mappings as needed
+          }
+          
+          // Create sort object
+          Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                  Sort.by(sortField).descending() : 
+                  Sort.by(sortField).ascending();
+          
+          // Get data using the service method
+          List<Payments> payments = paymentService.getTableData(
+                  feeType, status, date, sort);
+          
+          return ResponseEntity.ok(Map.of(
+              "success", true,
+              "message", "Payments retrieved successfully",
+              "data", payments
+          ));
+      } catch (Exception e) {
+          e.printStackTrace(); // Log the full stack trace
+          return ResponseEntity.badRequest().body(Map.of(
+              "success", false,
+              "message", "Error retrieving payments: " + e.getMessage()
+          ));
+      }
+  }
 }

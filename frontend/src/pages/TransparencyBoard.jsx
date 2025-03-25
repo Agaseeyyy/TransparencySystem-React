@@ -35,6 +35,7 @@ const TransparencyBoard = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [loadingExport, setLoadingExport] = useState(false);
 
   // Check if user has admin or treasurer role
   const isAdminOrTreasurer = isAuthenticated && user && (
@@ -81,6 +82,23 @@ const TransparencyBoard = () => {
     fetchData();
   }, [isAdminOrTreasurer]);
 
+  // Add this useEffect to handle click-away for the export menu dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const menu = document.getElementById('exportMenu');
+      const button = document.querySelector('[data-export-button]');
+      
+      if (menu && !menu.contains(event.target) && button && !button.contains(event.target)) {
+        menu.classList.add('hidden');
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const filteredFees = feeData.filter(fee => 
     fee.feeType.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -90,6 +108,48 @@ const TransparencyBoard = () => {
   const totalRemitted = feeData.reduce((sum, fee) => sum + fee.amountRemitted, 0);
   const remainingBalance = totalCollected - totalRemitted;
   const collectionRate = totalCollected > 0 ? (totalRemitted / totalCollected) * 100 : 0;
+
+  // Add this new function to handle the export
+  const exportReport = async (format) => {
+    if (!isAdminOrTreasurer) {
+      return; // Only allow admins/treasurers to export
+    }
+    
+    try {
+      setLoadingExport(true);
+      
+      // Make the API call to get the report data
+      const response = await axios({
+        url: `http://localhost:8080/api/v1/admin/transparency/export/report?format=${format}`,
+        method: 'GET',
+        responseType: 'blob', // Important for binary files like Excel
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      
+      // Set download attributes
+      link.href = url;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+      link.setAttribute('download', `financial_report_${timestamp}.${format === 'excel' ? 'xlsx' : 'csv'}`);
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      // You could add a toast notification here to inform the user of the error
+    } finally {
+      setLoadingExport(false);
+    }
+  };
 
   return (
     <motion.div 
@@ -146,9 +206,46 @@ const TransparencyBoard = () => {
         
         {/* Export option - only for admin/treasurer */}
         {isAdminOrTreasurer && (
-          <Button variant="outline" className="gap-2">
-            <Download className="w-4 h-4" /> Export Report
-          </Button>
+          <div className="relative">
+            <Button
+              variant="outline" 
+              className="justify-between gap-2"
+              onClick={() => document.getElementById('exportMenu').classList.toggle('hidden')}
+              disabled={loadingExport}
+              data-export-button
+            >
+              {loadingExport ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-gray-300 rounded-full border-t-rose-600 animate-spin"></div>
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  <span>Export Report</span>
+                </>
+              )}
+            </Button>
+            <div 
+              id="exportMenu" 
+              className="absolute right-0 z-10 hidden py-1 mt-1 bg-white border border-gray-200 rounded-md shadow-lg w-36"
+            >
+              <button 
+                className="w-full text-left px-3 py-1.5 hover:bg-gray-100 flex items-center text-sm"
+                onClick={() => exportReport('csv')}
+                disabled={loadingExport}
+              >
+                <span className="mr-1">📄</span> CSV Format
+              </button>
+              <button 
+                className="w-full text-left px-3 py-1.5 hover:bg-gray-100 flex items-center text-sm"
+                onClick={() => exportReport('excel')}
+                disabled={loadingExport}
+              >
+                <span className="mr-1">📊</span> Excel Format
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -393,18 +490,12 @@ const TransparencyBoard = () => {
           </Card>
         </TabsContent>
         
-        {/* Admin/Treasurer Only Tab */}
+        {/* Detailed Analysis Tab - Only for Admin/Treasurer */}
         {isAdminOrTreasurer && (
           <TabsContent value="detailed">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileSpreadsheet className="w-5 h-5 mr-2" />
-                  Detailed Financial Analysis
-                  <Badge className="ml-2 bg-rose-100 text-rose-800 border-rose-200">
-                    Admin/Treasurer Only
-                  </Badge>
-                </CardTitle>
+                <CardTitle>Detailed Financial Analysis</CardTitle>
                 <CardDescription>
                   Extended financial information only visible to administrators and treasurers
                 </CardDescription>

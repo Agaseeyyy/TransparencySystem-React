@@ -1,4 +1,4 @@
-package com.agaseeyyy.transparencysystem.users;
+package com.agaseeyyy.transparencysystem.accounts;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public interface UserRepository extends JpaRepository<Users, Integer>{
-    Users findByEmail(String email);
+public interface AccountRepository extends JpaRepository<Accounts, Integer>{
+    Accounts findByEmail(String email);
     boolean existsByEmail(String email);
 
     // @Query(value = "SELECT user_id AS id, " +

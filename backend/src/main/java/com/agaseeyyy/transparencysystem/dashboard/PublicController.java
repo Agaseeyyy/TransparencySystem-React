@@ -1,7 +1,7 @@
-package com.agaseeyyy.transparencysystem.controllers;
+package com.agaseeyyy.transparencysystem.dashboard;
 
 import com.agaseeyyy.transparencysystem.programs.ProgramService;
-import com.agaseeyyy.transparencysystem.services.TransparencyService;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;

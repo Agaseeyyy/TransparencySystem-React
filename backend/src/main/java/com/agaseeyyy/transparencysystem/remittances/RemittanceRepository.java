@@ -17,11 +17,11 @@ public interface RemittanceRepository extends JpaRepository<Remittances, String>
 
    /**
     * Find remittances with optional filters and sorting
-    * With support for sorting on user fields
+    * With support for sorting on account fields
     */
    @Query("SELECT r FROM Remittances r " +
           "JOIN r.fee f " +
-          "JOIN r.user u " +
+          "JOIN r.account u " +
           "WHERE (:feeType IS NULL OR f.feeId = :feeType) AND " +
           "(:status IS NULL OR CAST(r.status AS string) = :status) AND " +
           "(:date IS NULL OR CAST(r.remittanceDate AS string) = :date)")

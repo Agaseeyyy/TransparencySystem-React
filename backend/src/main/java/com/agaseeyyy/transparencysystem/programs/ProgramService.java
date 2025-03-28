@@ -67,33 +67,51 @@ public class ProgramService {
   
 
   @PostConstruct
-    public void initializeDefaultProgram() {
-        try {
-            if (programRepository.findById("BSIT").isEmpty()) {
-                // Get the CCS department first
-                Departments ccsDepartment = departmentRepository.findByDepartmentId("CCS");
+  public void initializeDefaultProgram() {
+    try {
+        // Get the CCS department first
+        Departments ccsDepartment = departmentRepository.findByDepartmentId("CCS");
+        
+        if (ccsDepartment != null) {
+            // Define default programs to create
+            List<String[]> defaultPrograms = List.of(
+                new String[]{"BSIT", "BS Information Technology"},
+                new String[]{"BSCS", "BS Computer Science"},
+                new String[]{"BSIS", "BS Information Systems"}
+            );
+            
+            int createdCount = 0;
+            
+            // Create each program if it doesn't exist
+            for (String[] programInfo : defaultPrograms) {
+                String programId = programInfo[0];
+                String programName = programInfo[1];
                 
-                if (ccsDepartment != null) {
-                    Programs defaultProgram = new Programs();
-                    defaultProgram.setProgramId("BSIT");
-                    defaultProgram.setProgramName("BS Information Technology");
-                    defaultProgram.setDepartment(ccsDepartment);
+                if (programRepository.findById(programId).isEmpty()) {
+                    Programs program = new Programs();
+                    program.setProgramId(programId);
+                    program.setProgramName(programName);
+                    program.setDepartment(ccsDepartment);
                     
-                    programRepository.save(defaultProgram);
-                    System.out.println("Default program (BSIT) created successfully!");
+                    programRepository.save(program);
+                    createdCount++;
+                    System.out.println("Default program (" + programId + ") created successfully!");
                 } else {
-                    System.out.println("Could not create default program: CCS department not found");
+                    System.out.println("Default program (" + programId + ") already exists.");
                 }
-            } else {
-                System.out.println("Default program (BSIT) already exists.");
             }
-        } catch (Exception e) {
-            System.err.println("Error creating default program: " + e.getMessage());
-            e.printStackTrace();
+            
+            if (createdCount > 0) {
+                System.out.println("Created " + createdCount + " default programs for CCS department");
+            } else {
+                System.out.println("All default programs already exist.");
+            }
+        } else {
+            System.out.println("Could not create default programs: CCS department not found");
         }
+    } catch (Exception e) {
+        System.err.println("Error creating default programs: " + e.getMessage());
+        e.printStackTrace();
     }
-    
-
-
- 
+  }
 }

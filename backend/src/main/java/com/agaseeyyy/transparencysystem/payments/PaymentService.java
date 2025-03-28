@@ -43,8 +43,8 @@ public class PaymentService {
     return paymentRepository.findPaymentsByStudentDetails(programCode, yearLevel, section);
   }
 
-  public List<Payments> findPaymentsByUserAndFee(String program, Year yearLevel, Character section, Integer feeId) {
-    return paymentRepository.findPaymentsByUserAndFee(program, yearLevel, section, feeId);
+  public List<Payments> findPaymentsByAccountAndFee(String program, Year yearLevel, Character section, Integer feeId) {
+    return paymentRepository.findPaymentsByAccountAndFee(program, yearLevel, section, feeId);
   }
 
 

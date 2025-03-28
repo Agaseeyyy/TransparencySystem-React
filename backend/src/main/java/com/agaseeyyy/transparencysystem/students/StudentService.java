@@ -99,7 +99,7 @@ public class StudentService {
     existingStudent.setStatus(updatedStudent.getStatus());
     existingStudent.setProgram(program);
 
-    return studentRepository.save(updatedStudent);
+    return studentRepository.save(existingStudent);
   }
 
 

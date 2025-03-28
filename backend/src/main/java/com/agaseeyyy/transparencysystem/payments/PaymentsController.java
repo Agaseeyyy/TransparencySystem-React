@@ -37,11 +37,11 @@ public class PaymentsController {
 
   @GetMapping("/students/{program}/{yearLevel}/{section}/fees/{feeId}")
   @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
-  public List<Payments> getPaymentsByUserAndFee(@PathVariable String program,
+  public List<Payments> getPaymentsByAccountAndFee(@PathVariable String program,
                                                 @PathVariable Year yearLevel,
                                                 @PathVariable Character section,
                                                 @PathVariable Integer feeId) {
-      return paymentService.findPaymentsByUserAndFee(program, yearLevel, section, feeId);
+      return paymentService.findPaymentsByAccountAndFee(program, yearLevel, section, feeId);
   }
 
   @PostMapping("/fees/{feeId}/students/{studentId}")

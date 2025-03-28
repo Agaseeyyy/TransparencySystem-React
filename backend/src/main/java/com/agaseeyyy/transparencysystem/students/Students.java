@@ -3,10 +3,10 @@ package com.agaseeyyy.transparencysystem.students;
 import java.time.Year;
 import java.util.List;
 
+import com.agaseeyyy.transparencysystem.accounts.Accounts;
 import com.agaseeyyy.transparencysystem.departments.Departments;
 import com.agaseeyyy.transparencysystem.payments.Payments;
 import com.agaseeyyy.transparencysystem.programs.Programs;
-import com.agaseeyyy.transparencysystem.users.Users;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -14,7 +14,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "students")
-@JsonIgnoreProperties({"payments", "user"})
+@JsonIgnoreProperties({"payments", "account"})
 public class Students {
   @Id
   @Column(name = "student_id")
@@ -50,7 +50,7 @@ public class Students {
   private List <Payments> payments;
 
   @OneToOne(mappedBy = "student", fetch = FetchType.LAZY)
-  private Users user;
+  private Accounts account;
 
   // Constructors
   public Students() {
@@ -155,12 +155,12 @@ public class Students {
     this.payments = payments;
   }
 
-  public Users getUser() {
-    return this.user;
+  public Accounts getAccount() {
+    return this.account;
   }
 
-  public void setUser(Users user) {
-    this.user = user;
+  public void setAccount(Accounts account) {
+    this.account = account;
   }
 
   // Json Properties

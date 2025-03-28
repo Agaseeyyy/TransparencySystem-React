@@ -3,7 +3,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import Layout from './pages/Layout';
 import NoPage from './pages/NoPage';
 import Home from './pages/Home'
-import Users from './pages/Users';
+import Account from './pages/Account';
 import Student from './pages/Student';
 import Department from './pages/Department';
 import Dashboard from './pages/Dashboard';
@@ -40,7 +40,7 @@ const App =() => {
         {
           element: <ProtectedRoute requiredRoles={['Admin']} /> ,
           children: [
-            { path: '/users', element: <Users /> },
+            { path: '/accounts', element: <Account /> },
             { path: '/programs', element: <Program /> },
             { path: '/departments', element: <Department /> },
           ]

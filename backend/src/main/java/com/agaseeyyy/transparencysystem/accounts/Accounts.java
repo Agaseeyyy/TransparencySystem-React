@@ -1,4 +1,4 @@
-package com.agaseeyyy.transparencysystem.users;
+package com.agaseeyyy.transparencysystem.accounts;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -10,12 +10,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "accounts")
 @JsonIgnoreProperties("student")
-public class Users {
+public class Accounts {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer userId;
+  private Integer accountId;
 
  
   @Enumerated(EnumType.STRING)
@@ -35,9 +35,9 @@ public class Users {
   private Students student;
 
   // Constructors
-  public Users() {
+  public Accounts() {
   }
-  public Users(String email, String password) {
+  public Accounts(String email, String password) {
     this.email = email;
     this.password = password;
   }
@@ -47,8 +47,8 @@ public class Users {
     Admin, Org_Treasurer, Class_Treasurer;
   }
 
-  public Users(Integer userId, Role role, String email, String password, LocalDate createdAt) {
-    this.userId = userId;
+  public Accounts(Integer accountId, Role role, String email, String password, LocalDate createdAt) {
+    this.accountId = accountId;
     this.role = role;
     this.email = email;
     this.password = password;
@@ -57,12 +57,12 @@ public class Users {
   
 
   // Getters and Setters
-  public Integer getUserId() {
-    return this.userId;
+  public Integer getaccountId() {
+    return this.accountId;
   }
 
-  public void setUserId(Integer userId) {
-    this.userId = userId;
+  public void setaccountId(Integer accountId) {
+    this.accountId = accountId;
   }
 
   public Role getRole() {

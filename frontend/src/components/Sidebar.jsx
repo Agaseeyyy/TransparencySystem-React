@@ -35,7 +35,7 @@ const Sidebar = ({ collapsed, mobileOpen, closeMobile }) => {
     { path: "/fees", title: "Fees", icon: Calendar, access: "orgTreasurer" },
     { path: "/departments", title: "Departments", icon: Users, access: "admin" },
     { path: "/programs", title: "Programs", icon: School, access: "admin" },
-    { path: "/users", title: "Users", icon: Users, access: "admin" },
+    { path: "/accounts", title: "Accounts", icon: Users, access: "admin" },
     { path: "/email-management", title: "Email Management", icon: Send, access: "orgTreasurer" },
     { path: "/settings", title: "Settings", icon: Settings, access: "all" }
   ];

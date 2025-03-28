@@ -3,14 +3,14 @@ package com.agaseeyyy.transparencysystem.remittances;
 import java.time.LocalDate;
 import jakarta.persistence.*;
 
+import com.agaseeyyy.transparencysystem.accounts.Accounts;
 import com.agaseeyyy.transparencysystem.fees.Fees;
-import com.agaseeyyy.transparencysystem.users.Users;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "remittances")
-@JsonIgnoreProperties({"user", "fee"})
+@JsonIgnoreProperties({"account", "fee"})
 public class Remittances {
     @Id
     @Column(name = "remittance_id", columnDefinition = "VARCHAR(40)")
@@ -21,8 +21,8 @@ public class Remittances {
     private Fees fee;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    @JoinColumn(name = "account_id", nullable = false)
+    private Accounts account;
 
     @Column(name = "amount_remitted", nullable = false)
     private Double amountRemitted;
@@ -60,25 +60,25 @@ public class Remittances {
 
     @JsonProperty("lastName")
     public String getRemittedFor() {
-        return user != null ? user.getLastName() : null;
+        return account != null ? account.getLastName() : null;
     }
     
     @JsonProperty("firstName")
     public String getRemittedBy() {
-        return user != null ? user.getFirstName() : null;
+        return account != null ? account.getFirstName() : null;
     }
 
     @JsonProperty("middleInitial")
     public Character getMiddleInitial() {
-        return user != null ? user.getMiddleInitial() : null;
+        return account != null ? account.getMiddleInitial() : null;
     }
 
-    public Users getUser() {
-        return user;
+    public Accounts getAccount() {
+        return account;
     }
 
-    public void setUser(Users user) {
-        this.user = user;
+    public void setAccount(Accounts account) {
+        this.account = account;
     }
 
     public Double getAmountRemitted() {

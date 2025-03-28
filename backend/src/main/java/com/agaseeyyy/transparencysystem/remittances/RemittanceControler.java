@@ -54,7 +54,7 @@ public class RemittanceControler {
                   sortField = "fee.feeType"; // Use this to theproperty pathfee type
                   break;
               case "remittedBy":
-                  sortField = "user.lastName"; // Use the actual property path
+                  sortField = "account.lastName"; // Use the actual property path
                   break;
               case "amount":
                   sortField = "amountRemitted"; // Direct property, no prefix
@@ -87,21 +87,21 @@ public class RemittanceControler {
       }
   }
   
-  @PostMapping("/fees/{feeType}/users/{userId}")
+  @PostMapping("/fees/{feeType}/users/{accountId}")
   @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
   public Remittances addNewRemittance(@PathVariable Integer feeType,
-                                      @PathVariable Integer userId,
+                                      @PathVariable Integer accountId,
                                       @RequestBody Remittances remittance) {
-      return remittanceService.addNewRemittance(feeType, userId, remittance);
+      return remittanceService.addNewRemittance(feeType, accountId, remittance);
   }
 
-  @PutMapping("/{remittanceId}/fees/{feeType}/users/{userId}")
+  @PutMapping("/{remittanceId}/fees/{feeType}/users/{accountId}")
   @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
   public Remittances editRemittance(@PathVariable String remittanceId,
                                     @PathVariable Integer feeType,
-                                    @PathVariable Integer userId,
+                                    @PathVariable Integer accountId,
                                     @RequestBody Remittances remittance) {
-      return remittanceService.editRemittance(remittanceId, feeType, userId, remittance);
+      return remittanceService.editRemittance(remittanceId, feeType, accountId, remittance);
   }
 
   @DeleteMapping("/{remittanceId}")

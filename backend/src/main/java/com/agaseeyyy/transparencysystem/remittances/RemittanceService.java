@@ -5,25 +5,25 @@ import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.agaseeyyy.transparencysystem.accounts.AccountRepository;
+import com.agaseeyyy.transparencysystem.accounts.Accounts;
 import com.agaseeyyy.transparencysystem.fees.FeeRepository;
 import com.agaseeyyy.transparencysystem.fees.Fees;
-import com.agaseeyyy.transparencysystem.users.UserRepository;
-import com.agaseeyyy.transparencysystem.users.Users;
 
 @Service
 public class RemittanceService {
   private final RemittanceRepository remittanceRepository;
   private final FeeRepository feeRepository;
-  private final UserRepository userRepository;
+  private final AccountRepository accountRepository;
 
   // Constructors
   public RemittanceService(
           RemittanceRepository remittanceRepository,
           FeeRepository feeRepository,
-          UserRepository userRepository) {
+          AccountRepository accountRepository) {
     this.remittanceRepository = remittanceRepository;
     this.feeRepository = feeRepository;
-    this.userRepository = userRepository;
+    this.accountRepository = accountRepository;
   }
 
 
@@ -33,24 +33,24 @@ public class RemittanceService {
   }
 
 
-  public Remittances addNewRemittance(Integer feeType, Integer userId, Remittances newRemittance) {
+  public Remittances addNewRemittance(Integer feeType, Integer accountId, Remittances newRemittance) {
     Fees fee = feeRepository.findById(feeType).orElseThrow(
       () -> new RuntimeException("Fee not found with id " + feeType)
     );
     
-    Users user = userRepository.findById(userId).orElseThrow(
-      () -> new RuntimeException("User not found with id " + userId)
+    Accounts account = accountRepository.findById(accountId).orElseThrow(
+      () -> new RuntimeException("Account not found with id " + accountId)
     );
 
-    String remittanceId = generateRemittanceId(userId);
+    String remittanceId = generateRemittanceId(accountId);
     newRemittance.setRemittanceId(remittanceId);
     newRemittance.setFee(fee);
-    newRemittance.setUser(user);    
+    newRemittance.setAccount(account);    
     return remittanceRepository.save(newRemittance);
   }
 
 
-  public Remittances editRemittance(String remittanceId, Integer feeType, Integer userId, Remittances updatedRemittance) {
+  public Remittances editRemittance(String remittanceId, Integer feeType, Integer accountId, Remittances updatedRemittance) {
     Remittances existingRemittance = remittanceRepository.findById(remittanceId).orElseThrow(
       () -> new RuntimeException("Remittance not found with id " + remittanceId)
     );
@@ -59,12 +59,12 @@ public class RemittanceService {
       () -> new RuntimeException("Fee not found with id " + feeType)
     );
     
-    Users user = userRepository.findById(userId).orElseThrow(
-      () -> new RuntimeException("User not found with id " + userId)
+    Accounts account = accountRepository.findById(accountId).orElseThrow(
+      () -> new RuntimeException("User not found with id " + accountId)
     );
 
     existingRemittance.setFee(fee);
-    existingRemittance.setUser(user);
+    existingRemittance.setAccount(account);
     existingRemittance.setAmountRemitted(updatedRemittance.getAmountRemitted());
     existingRemittance.setStatus(updatedRemittance.getStatus());
     
@@ -81,8 +81,8 @@ public class RemittanceService {
   }
 
 
-  private String generateRemittanceId(Integer userId) {
-      return String.format("RMT-%d-%d", userId, System.currentTimeMillis());
+  private String generateRemittanceId(Integer accountId) {
+      return String.format("RMT-%d-%d", accountId, System.currentTimeMillis());
   }
 
  /**

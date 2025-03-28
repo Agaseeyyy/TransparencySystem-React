@@ -26,7 +26,7 @@ public interface PaymentRepository extends JpaRepository<Payments, String> {
          "AND p.student.yearLevel = :yearLevel " +
          "AND p.student.section = :section " +
          "AND p.fee.feeId = :feeId")
-    List<Payments> findPaymentsByUserAndFee(
+    List<Payments> findPaymentsByAccountAndFee(
         @Param("program") String program,
         @Param("yearLevel") Year yearLevel,
         @Param("section") Character section,

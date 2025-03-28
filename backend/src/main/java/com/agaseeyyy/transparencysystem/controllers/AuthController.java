@@ -1,7 +1,7 @@
 package com.agaseeyyy.transparencysystem.controllers;
 
-import com.agaseeyyy.transparencysystem.users.Users;
-import com.agaseeyyy.transparencysystem.users.UserRepository;
+import com.agaseeyyy.transparencysystem.accounts.AccountRepository;
+import com.agaseeyyy.transparencysystem.accounts.Accounts;
 import com.agaseeyyy.transparencysystem.exceptions.UnauthorizedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,35 +17,35 @@ import java.util.Map;
 public class AuthController {
 
     @Autowired
-    private UserRepository userRepository;
+    private AccountRepository accountRepository;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
     
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Users loginRequest) {
-        // Find user by email
-        Users user = userRepository.findByEmail(loginRequest.getEmail());
-        if (user == null) {
+    public Map<String, Object> login(@RequestBody Accounts loginRequest) {
+        // Find account by email
+        Accounts account = accountRepository.findByEmail(loginRequest.getEmail());
+        if (account == null) {
             throw new BadCredentialsException("Invalid email or password");
         }
         
         // Check if password matches
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequest.getPassword(), account.getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
         }
         
-        // Return user details with simple auth key
+        // Return account details with simple auth key
         Map<String, Object> response = new HashMap<>();
-        response.put("userId", user.getUserId());
-        response.put("email", user.getEmail());
-        response.put("role", user.getRole().toString());
-        response.put("firstName", user.getFirstName());
-        response.put("lastName", user.getLastName());
-        response.put("program", user.getProgram());
-        response.put("yearLevel", user.getYearLevel());
-        response.put("section", user.getSection());
-        response.put("authKey", user.getUserId() + ":" + user.getRole().toString());
+        response.put("accountId", account.getaccountId());
+        response.put("email", account.getEmail());
+        response.put("role", account.getRole().toString());
+        response.put("firstName", account.getFirstName());
+        response.put("lastName", account.getLastName());
+        response.put("program", account.getProgram());
+        response.put("yearLevel", account.getYearLevel());
+        response.put("section", account.getSection());
+        response.put("authKey", account.getaccountId() + ":" + account.getRole().toString());
         
         return response;
     }
@@ -53,17 +53,17 @@ public class AuthController {
     
     // This endpoint can be optional if using pure client-side auth
     @GetMapping("/me")
-    public Users getCurrentUser(Principal principal) {
+    public Accounts getCurrentAccount(Principal principal) {
         if (principal == null) {
             throw new UnauthorizedException("Not authenticated");
         }
         
-        Users user = userRepository.findByEmail(principal.getName());
-        if (user == null) {
-            throw new UnauthorizedException("User not found");
+        Accounts account = accountRepository.findByEmail(principal.getName());
+        if (account == null) {
+            throw new UnauthorizedException("Account not found");
         }
         
-        user.setPassword(null);
-        return user;
+        account.setPassword(null);
+        return account;
     }
 }

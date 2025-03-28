@@ -28,15 +28,15 @@ public class AuthKeyFilter extends OncePerRequestFilter {
         // If we have an auth key, try to authenticate
         if (authKey != null && !authKey.isEmpty()) {
             try {
-                // Parse the auth key (format: "userId:role")
+                // Parse the auth key (format: "accountId:role")
                 String[] parts = authKey.split(":");
                 if (parts.length == 2) {
-                    Integer userId = Integer.parseInt(parts[0]);
+                    Integer accountId = Integer.parseInt(parts[0]);
                     String role = parts[1];
 
                     // Set up the authentication in Spring Security
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            userId, null, Collections.singletonList(new SimpleGrantedAuthority(role)));
+                            accountId, null, Collections.singletonList(new SimpleGrantedAuthority(role)));
                     
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }

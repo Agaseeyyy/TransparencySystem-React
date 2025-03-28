@@ -17,70 +17,43 @@ const Student = () => {
   const [editingStudent, setEditingStudent] = useState(null);
   const [students, setStudents] = useState([]);
   const [programs, setPrograms] = useState([]);
-  const [loading, setLoading] = useState(false);
-  
-  // State for sorting and filtering
-  const [sortBy, setSortBy] = useState('lastName');
-  const [sortDir, setSortDir] = useState('asc');
-  const [filters, setFilters] = useState({
-    program: 'all',
-    yearLevel: 'all',
-    section: 'all'
-  });
-  const [filterOptions, setFilterOptions] = useState({
-    program: [],
-    yearLevel: ['1', '2', '3', '4'],
-    section: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
-  });
 
   const columns = [
-    { key: "studentId", label: 'Student ID', sortable: true },
+    { key: "studentId", label: 'Student ID' },
     { 
-      key: 'fullName', 
-      label: 'Full Name',
-      sortable: true,
-      sortKey: 'lastName', // What field to sort by when this column is clicked
+      key: 'fullName', label: 'Full Name',
       render: (_, row) => (
         <span className="font-medium text-gray-900">
           {`${row.lastName}, ${row.firstName} ${row.middleInitial || ''}.`}
         </span>
       )
     },
-    { key: "email", label: 'Email', sortable: true },
+    { key: "email", label: 'Email' },
+    { key: 'program', label: 'Program' },
     { 
-      key: 'program', 
-      label: 'Program',
-      sortable: true,
-      render: (_, row) => row?.program || '-'
-    },
-    { 
-      key: "yearSec", 
-      label: 'Year and Section',
-      sortable: true,
-      sortKey: 'yearLevel', // What field to sort by when this column is clicked
+      key: "yearSec", label: 'Year and Section',
       render: (_, row)=> (
         <span>
           {`${row.yearLevel} - ${row.section}`}
         </span>
       )
     },
-    { key: "status", label: 'Status', sortable: true },
+    { key: "status", label: 'Status' },
+    { key: 'department', label: 'Department' },
     {
       key: "actions",
       label: "Actions",
-      sortable: false,
       render: (_, row) => {
         return (
           <ActionButton 
-            row={row} 
-            idField="studentId" 
+            row={row} idField="studentId" 
             onEdit={() => handleEdit(row)} 
             onDelete={() => handleDelete(row.studentId)} 
           />
         );
       }
     },
-  ];
+  ]
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -89,72 +62,25 @@ const Student = () => {
     setPrograms([]);
   };
 
-  // Fetch data with sorting and filtering
-  const fetchTableData = () => {
-    setLoading(true);
-    axios.get('http://localhost:8080/api/v1/students/table', {
-      params: {
-        sortBy,
-        sortDir,
-        program: filters.program,
-        yearLevel: filters.yearLevel,
-        section: filters.section
-      },
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    })
-    .then(res => {
-      if (res.data.success) {
-        setStudents(res.data.data);
-      } else {
-        console.error("Failed to load students:", res.data.message);
-      }
-    })
-    .catch(err => {
-      console.error("Error loading students:", err);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
+  const fetchStudents = () => {
+    axios.get('http://localhost:8080/api/v1/students')
+      .then(res => {
+        setStudents(res.data)
+      })  
+      .catch(err => console.log(err))
   };
 
   const fetchPrograms = () => {
     axios.get('http://localhost:8080/api/v1/programs')
       .then(res => {
-        setPrograms(res.data);
-        setFilterOptions(prev => ({
-          ...prev,
-          program: res.data
-        }));
+        setPrograms(res.data)
       })  
       .catch(err => console.log(err))
   };
 
-  // Handle sorting changes
-  const handleSort = (field, direction) => {
-    setSortBy(field);
-    setSortDir(direction);
-  };
-
-  // Handle filtering changes
-  const handleFilter = (filterName, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterName]: value
-    }));
-  };
-
   useEffect(() => {
-    fetchPrograms();
-    // Initial fetch with default sorting
-    fetchTableData();
+    fetchStudents();
   }, []);
-
-  useEffect(() => {
-    // Refetch when sort or filter changes
-    fetchTableData();
-  }, [sortBy, sortDir, filters]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -174,7 +100,7 @@ const Student = () => {
       headers: { "Content-Type": "application/json" }
     })
     .then(() => {
-      fetchTableData(); // Use new fetch method to refresh
+      fetchStudents();
       closeModal();
     })
     .catch((err) => {
@@ -206,34 +132,23 @@ const Student = () => {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this student?")) {
-      axios.delete(`http://localhost:8080/api/v1/students/${id}`)
-        .then(() => {
-          fetchTableData(); // Use new fetch method to refresh
-        })
-        .catch(err => console.log(err.message))
-    }
+    axios.delete(`http://localhost:8080/api/v1/students/${id}`)
+      .then(() => {
+        fetchStudents();
+      })
+      .catch(err => console.log(err.message))
   }
   
   return (
     <>
-      {/* DataTable with integrated sorting and filtering */}
       <DataTable 
-        columns={columns} 
-        data={students}
-        title={'student'}
-        showAdd={handleAdd}
-        user={user}
-        loading={loading}
-        onSort={handleSort}
-        onFilter={handleFilter}
-        sortBy={sortBy}
-        sortDir={sortDir}
-        filters={filters}
-        filterOptions={filterOptions}
+      columns={columns} 
+      data={students}
+      title={'student'}
+      showAdd={handleAdd}
+      user={user}
       />
 
-      {/* Student Form Dialog */}
       <Dialog 
         open={isModalOpen} 
         onOpenChange={(open) => {
@@ -263,7 +178,6 @@ const Student = () => {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Form content unchanged */}
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
                 <Label htmlFor="studentId">Student ID</Label>
@@ -330,7 +244,7 @@ const Student = () => {
                 <Label htmlFor="programId">Program</Label>
                 <Select 
                   name="programId" 
-                  defaultValue={editingStudent?.program?.programId || ''}
+                  defaultValue={editingStudent?.program || ''}
                   required
                 >
                   <SelectTrigger className="w-full mt-1">
@@ -368,7 +282,7 @@ const Student = () => {
                 <Label htmlFor="yearLevel">Year Level</Label>
                 <Select 
                   name="yearLevel" 
-                  defaultValue={editingStudent?.yearLevel?.toString() || ''}
+                  defaultValue={editingStudent?.yearLevel || ''}
                   required
                 >
                   <SelectTrigger className="w-full mt-1">

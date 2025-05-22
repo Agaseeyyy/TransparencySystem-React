@@ -1,153 +1,260 @@
 package com.agaseeyyy.transparencysystem.remittances;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Year;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.agaseeyyy.transparencysystem.accounts.AccountRepository;
+import com.agaseeyyy.transparencysystem.accounts.AccountService;
 import com.agaseeyyy.transparencysystem.accounts.Accounts;
+import com.agaseeyyy.transparencysystem.dto.AccountWithRemittanceInfoDTO;
+import com.agaseeyyy.transparencysystem.dto.RemittanceSummary;
+import com.agaseeyyy.transparencysystem.enums.RemittanceStatus;
+import com.agaseeyyy.transparencysystem.enums.Status;
 import com.agaseeyyy.transparencysystem.fees.FeeRepository;
 import com.agaseeyyy.transparencysystem.fees.Fees;
+import com.agaseeyyy.transparencysystem.payments.PaymentRepository;
+import com.agaseeyyy.transparencysystem.payments.PaymentSpecification;
+import com.agaseeyyy.transparencysystem.payments.Payments;
+import com.agaseeyyy.transparencysystem.students.Students;
+import com.agaseeyyy.transparencysystem.exception.BadRequestException;
+import com.agaseeyyy.transparencysystem.exception.ResourceNotFoundException;
+import com.agaseeyyy.transparencysystem.dto.AccountWithRemittanceStatusDTO;
 
 @Service
 public class RemittanceService {
-  private final RemittanceRepository remittanceRepository;
-  private final FeeRepository feeRepository;
-  private final AccountRepository accountRepository;
 
-  // Constructors
-  public RemittanceService(
-          RemittanceRepository remittanceRepository,
-          FeeRepository feeRepository,
-          AccountRepository accountRepository) {
-    this.remittanceRepository = remittanceRepository;
-    this.feeRepository = feeRepository;
-    this.accountRepository = accountRepository;
-  }
+    private final RemittanceRepository remittanceRepository;
+    private final FeeRepository feeRepository;
+    private final AccountRepository accountRepository;
+    private final PaymentRepository paymentRepository;
+    private final AccountService accountService;
+    private final RemittanceStatusCalculator remittanceStatusCalculator;
 
-
-  // Named Methods and Business Logic
-  public List<Remittances> getAllRemittances() {
-    return remittanceRepository.findAll();
-  }
-
-
-  public Remittances addNewRemittance(Integer feeType, Integer accountId, Remittances newRemittance) {
-    Fees fee = feeRepository.findById(feeType).orElseThrow(
-      () -> new RuntimeException("Fee not found with id " + feeType)
-    );
-    
-    Accounts account = accountRepository.findById(accountId).orElseThrow(
-      () -> new RuntimeException("Account not found with id " + accountId)
-    );
-
-    String remittanceId = generateRemittanceId(accountId);
-    newRemittance.setRemittanceId(remittanceId);
-    newRemittance.setFee(fee);
-    newRemittance.setAccount(account);    
-    return remittanceRepository.save(newRemittance);
-  }
-
-
-  public Remittances editRemittance(String remittanceId, Integer feeType, Integer accountId, Remittances updatedRemittance) {
-    Remittances existingRemittance = remittanceRepository.findById(remittanceId).orElseThrow(
-      () -> new RuntimeException("Remittance not found with id " + remittanceId)
-    );
-    
-    Fees fee = feeRepository.findById(feeType).orElseThrow(
-      () -> new RuntimeException("Fee not found with id " + feeType)
-    );
-    
-    Accounts account = accountRepository.findById(accountId).orElseThrow(
-      () -> new RuntimeException("User not found with id " + accountId)
-    );
-
-    existingRemittance.setFee(fee);
-    existingRemittance.setAccount(account);
-    existingRemittance.setAmountRemitted(updatedRemittance.getAmountRemitted());
-    existingRemittance.setStatus(updatedRemittance.getStatus());
-    
-    return remittanceRepository.save(existingRemittance);
-  }
-
-
-  public void deleteRemittance(String remittanceId) {
-    if (!remittanceRepository.existsById(remittanceId)) {
-      throw new RuntimeException("Remittance not found with id " + remittanceId);
+    // Dependencies Injection
+    @Autowired
+    public RemittanceService(
+            RemittanceRepository remittanceRepository,
+            FeeRepository feeRepository,
+            AccountRepository accountRepository,
+            PaymentRepository paymentRepository,
+            AccountService accountService,
+            RemittanceStatusCalculator remittanceStatusCalculator) {
+        this.remittanceRepository = remittanceRepository;
+        this.feeRepository = feeRepository;
+        this.accountRepository = accountRepository;
+        this.paymentRepository = paymentRepository;
+        this.accountService = accountService;
+        this.remittanceStatusCalculator = remittanceStatusCalculator;
     }
-          
-    remittanceRepository.deleteById(remittanceId);
-  }
 
 
-  private String generateRemittanceId(Integer accountId) {
-      return String.format("RMT-%d-%d", accountId, System.currentTimeMillis());
-  }
-
- /**
-   * Calculate the total amount remitted for a specific fee type
-   * 
-   * @param feeId The ID of the fee to calculate remittances for
-   * @return The total amount remitted
-   */
-  public double calculateTotalRemittedByFeeType(Integer feeId) {
-    List<Remittances> remittances = remittanceRepository.findByFee_FeeId(feeId);
-    
-    return remittances.stream()
-        .mapToDouble(Remittances::getAmountRemitted)
-        .sum();
-}
-
-  /**
-   * Get a list of recent remittances
-   * 
-   * @return List of recent remittance records
-   */
-  public List<Remittances> getRecentRemittances() {
-      // Get the 10 most recent remittances
-      // You could modify this to use paging or to filter by date
-      return remittanceRepository.findTopByOrderByRemittanceIdDesc();
-  }
-
-  /**
-   * Get remittances with optional filtering and sorting
-   * 
-   * @param feeType Filter by fee type ID (null for all)
-   * @param status Filter by status (null for all)
-   * @param date Filter by date (null for all)
-   * @param sort Sort specification
-   * @return List of filtered and sorted remittances
-   */
-  public List<Remittances> getTableData(Integer feeType, String status, String date, Sort sort) {
-    // If no filters are provided, just return sorted data
-    if (feeType == null && status == null && date == null) {
-        return remittanceRepository.findAll(sort);
+    // Static Methods
+    // Timestamp-based ID generation
+    public static String generateRemittanceId(Integer accountId) {
+        LocalDateTime now = LocalDateTime.now();
+        // Example: RMT-yyyyMMddHHmmss-accountId-randomSuffix
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        String timestamp = now.format(formatter);
+        // Adding a small random number to further decrease collision chance if calls are very rapid
+        int randomSuffix = new Random().nextInt(900) + 100; // 3-digit random number
+        return "RMT-" + timestamp + "-" + accountId + "-" + randomSuffix;
     }
-    
-    // Use repository method to get filtered and sorted data
-    return remittanceRepository.findRemittancesWithFilters(feeType, status, date, sort);
-  }
 
-  /**
-   * Get remittances with optional filtering and sorting
-   * 
-   * @param feeType Filter by fee type ID (null for all)
-   * @param status Filter by status (null for all)
-   * @param date Filter by date (null for all)
-   * @param sort Sort specification
-   * @return List of filtered and sorted remittances
-   */
-  public List<Remittances> getRemittancesWithFilters(Integer feeType, String status, String date, Sort sort) {
-    // If no filters are provided, just return sorted data
-    if ((feeType == null || feeType == 0) && 
-        (status == null || status.isEmpty()) && 
-        (date == null || date.isEmpty())) {
-        return remittanceRepository.findAll(sort);
+    // Named Methods and Business Logics
+    @Transactional
+    public Remittances addNewRemittance(Integer feeId, Integer accountId, Remittances newRemittanceDetails) {
+        Fees fee = feeRepository.findById(feeId).orElseThrow(
+            () -> new ResourceNotFoundException("Fee not found with id " + feeId)
+        );
+        
+        Accounts account = accountRepository.findById(accountId).orElseThrow(
+            () -> new ResourceNotFoundException("Account (Remitter) not found with id " + accountId)
+        );
+
+        Students studentDetailsOfRemitter = account.getStudent();
+        if (studentDetailsOfRemitter == null) {
+            throw new BadRequestException("Account ID " + accountId + " is not associated with any student details. Cannot determine class for remittance.");
+        }
+        if (studentDetailsOfRemitter.getProgram() == null) {
+            throw new BadRequestException("Student associated with Account ID " + accountId + " does not have program details. Cannot determine class for remittance.");
+        }
+
+        String programId = studentDetailsOfRemitter.getProgram().getProgramId();
+        Year yearLevel = studentDetailsOfRemitter.getYearLevel();
+        Character section = studentDetailsOfRemitter.getSection();
+
+        Specification<Payments> paymentsToRemitSpec = Specification
+            .where(PaymentSpecification.filterByStudentDetailsAndFee(programId, yearLevel, section, feeId))
+            .and(PaymentSpecification.hasStatus(Status.Paid.name()));
+        
+        List<Payments> paidPayments = paymentRepository.findAll(paymentsToRemitSpec);
+
+        if (paidPayments.isEmpty()) {
+            throw new BadRequestException("No PAID payments found for Fee ID " + feeId + 
+                                        " for class " + programId + "-" + yearLevel + section + 
+                                        ". Nothing to remit.");
+        }
+
+        double sumOfPaidPayments = paidPayments.stream()
+                                             .mapToDouble(Payments::getAmount)
+                                             .sum();
+        
+        if (Math.abs(sumOfPaidPayments - newRemittanceDetails.getAmountRemitted()) > 0.001) {
+            throw new BadRequestException("The provided amount to remit (" + newRemittanceDetails.getAmountRemitted() + 
+                                        ") does not match the sum of available PAID payments (" + sumOfPaidPayments + "). Please refresh and try again.");
+        }
+        if (sumOfPaidPayments <= 0) {
+             throw new BadRequestException("Total amount of PAID payments is zero or less. Nothing to remit.");
+        }
+
+        // Create the remittance entity
+        Remittances remittanceToSave = new Remittances();
+        remittanceToSave.setRemittanceId(generateRemittanceId(accountId));
+        remittanceToSave.setFee(fee);
+        remittanceToSave.setAccount(account);
+        remittanceToSave.setAmountRemitted(sumOfPaidPayments);
+        remittanceToSave.setRemittanceDate(LocalDate.now());
+        
+        // Use the calculator to determine status
+        RemittanceStatus calculatedStatus = remittanceStatusCalculator.calculateStatus(
+                feeId, programId, yearLevel, section, true);
+        
+        // Use RemittanceStatus directly - no conversion needed
+        remittanceToSave.setStatus(calculatedStatus);
+        
+        // Set the payments included in this remittance
+        remittanceToSave.setPayments(paidPayments);
+        
+        // Save and update payments
+        Remittances savedRemittance = remittanceRepository.save(remittanceToSave);
+
+        for (Payments payment : paidPayments) {
+            payment.setStatus(Status.Remitted);
+            paymentRepository.save(payment);
     }
-    
-    // Use repository method to get filtered and sorted data
-    return remittanceRepository.findRemittancesWithFilters(feeType, status, date, sort);
-  }
 
+        return savedRemittance;
+    }
+
+    public Remittances editRemittance(String remittanceId, Integer feeIdInput, Integer accountIdInput, Remittances updatedRemittanceDetails) {
+        Remittances existingRemittance = remittanceRepository.findById(remittanceId).orElseThrow(
+            () -> new ResourceNotFoundException("Remittance not found with id " + remittanceId)
+        );
+        
+        Fees fee = feeRepository.findById(feeIdInput).orElseThrow(
+            () -> new ResourceNotFoundException("Fee not found with id " + feeIdInput)
+        );
+        
+        Accounts account = accountRepository.findById(accountIdInput).orElseThrow(
+            () -> new ResourceNotFoundException("Account not found with id " + accountIdInput)
+        );
+
+        existingRemittance.setFee(fee);
+        existingRemittance.setAccount(account);
+        existingRemittance.setStatus(updatedRemittanceDetails.getStatus());
+        
+        return remittanceRepository.save(existingRemittance);
+    }
+
+    public void deleteRemittance(String remittanceId) {
+        Remittances remittance = remittanceRepository.findById(remittanceId)
+            .orElseThrow(() -> new ResourceNotFoundException("Remittance not found with id " + remittanceId));
+
+        // Only update payments associated with this remittance
+        if (remittance.getPayments() != null) {
+            for (Payments payment : remittance.getPayments()) {
+                if (payment.getStatus() == Status.Remitted) {
+                    payment.setStatus(Status.Paid);
+                    paymentRepository.save(payment);
+                }
+            }
+        }
+              
+        remittanceRepository.deleteById(remittanceId);
+    }
+
+    public Page<Remittances> getRemittances(
+        Long feeId,
+        RemittanceStatus status,
+        Long accountId,
+        String program,
+        String yearLevel,
+        String section,
+        Pageable pageable
+    ) {
+        Specification<Remittances> spec = RemittanceSpecification.filterBy(feeId, status, accountId, program, yearLevel, section);
+        return remittanceRepository.findAll(spec, pageable);
+    }
+
+    public List<Remittances> generateRemittanceReport(
+        Long feeId,
+        RemittanceStatus status,
+        Long accountId,
+        String program,
+        String yearLevel,
+        String section,
+        Sort sort
+    ) {
+        Specification<Remittances> spec = RemittanceSpecification.filterBy(feeId, status, accountId, program, yearLevel, section);
+        return remittanceRepository.findAll(spec, sort);
+    }
+
+    // Add the method that was referenced in RemittanceControler but not implemented yet
+    public Page<AccountWithRemittanceInfoDTO> getRemittanceStatusByFee(
+        Integer feeId, int pageNumber, int pageSize, String sortField, String sortDirection,
+        String programFilter, String yearLevelFilter, String sectionFilter) {
+
+    return accountService.getClassTreasurersWithDetailedRemittanceStatus(
+            feeId, pageNumber, pageSize, sortField, sortDirection,
+            programFilter, yearLevelFilter, sectionFilter);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public List<RemittanceSummary> calculateTotalRemittedByTreasurer() {
+        return remittanceRepository.getAmountRemittedGroupByAccountIdAndFeeId();
+    }
+
+    public double calculateTotalRemittedByFeeType(Integer feeId) {
+        List<Remittances> remittances = remittanceRepository.findByFee_FeeId(feeId);
+        
+        return remittances.stream()
+            .mapToDouble(Remittances::getAmountRemitted)
+            .sum();
+    }
+
+    public List<Remittances> getRecentRemittances() {
+        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "remittanceDate").and(Sort.by(Sort.Direction.DESC, "remittanceId")));
+        return remittanceRepository.findAll(pageRequest).getContent();
+    }
 }

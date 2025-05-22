@@ -16,163 +16,154 @@ import jakarta.persistence.*;
 @Table(name = "students")
 @JsonIgnoreProperties({"payments", "account"})
 public class Students {
-  @Id
-  @Column(name = "student_id")
-  private Long studentId;
+    @Id
+    @Column(name = "student_id")
+    private Long studentId;
 
-  @Column(name = "last_name", nullable = false)
-  private String lastName;
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
 
-  @Column(name = "first_name", nullable = false)
-  private String firstName;
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
 
-  @Column(name = "middle_initial")
-  private char middleInitial;
+    @Column(name = "middle_initial")
+    private char middleInitial;
 
-  @Column(name = "email", nullable = false, unique = true)
-  private String email;
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
 
-  @Column(name = "year_level", nullable = false)
-  private Year yearLevel;
+    @Column(name = "year_level", nullable = false)
+    private Year yearLevel;
 
-  @Column(name = "section", nullable = false)
-  private char section;
+    @Column(name = "section", nullable = false)
+    private char section;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
-  private Status status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status;
 
-  @ManyToOne
-  @JoinColumn(name = "program_id")
-  private Programs program;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "program_id")
+    private Programs program;
 
-  @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
-  private List <Payments> payments;
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
+    private List <Payments> payments;
 
-  @OneToOne(mappedBy = "student", fetch = FetchType.LAZY)
-  private Accounts account;
+    @OneToOne(mappedBy = "student", fetch = FetchType.LAZY)
+    private Accounts account;
 
-  // Constructors
-  public Students() {
-  }
+    // Constructors
+    public Students() {}
 
-  public Students(Long studentId, String lastName, String firstName, char middleInitial, String email, Year yearLevel, char section, Status status, Departments department, Programs program) {
-    this.studentId = studentId;
-    this.lastName = lastName;
-    this.firstName = firstName;
-    this.middleInitial = middleInitial;
-    this.email = email;
-    this.yearLevel = yearLevel;
-    this.section = section;
-    this.status = status;
-    this.program = program;
-  }
+    public Students(Long studentId, String lastName, String firstName, char middleInitial, String email, Year yearLevel, char section, Status status, Departments department, Programs program) {
+        this.studentId = studentId;
+        this.lastName = lastName;
+        this.firstName = firstName;
+        this.middleInitial = middleInitial;
+        this.email = email;
+        this.yearLevel = yearLevel;
+        this.section = section;
+        this.status = status;
+        this.program = program;
+    }
 
-   // Enumerations
-   public enum Status {
-    Active, Inactive, Graduated
-  }
+    // Enumerations
+    public enum Status {
+        Active, Inactive, Graduated
+    }
 
 
-  // Getters and Setters
-  public Long getStudentId() {
-    return this.studentId;
-  }
+    // Getters and Setters
+    public Long getStudentId() {
+        return this.studentId;
+    }
 
-  public void setStudentId(Long studentId) {
-    this.studentId = studentId;
-  }
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
+    }
 
-  public String getLastName() {
-    return this.lastName;
-  }
+    public String getLastName() {
+        return this.lastName;
+    }
 
-  public void setLastName(String lastName) {
-    this.lastName = lastName;
-  }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-  public String getFirstName() {
-    return this.firstName;
-  }
+    public String getFirstName() {
+        return this.firstName;
+    }
 
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-  public char getMiddleInitial() {
-    return this.middleInitial;
-  }
+    public char getMiddleInitial() {
+        return this.middleInitial;
+    }
 
-  public void setMiddleInitial(char middleInitial) {
-    this.middleInitial = middleInitial;
-  }
+    public void setMiddleInitial(char middleInitial) {
+        this.middleInitial = middleInitial;
+    }
 
-  public String getEmail() {
-    return this.email;
-  }
+    public String getEmail() {
+        return this.email;
+    }
 
-  public void setEmail(String email) {
-    this.email = email;
-  }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-  public Year getYearLevel() {
-    return this.yearLevel;
-  }
+    public Year getYearLevel() {
+        return this.yearLevel;
+    }
 
-  public void setYearLevel(Year yearLevel) {
-    this.yearLevel = yearLevel;
-  }
+    public void setYearLevel(Year yearLevel) {
+        this.yearLevel = yearLevel;
+    }
 
-  public char getSection() {
-    return this.section;
-  }
+    public char getSection() {
+        return this.section;
+    }
 
-  public void setSection(char section) {
-    this.section = section;
-  }
+    public void setSection(char section) {
+        this.section = section;
+    }
 
-  public Status getStatus() {
-    return this.status;
-  }
+    public Status getStatus() {
+        return this.status;
+    }
 
-  public void setStatus(Status status) {
-    this.status = status;
-  }
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
-  public Programs getProgram() {
-    return this.program;
-  }
+    public Programs getProgram() {
+        return this.program;
+    }
 
-  public void setProgram(Programs program) {
-    this.program = program;
-  }
+    public void setProgram(Programs program) {
+        this.program = program;
+    }
+    
+    public void setAccount(Accounts account) {
+        this.account = account;
+    }
 
-  public List<Payments> getPayments() {
-    return this.payments;
-  }
+    public Accounts getAccount() {
+        return this.account;
+    }
 
-  public void setPayments(List<Payments> payments) {
-    this.payments = payments;
-  }
+    // Json Properties
+    @JsonProperty("program")
+    public String getProgramId() {
+        return program != null ? program.getProgramId() : null;
+    }
 
-  public Accounts getAccount() {
-    return this.account;
-  }
-
-  public void setAccount(Accounts account) {
-    this.account = account;
-  }
-
-  // Json Properties
-  @JsonProperty("program")
-  public String getProgramId() {
-    return program != null ? program.getProgramId() : null;
-  }
-
-  @JsonProperty("department")
-  public String getDepartmentId() {
-    return program != null ? program.getDepartmentId() : null;
-  }
+    @JsonProperty("department")
+    public String getDepartmentId() {
+        return program != null ? program.getDepartmentId() : null;
+    }
  
 }
 

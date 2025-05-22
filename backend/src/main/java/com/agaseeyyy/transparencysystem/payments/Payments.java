@@ -3,6 +3,7 @@ package com.agaseeyyy.transparencysystem.payments;
 import java.time.LocalDate;
 import java.time.Year;
 
+import com.agaseeyyy.transparencysystem.enums.Status;
 import com.agaseeyyy.transparencysystem.fees.Fees;
 import com.agaseeyyy.transparencysystem.students.Students;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -13,144 +14,138 @@ import jakarta.persistence.*;
 @Table(name = "payments")
 @JsonIgnoreProperties({"fee", "student", "program"})
 public class Payments {
-  @Id
-  @Column(name = "payment_id", columnDefinition = "VARCHAR(40)")
-  private String paymentId;
+    @Id
+    @Column(name = "payment_id", columnDefinition = "VARCHAR(40)")
+    private String paymentId;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
-  private Status status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 10)
+    private Status status;
 
-  @Column(name = "payment_date", nullable = false)
-  private LocalDate paymentDate = LocalDate.now();
+    @Column(name = "payment_date", nullable = false)
+    private LocalDate paymentDate = LocalDate.now();
 
-  @Column(name = "remarks", columnDefinition = "TEXT", nullable = true)
-  private String remarks;
+    @Column(name = "remarks", columnDefinition = "TEXT", nullable = true)
+    private String remarks;
 
-  @ManyToOne
-  @JoinColumn(name = "fee_id", nullable = false)
-  private Fees fee;
-  @JsonProperty("feeId")
-  public Integer getFeeId() {
-    return fee != null ? fee.getFeeId() : null;
-  } 
+    @ManyToOne
+    @JoinColumn(name = "fee_id", nullable = false)
+    private Fees fee;
+    @JsonProperty("feeId")
+    public Integer getFeeId() {
+        return fee != null ? fee.getFeeId() : null;
+    } 
 
-  @ManyToOne
-  @JoinColumn(name = "student_id", nullable = false)
-  private Students student;
-  @JsonProperty("studentId")
-  public Long getStudentId() {
-    return student != null ? student.getStudentId() : null;
-  }
+    @ManyToOne
+    @JoinColumn(name = "student_id", nullable = false)
+    private Students student;
+    @JsonProperty("studentId")
+    public Long getStudentId() {
+        return student != null ? student.getStudentId() : null;
+    }
 
-  // Constructors
-  public Payments() {
-  }
+    // Constructors
+    public Payments() {
+    }
+    
+    // Getters and Setters
+    public String getPaymentId() {
+        return this.paymentId;
+    }
 
-  // Enumerations
-  public enum Status{
-    Paid,  Pending, Overdue;
-  } 
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
+    }
 
-  
-  // Getters and Setters
-  public String getPaymentId() {
-    return this.paymentId;
-  }
+    public Status getStatus() {
+        return this.status;
+    }
 
-  public void setPaymentId(String paymentId) {
-    this.paymentId = paymentId;
-  }
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
-  public Status getStatus() {
-    return this.status;
-  }
+    public LocalDate getPaymentDate() {
+        return this.paymentDate;
+    }
 
-  public void setStatus(Status status) {
-    this.status = status;
-  }
+    public void setPaymentDate(LocalDate paymentDate) {
+        this.paymentDate = paymentDate;
+    }
 
-  public LocalDate getPaymentDate() {
-    return this.paymentDate;
-  }
+    public String getRemarks() {
+        return this.remarks;
+    }
 
-  public void setPaymentDate(LocalDate paymentDate) {
-    this.paymentDate = paymentDate;
-  }
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
 
-  public String getRemarks() {
-    return this.remarks;
-  }
+    public Fees getFee() {
+        return this.fee;
+    }
 
-  public void setRemarks(String remarks) {
-    this.remarks = remarks;
-  }
+    public void setFee(Fees fee) {
+        this.fee = fee;
+    }
 
-  public Fees getFee() {
-    return this.fee;
-  }
+    public Students getStudent() {
+        return this.student;
+    }
 
-  public void setFee(Fees fee) {
-    this.fee = fee;
-  }
+    public void setStudent(Students student) {
+        this.student = student;
+    } 
 
-  public Students getStudent() {
-    return this.student;
-  }
+    @JsonProperty("firstName")
+    public String getFirstName() {
+        return student != null ? student.getFirstName() : null;
+    }
 
-  public void setStudent(Students student) {
-    this.student = student;
-  } 
+    @JsonProperty("lastName")
+    public String getLastName() {
+        return student != null ? student.getLastName() : null;
+    }
 
-  @JsonProperty("firstName")
-  public String getFirstName() {
-      return student != null ? student.getFirstName() : null;
-  }
+    @JsonProperty("middleInitial")
+    public Character getMiddleInitial() {
+        return student != null ? student.getMiddleInitial() : null;
+    }
 
-  @JsonProperty("lastName")
-  public String getLastName() {
-      return student != null ? student.getLastName() : null;
-  }
+    @JsonProperty("yearLevel")
+    public Year getYearLevel() {
+        return student != null ? student.getYearLevel() : null;
+    }
 
-  @JsonProperty("middleInitial")
-  public Character getMiddleInitial() {
-      return student != null ? student.getMiddleInitial() : null;
-  }
+    @JsonProperty("section")
+    public Character getSection() {
+        return student != null ? student.getSection() : null;
+    }
 
-  @JsonProperty("yearLevel")
-  public Year getYearLevel() {
-      return student != null ? student.getYearLevel() : null;
-  }
+    @JsonProperty("program")
+    public String getProgram() {
+        if (student != null && student.getProgram() != null) {
+            return student.getProgram().getProgramName(); // or getProgramCode() depending on what you need
+        }
+        return null;
+    }
 
-  @JsonProperty("section")
-  public Character getSection() {
-      return student != null ? student.getSection() : null;
-  }
+    @JsonProperty("programId")
+    public String getProgramId() {
+        if (student != null && student.getProgram() != null) {
+            return student.getProgram().getProgramId();
+        }
+        return null;
+    }
 
-  @JsonProperty("program")
-  public String getProgram() {
-      if (student != null && student.getProgram() != null) {
-          return student.getProgram().getProgramName(); // or getProgramCode() depending on what you need
-      }
-      return null;
-  }
+    @JsonProperty("amount")
+    public Double getAmount() {
+        return fee != null ? fee.getAmount() : null;
+    }
 
-  @JsonProperty("programId")
-  public String getProgramId() {
-      if (student != null && student.getProgram() != null) {
-          return student.getProgram().getProgramId();
-      }
-      return null;
-  }
-
-  @JsonProperty("amount")
-  public Double getAmount() {
-      return fee != null ? fee.getAmount() : null;
-  }
-
-  @JsonProperty("feeType")
-  public String getFeeType() {
-      return fee != null ? fee.getFeeType() : null;
-  }
+    @JsonProperty("feeType")
+    public String getFeeType() {
+        return fee != null ? fee.getFeeType() : null;
+    }
 
 }

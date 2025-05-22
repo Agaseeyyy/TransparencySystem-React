@@ -12,20 +12,24 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    isAuthenticated && navigate('/dashboard');
-  }, []);
-
+    // If already authenticated, redirect to dashboard
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleInput = (e) => {
     setCredential((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setMessage({ type: '', content: '' });
 
-    login(credential.email, credential.password)
-    .then(success => {
+    try {
+      const success = await login(credential.email, credential.password);
+      
       if (success) {
         setMessage({ type: 'success', content: 'Login successful!' });
         setTimeout(() => {
@@ -34,16 +38,24 @@ const LoginPage = () => {
       } else {
         setMessage({ type: 'error', content: 'Invalid email or password' });
       }
-    })
-    .catch(error => {
-      setMessage({ type: 'error', content: 'An error occurred during login' });
-      console.error('Error:', error);
-    })
-    .finally(() => {
+    } catch (error) {
+      console.error('Login error:', error);
+      let errorMessage = 'An error occurred during login';
+      
+      // Get more specific error message if available
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Invalid credentials';
+        } else if (error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+      }
+      
+      setMessage({ type: 'error', content: errorMessage });
+    } finally {
       setIsLoading(false);
-    });
+    }
   }
-
 
   return (
     <>
@@ -81,7 +93,7 @@ const LoginPage = () => {
                   {message.content}
                 </div>
               )}
-              <form onSubmit={handleSubmit} className="space-y-6" action="/login" method="post">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Email input */}
                 <div>
                   <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">

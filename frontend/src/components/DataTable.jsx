@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   PlusIcon, Filter, ArrowUpDown, ChevronUp, ChevronDown, X, 
-  ArrowDownAZ, ArrowDownZA, AlertCircle 
+  ArrowDownAZ, ArrowDownZA, AlertCircle, FileText 
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -23,6 +23,15 @@ import {
   DropdownMenuPortal,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { studentService, remittanceService, paymentService } from "../utils/apiService";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
+import { toast } from "sonner";
 
 const DataTable = ({ 
   columns, 
@@ -36,29 +45,66 @@ const DataTable = ({
   sortBy = null, // Current sort field
   sortDir = 'asc', // Current sort direction
   filters = {}, // Current filters
-  filterOptions = {} // Available filter options
+  filterOptions = {}, // Available filter options
+  // Pagination props - fully controlled
+  currentPage = 1,
+  rowsPerPage = 10,
+  onPageChange,
+  onRowsPerPageChange,
+  totalElements
 }) => {
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
-  
-  const totalRows = data?.length || 0;
+  // State for report generation dialog
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportFormat, setReportFormat] = useState("pdf");
+  const [reportFields, setReportFields] = useState({});
+  const [reportFilters, setReportFilters] = useState({
+    program: 'all',
+    yearLevel: 'all',
+    section: 'all',
+    status: 'all',
+    feeType: 'all',
+    remittedBy: 'all'
+  });
+
+  // Calculate pagination values
+  const totalRows = totalElements || data?.length || 0;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
 
-  // Reset to first page when data changes significantly
+  // Initialize reportFields based on columns
   useEffect(() => {
-    setCurrentPage(1);
-  }, [sortBy, sortDir, JSON.stringify(filters)]);
+    const initialFields = {};
+    columns.forEach(col => {
+      if (!col.hidden && col.key !== "actions") {
+        initialFields[col.key] = true;
+      }
+    });
+    setReportFields(initialFields);
+  }, [columns]);
 
-  const handleRowsPerPageChange = (value) => {
-    setRowsPerPage(Number(value));
-    setCurrentPage(1); // Reset to first page when changing rows per page
-  };
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+  // Initialize reportFilters based on current table filters and title
+  useEffect(() => {
+    const initialReportFilters = { ...filters }; // Start with main table filters
+    // Ensure specific filters required by report type are initialized if not present
+    if (title === 'payment' || title === 'remittance') {
+      if (!initialReportFilters.feeType || initialReportFilters.feeType === 'all') {
+        // If no specific fee is selected in main table, try to get the first available fee from options
+        const feeOptionsKey = title === 'payment' ? 'feeType' : 'fee'; // filterOptions key for fees
+        if (filterOptions[feeOptionsKey] && filterOptions[feeOptionsKey].length > 0) {
+          initialReportFilters.feeType = filterOptions[feeOptionsKey][0].id; // Default to first fee ID
+        } else {
+          initialReportFilters.feeType = 'all'; // Fallback if no fee options
+        }
+      }
     }
-  };
+    // Ensure other common filters are present
+    if (!initialReportFilters.program) initialReportFilters.program = 'all';
+    if (!initialReportFilters.yearLevel) initialReportFilters.yearLevel = 'all';
+    if (!initialReportFilters.section) initialReportFilters.section = 'all';
+    if (!initialReportFilters.status) initialReportFilters.status = 'all';
+    if (title === 'remittance' && !initialReportFilters.remittedBy) initialReportFilters.remittedBy = 'all';
+
+    setReportFilters(initialReportFilters);
+  }, [filters, filterOptions, title]);
 
   const getPaginationInfo = () => {
     const start = totalRows === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
@@ -66,7 +112,9 @@ const DataTable = ({
     return `${start}-${end} of ${totalRows}`;
   };
 
-  const paginatedData = data?.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  // We don't need to slice the data if pagination is handled by the server
+  // But keep this for client-side pagination fallback
+  const paginatedData = data;
   
   // Handle sorting when a column is selected from the dropdown
   const handleSort = (field, direction) => {
@@ -121,6 +169,411 @@ const DataTable = ({
     } else {
       return <ArrowDownZA className="w-4 h-4" />;
     }
+  };
+
+  // Toggle field selection for report
+  const toggleReportField = (field) => {
+    setReportFields(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  const handleReportFilterChange = (filterName, value) => {
+    setReportFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
+  };
+
+  // Handle report generation
+  const handleGenerateReport = async () => {
+    const reportAPIParams = {
+      ...reportFilters,
+      fields: Object.keys(reportFields).filter(field => reportFields[field]),
+      sortField: sortBy,
+      sortDirection: sortDir,
+    };
+
+    // Critical: For payment and remittance reports, feeId (derived from reportFilters.feeType) MUST be set.
+    if ((title === 'payment' || title === 'remittance') && (!reportAPIParams.feeType || reportAPIParams.feeType === 'all')) {
+      toast.error("Fee Type Required", {
+        description: `Please select a specific Fee Type in the report filters to generate a ${title} report.`,
+      });
+      return; // Stop if no fee type is selected for these reports
+    }
+    
+    // Standardize feeType to feeId for the API
+    if (reportAPIParams.feeType && reportAPIParams.feeType !== 'all') {
+        reportAPIParams.feeId = reportAPIParams.feeType;
+        delete reportAPIParams.feeType;
+    }
+
+    // Standardize remittedBy to accountId for remittance reports
+    if (title === 'remittance' && reportAPIParams.remittedBy && reportAPIParams.remittedBy !== 'all') {
+        reportAPIParams.accountId = reportAPIParams.remittedBy;
+        delete reportAPIParams.remittedBy;
+    }
+
+    // Remove 'all' values before sending to backend
+    for (const key in reportAPIParams) {
+      if (reportAPIParams[key] === 'all') {
+        delete reportAPIParams[key];
+      }
+    }
+
+    console.log(`Generating ${title} report with API params:`, reportAPIParams);
+    setReportDialogOpen(false); 
+
+    const loadingToastId = toast.loading(`Generating ${title} report...`);
+
+    try {
+      let reportData;
+      if (title === 'student') {
+        reportData = await studentService.generateStudentReport(reportAPIParams);
+      } else if (title === 'remittance') {
+        reportData = await remittanceService.generateRemittanceReport(reportAPIParams);
+      } else if (title === 'payment') {
+        reportData = await paymentService.generatePaymentReport(reportAPIParams);
+      } else {
+        console.error("Unknown report title for API call:", title);
+        toast.error(`Unknown report type: ${title}`, { id: loadingToastId });
+        return;
+      }
+      console.log("Report data received:", reportData);
+
+      if (!reportData || reportData.length === 0) {
+        toast.error(`No data available for report`, {
+          id: loadingToastId,
+          description: "Try adjusting your filters or ensure the selected Fee Type has associated data."
+        });
+        return;
+      }
+
+      let success = false;
+      // Use the main 'columns' prop for defining report structure
+      const reportableColumns = columns.filter(col => !col.hidden && col.key !== 'actions');
+      
+      if (reportFormat === 'csv') {
+        success = generateCSV(reportData, title, reportFields, reportableColumns);
+      } else if (reportFormat === 'pdf') {
+        success = generatePDF(reportData, title, reportFields, reportableColumns);
+      } else if (reportFormat === 'excel') {
+        success = generateXLSX(reportData, title, reportFields, reportableColumns);
+      }
+      
+      if (success) {
+        toast.success(`${reportFormat.toUpperCase()} Report Generated`, { 
+            id: loadingToastId, 
+            description: `Your ${title} report has been downloaded.` 
+        });
+      } else {
+        // Errors within generation functions should ideally show their own toasts or return specific error messages.
+        // This is a fallback.
+        toast.error(`Failed to Generate ${reportFormat.toUpperCase()} Report`, { 
+            id: loadingToastId, 
+            description: "An issue occurred during file creation. Check console for details." 
+        });
+      }
+
+    } catch (error) {
+      console.error(`Error generating ${title} report:`, error);
+      toast.error(`Failed to Generate Report`, {
+        id: loadingToastId,
+        description: error.response?.data?.message || error.message || `An error occurred.`
+      });
+    }
+  };
+
+  // Modified to accept 'reportableColumns' which are the filtered main columns
+  const generateCSV = (data, reportTitle, selectedFields, reportableColumns) => {
+    if (!data || data.length === 0) return false;
+
+    const summaryStats = calculateSummaryStats(data, reportTitle);
+    const headers = reportableColumns
+      .filter(col => selectedFields[col.key])
+      .map(col => col.label);
+
+    const csvRows = data.map(row => {
+      return reportableColumns
+        .filter(col => selectedFields[col.key])
+        .map(col => {
+          let cellValue = row[col.key]; // Default to direct key access
+          // Handle specific report types and DTO structures
+          if (reportTitle === 'payment') { // Data is PaymentDTO
+            if (col.key === 'fullName') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial || ''}`.trim();
+            else if (col.key === 'program') cellValue = row.programName; // from PaymentDTO
+            else if (col.key === 'yearSec') cellValue = row.yearLevel && row.section ? `${row.yearLevel} - ${row.section}` : (row.yearLevel || row.section || '-');
+            else if (col.key === 'status') cellValue = row.status; // Direct status from PaymentDTO
+            else if (col.key === 'amount') cellValue = row.amount; // Direct amount from PaymentDTO
+          } else if (reportTitle === 'remittance') { // Data is a Remittances object
+            if (col.key === 'fullName' || col.key === 'treasurer' || col.key === 'user') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial ? row.middleInitial + '.' : ''}`.trim();
+            else if (col.key === 'program') cellValue = row.programCode; 
+            else if (col.key === 'yearSec' || col.key === 'yearAndSection') cellValue = row.yearLevel && row.section ? `${row.yearLevel}-${row.section}` : (row.yearLevel || row.section || '-');
+            else if (col.key === 'status') cellValue = row.status; 
+            else if (col.key === 'amountRemitted') cellValue = row.amountRemitted; 
+            else if (col.key === 'feeType') cellValue = row.feeType;
+            // Ensure other direct fields from Remittances object are accessed if selected
+            else if (row.hasOwnProperty(col.key)) {
+              cellValue = row[col.key];
+            }
+          } else { // Student report or other - use existing render logic if available
+            if (col.render) {
+                const rendered = col.render(row[col.key], row);
+                if (typeof rendered === 'object') cellValue = row[col.key]; // Fallback for complex JSX
+                else cellValue = rendered;
+            }
+          }
+          return `"${String(cellValue == null ? '' : cellValue).replace(/"/g, '""')}"`;
+        })
+        .join(',');
+    });
+    // ... (rest of CSV generation with summaryStats) ...
+    const summaryRows = [];
+    if (summaryStats) {
+      summaryRows.push(''); 
+      summaryRows.push('Summary Statistics');
+      Object.entries(summaryStats).forEach(([key, value]) => {
+        summaryRows.push(`${key},${value}`);
+      });
+    }
+
+    const csvString = [headers.join(','), ...csvRows, ...summaryRows].join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${reportTitle}_report.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return true;
+  };
+
+  // Modified to accept 'reportableColumns'
+  const generatePDF = (data, reportTitle, selectedFields, reportableColumns) => {
+    if (!data || data.length === 0) return false;
+    const summaryStats = calculateSummaryStats(data, reportTitle);
+    // ... (PDF setup: doc, pageWidth, etc.) ...
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const roseColor = [224, 49, 70];
+    const grayText = [75, 85, 99];
+    const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    const head = [reportableColumns
+      .filter(col => selectedFields[col.key])
+      .map(col => col.label)];
+
+    const body = data.map(row => {
+      return reportableColumns
+        .filter(col => selectedFields[col.key])
+        .map(col => {
+          let cellValue = row[col.key];
+          if (reportTitle === 'payment') { // PaymentDTO
+            if (col.key === 'fullName') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial || ''}`.trim();
+            else if (col.key === 'program') cellValue = row.programName;
+            else if (col.key === 'yearSec') cellValue = row.yearLevel && row.section ? `${row.yearLevel} - ${row.section}` : '-';
+            else if (col.key === 'status') cellValue = row.status;
+            else if (col.key === 'amount') cellValue = row.amount ? parseFloat(row.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
+          } else if (reportTitle === 'remittance') { // Data is a Remittances object
+            if (col.key === 'fullName' || col.key === 'treasurer' || col.key === 'user') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial ? row.middleInitial + '.' : ''}`.trim();
+            else if (col.key === 'program') cellValue = row.programCode;
+            else if (col.key === 'yearSec' || col.key === 'yearAndSection') cellValue = row.yearLevel && row.section ? `${row.yearLevel}-${row.section}` : (row.yearLevel || row.section || '-');
+            else if (col.key === 'status') cellValue = row.status;
+            else if (col.key === 'amountRemitted') cellValue = row.amountRemitted ? parseFloat(row.amountRemitted).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
+            else if (col.key === 'feeType') cellValue = row.feeType;
+            // Remove expectedAmount for remittance as it's not in Remittances object
+            // else if (col.key === 'expectedAmount') cellValue = row.expectedAmount ? parseFloat(row.expectedAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
+            // Ensure other direct fields from Remittances object are accessed if selected
+            else if (row.hasOwnProperty(col.key)) {
+              cellValue = row[col.key];
+            }
+          } else {
+            if (col.render) {
+                const rendered = col.render(row[col.key], row);
+                if (typeof rendered === 'object') cellValue = row[col.key];
+                else cellValue = rendered;
+            }
+          }
+          return String(cellValue == null ? '-' : cellValue);
+        });
+    });
+    // ... (rest of PDF generation with header, summary, autoTable) ...
+    const headerY = 15;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(roseColor[0], roseColor[1], roseColor[2]);
+    doc.text("Transparency System", pageWidth / 2, headerY, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setTextColor(grayText[0], grayText[1], grayText[2]);
+    const reportName = reportTitle.charAt(0).toUpperCase() + reportTitle.slice(1) + " Report";
+    doc.text(reportName, pageWidth / 2, headerY + 8, { align: 'center' });
+    doc.setDrawColor(roseColor[0], roseColor[1], roseColor[2]);
+    doc.setLineWidth(0.5);
+    doc.line(15, headerY + 12, pageWidth - 15, headerY + 12);
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Generated on: ${date} at ${time}`, pageWidth - 15, headerY + 18, { align: 'right' });
+
+    let startY = headerY + 25;
+    if (summaryStats) {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(roseColor[0], roseColor[1], roseColor[2]);
+      doc.text("Summary Statistics", 15, startY);
+      startY += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(50, 50, 50);
+      Object.entries(summaryStats).forEach(([key, value]) => {
+        // Replace Peso sign with PHP for PDF to avoid rendering issues
+        const pdfValue = typeof value === 'string' ? value.replace(/₱/g, 'PHP ') : value;
+        doc.text(`${key}: ${pdfValue}`, 15, startY);
+        startY += 6;
+      });
+      startY += 5; // Spacing before table
+    }
+
+    autoTable(doc, {
+      head: head,
+      body: body,
+      startY: startY,
+      // ... (autoTable styles and hooks) ...
+        headStyles: { fillColor: roseColor, textColor: [255, 255, 255], fontStyle: 'bold', halign: 'left', fontSize: 10, cellPadding: 4 },
+        bodyStyles: { textColor: [50, 50, 50], fontSize: 9, cellPadding: 4, lineColor: [230, 230, 230] },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        margin: { top: headerY + 12, right: 15, bottom: 20, left: 15 },
+        didDrawPage: function (data) {
+          doc.setFontSize(8);
+          doc.setTextColor(120, 120, 120);
+          doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - 15, pageHeight - 10, { align: 'right' });
+        },
+    });
+    doc.save(`${reportTitle}_report.pdf`);
+    return true;
+  };
+
+  // Modified to accept 'reportableColumns'
+  const generateXLSX = (data, reportTitle, selectedFields, reportableColumns) => {
+    if (!data || data.length === 0) return false;
+    const summaryStats = calculateSummaryStats(data, reportTitle);
+    // ... (XLSX headers and rows setup) ...
+    const headers = reportableColumns
+      .filter(col => selectedFields[col.key])
+      .map(col => col.label);
+
+    const rows = data.map(row => {
+      const rowData = {};
+      reportableColumns
+        .filter(col => selectedFields[col.key])
+        .forEach(col => {
+          let cellValue = row[col.key];
+           if (reportTitle === 'payment') { // PaymentDTO
+            if (col.key === 'fullName') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial || ''}`.trim();
+            else if (col.key === 'program') cellValue = row.programName;
+            else if (col.key === 'yearSec') cellValue = row.yearLevel && row.section ? `${row.yearLevel} - ${row.section}` : '-';
+            else if (col.key === 'status') cellValue = row.status;
+            else if (col.key === 'amount') cellValue = row.amount; // Store as number for Excel sum if possible
+          } else if (reportTitle === 'remittance') { // Data is a Remittances object
+            if (col.key === 'fullName' || col.key === 'treasurer' || col.key === 'user') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial ? row.middleInitial + '.' : ''}`.trim();
+            else if (col.key === 'program') cellValue = row.programCode;
+            else if (col.key === 'yearSec' || col.key === 'yearAndSection') cellValue = row.yearLevel && row.section ? `${row.yearLevel}-${row.section}` : (row.yearLevel || row.section || '-');
+            else if (col.key === 'status') cellValue = row.status;
+            else if (col.key === 'amountRemitted') cellValue = row.amountRemitted; // Store as number
+            else if (col.key === 'feeType') cellValue = row.feeType;
+            // Ensure other direct fields from Remittances object are accessed if selected
+            else if (row.hasOwnProperty(col.key)) {
+              cellValue = row[col.key];
+            }
+          } else {
+            if (col.render) {
+                const rendered = col.render(row[col.key], row);
+                if (typeof rendered === 'object') cellValue = row[col.key];
+                else cellValue = rendered;
+            }
+          }
+          // For Excel, try to keep numbers as numbers if they are amounts for easier sum
+          if ((col.key === 'amount' || col.key === 'amountRemitted') && typeof cellValue === 'string') {
+            const num = parseFloat(cellValue.replace(/[^\d.-]/g, ''));
+            if (!isNaN(num)) cellValue = num;
+          }
+          rowData[col.label] = (cellValue == null ? '' : cellValue);
+        });
+      return rowData;
+    });
+    
+    // ... (XLSX workbook creation, summary sheet, colWidths, and download) ...
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+    // Column widths (basic implementation)
+    const colWidths = headers.map(header => ({ wch: Math.max(header.length, 15) }));
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "ReportData");
+
+    if (summaryStats) {
+      const summaryData = Object.entries(summaryStats).map(([key, value]) => ({ Statistic: key, Value: value }));
+      const summaryWS = XLSX.utils.json_to_sheet(summaryData);
+      summaryWS['!cols'] = [{ wch: 30 }, { wch: 20 }];
+      XLSX.utils.book_append_sheet(wb, summaryWS, "Summary");
+    }
+
+    XLSX.writeFile(wb, `${reportTitle}_report.xlsx`);
+    return true;
+  };
+
+  const calculateSummaryStats = (data, reportTitle) => {
+    if (!data || data.length === 0) return null;
+    const stats = { 'Total Records': data.length };
+
+    if (reportTitle === 'payment') { // PaymentDTO based
+      const totalAmount = data.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+      const paidCount = data.filter(row => String(row.status).toUpperCase() === 'PAID').length;
+      const pendingCount = data.filter(row => String(row.status).toUpperCase() === 'PENDING').length;
+      const remittedCount = data.filter(row => String(row.status).toUpperCase() === 'REMITTED').length;
+
+      stats['Total Amount (Paid, Pending, Remitted)'] = `PHP ${totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      stats['Paid Payments'] = paidCount;
+      stats['Pending Payments'] = pendingCount;
+      stats['Remitted Payments'] = remittedCount;
+    
+    } else if (reportTitle === 'remittance') { // Remittances object based
+      const totalRemitted = data.reduce((sum, row) => sum + (parseFloat(row.amountRemitted) || 0), 0);
+      // Expected amount is not directly available in Remittances object, so we remove it from summary for now
+      // const totalExpected = data.reduce((sum, row) => sum + (parseFloat(row.expectedAmount) || 0), 0);
+      const completedCount = data.filter(row => String(row.status).toUpperCase() === 'COMPLETED').length;
+      const partialCount = data.filter(row => String(row.status).toUpperCase() === 'PARTIAL').length;
+      const notRemittedCount = data.filter(row => String(row.status).toUpperCase() === 'NOT_REMITTED').length; // This status might not appear if only remitted records are fetched
+
+      stats['Total Amount Remitted'] = `₱${totalRemitted.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      // stats['Total Expected Amount (from paid fees)'] = `₱${totalExpected.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      stats['Completed Remittances'] = completedCount;
+      stats['Partial Remittances'] = partialCount;
+      if (notRemittedCount > 0) stats['Not Remitted (by Treasurers in this list)'] = notRemittedCount; // Clarify if this means treasurers who haven't remitted *anything* or *this specific fee*. The current data is only remitted records.
+      // stats['Overall Remittance Rate (Remitted / Expected)'] = totalExpected > 0 ? `${((totalRemitted / totalExpected) * 100).toFixed(1)}%` : 'N/A';
+    
+    } else if (reportTitle === 'student') { // Existing student logic
+      const activeCount = data.filter(row => String(row.status).toUpperCase() === 'ACTIVE').length;
+      const inactiveCount = data.filter(row => String(row.status).toUpperCase() === 'INACTIVE').length;
+      const graduatedCount = data.filter(row => String(row.status).toUpperCase() === 'GRADUATED').length;
+      const programCounts = data.reduce((acc, row) => {
+        const program = row.program || 'Unspecified';
+        acc[program] = (acc[program] || 0) + 1;
+        return acc;
+      }, {});
+      stats['Active Students'] = activeCount;
+      stats['Inactive Students'] = inactiveCount;
+      stats['Graduated Students'] = graduatedCount;
+      stats['Students by Program'] = Object.entries(programCounts)
+        .map(([program, count]) => `${program}: ${count}`)
+        .join(', ');
+    }
+    return stats;
   };
 
   // Animation variants
@@ -179,6 +632,18 @@ const DataTable = ({
             </CardTitle>
             
             <div className="flex items-center gap-2">
+              {/* Generate Report Button */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={() => setReportDialogOpen(true)}
+              >
+                <FileText className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Generate Report</span>
+                <span className="sm:hidden">Report</span>
+              </Button>
+
               {/* Sort Dropdown */}
               {onSort && (
                 <DropdownMenu>
@@ -298,7 +763,7 @@ const DataTable = ({
                               className={filters[filterKey] === 'all' || !filters[filterKey] ? 'bg-muted' : ''}
                               onClick={() => handleFilter(filterKey, 'all')}
                             >
-                              All {filterKey}s
+                              All {filterKey.split(/(?=[A-Z])/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                             </DropdownMenuItem>
                             
                             {Array.isArray(options) && options.map((option) => {
@@ -376,27 +841,31 @@ const DataTable = ({
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                      {columns.map((column, index) => (
-                        <TableHead 
-                          key={index} 
-                          className="font-medium"
-                        >
-                          <div className="flex items-center">
-                            {column.label}
-                            {onSort && column.sortable && sortBy === (column.sortKey || column.key) && (
-                              sortDir === 'asc' 
-                                ? <ChevronUp className="w-4 h-4 ml-1" /> 
-                                : <ChevronDown className="w-4 h-4 ml-1" />
-                            )}
-                          </div>
-                        </TableHead>
-                      ))}
+                      {columns
+                        .filter(column => !column.hidden)
+                        .map((column, index) => (
+                          <TableHead 
+                            key={index} 
+                            className="font-medium"
+                            onClick={() => column.sortable && onSort && onSort(column.sortKey || column.key, sortDir === 'asc' ? 'desc' : 'asc')}
+                            style={column.sortable ? { cursor: 'pointer' } : {}}
+                          >
+                            <div className="flex items-center">
+                              {column.label}
+                              {onSort && column.sortable && sortBy === (column.sortKey || column.key) && (
+                                sortDir === 'asc' 
+                                  ? <ChevronUp className="w-4 h-4 ml-1" /> 
+                                  : <ChevronDown className="w-4 h-4 ml-1" />
+                              )}
+                            </div>
+                          </TableHead>
+                        ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={columns.length} className="h-32 text-center">
+                        <TableCell colSpan={columns.filter(c => !c.hidden).length} className="h-32 text-center">
                           <div className="flex items-center justify-center">
                             <div className="w-6 h-6 border-4 rounded-full border-t-rose-600 animate-spin"></div>
                             <span className="ml-2">Loading...</span>
@@ -410,16 +879,18 @@ const DataTable = ({
                           variants={rowVariants}
                           className="transition-colors border-b hover:bg-muted/50"
                         >
-                          {columns.map((column, colIndex) => (
-                            <TableCell key={`${rowIndex}-${colIndex}`} className="h-12 py-2">
-                              {column.render ? column.render(row[column.key], row) : row[column.key]}
-                            </TableCell>
-                          ))}
+                          {columns
+                            .filter(column => !column.hidden)
+                            .map((column, colIndex) => (
+                              <TableCell key={`${rowIndex}-${colIndex}`} className="h-12 py-2">
+                                {column.render ? column.render(row[column.key], row) : row[column.key]}
+                              </TableCell>
+                            ))}
                         </motion.tr>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length} className="h-32 text-center text-muted-foreground">
+                        <TableCell colSpan={columns.filter(c => !c.hidden).length} className="h-32 text-center text-muted-foreground">
                           No data available
                         </TableCell>
                       </TableRow>
@@ -432,7 +903,7 @@ const DataTable = ({
             <div className="flex flex-col p-4 space-y-4 border-t sm:flex-row sm:space-y-0 sm:items-center sm:justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page:</span>
-                <Select value={rowsPerPage.toString()} onValueChange={handleRowsPerPageChange}>
+                <Select value={rowsPerPage.toString()} onValueChange={onRowsPerPageChange || (()=>{})}>
                   <SelectTrigger className="h-8 w-[70px] border-0">
                     <SelectValue placeholder={rowsPerPage} />
                   </SelectTrigger>
@@ -455,7 +926,7 @@ const DataTable = ({
                     variant="outline"
                     size="icon"
                     className="w-24 h-8 max-sm:w-8"
-                    onClick={() => handlePageChange(currentPage - 1)}
+                    onClick={() => onPageChange && onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                   >
                     <PaginationPrevious className="w-4 h-4" />
@@ -465,8 +936,8 @@ const DataTable = ({
                     variant="outline"
                     size="icon"
                     className="w-24 h-8 max-sm:w-8"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
+                    onClick={() => onPageChange && onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || totalRows === 0}
                   >
                     <PaginationNext className="w-4 h-4" />
                     <span className="sr-only">Next page</span>
@@ -477,6 +948,224 @@ const DataTable = ({
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Report Generation Dialog */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+        <DialogContent className="sm:max-w-lg"> {/* Increased width for more filters */}
+          <DialogHeader>
+            <DialogTitle>
+              <div className="flex items-center text-rose-600">
+                <FileText className="w-5 h-5 mr-2 text-rose-600" />
+                Generate Report
+              </div>
+            </DialogTitle>
+            <DialogDescription>
+              Select options to generate a {title} report. 
+              {(title === 'payment' || title === 'remittance') && 
+                <span className="block mt-1 text-sm text-amber-700">A specific 'Fee Type' is required for this report.</span>
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-2 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+            <div>
+              <Label htmlFor="reportFormat">Report Format <span className="text-rose-600">*</span></Label>
+              <RadioGroup 
+                id="reportFormat"
+                value={reportFormat} 
+                onValueChange={setReportFormat}
+                className="flex gap-4 mt-1"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="pdf" id="pdf" className="data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 focus:ring-rose-500" />
+                  <Label htmlFor="pdf">PDF</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="excel" id="excel" className="data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 focus:ring-rose-500" />
+                  <Label htmlFor="excel">Excel</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="csv" id="csv" className="data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 focus:ring-rose-500" />
+                  <Label htmlFor="csv">CSV</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <div>
+              <Label>Include Columns <span className="text-rose-600">*</span></Label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {columns
+                  .filter(column => !column.hidden && column.key !== "actions")
+                  .map((column) => (
+                    <div key={column.key} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`field-${column.key}`}
+                        checked={reportFields[column.key] || false}
+                        onCheckedChange={() => toggleReportField(column.key)}
+                        className="data-[state=checked]:bg-rose-600 data-[state=checked]:border-rose-600 focus:ring-rose-500"
+                      />
+                      <Label htmlFor={`field-${column.key}`} className="text-sm">
+                        {column.label}
+                      </Label>
+                    </div>
+                  ))}
+              </div>
+            </div>
+            
+            <DropdownMenuSeparator />
+            <Label className="mt-2 mb-1 text-sm font-medium text-gray-700">Report Filters</Label>
+            
+            {/* Common Filters for all report types, with Fee Type emphasized for payment/remittance */} 
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {/* Fee Type Filter - mandatory for payment/remittance */} 
+              {(title === 'payment' || title === 'remittance') && (
+                <div className="col-span-2"> {/* Make it full width for emphasis */}
+                  <Label htmlFor="reportFeeType" className="text-xs">
+                    Fee Type <span className="text-rose-600">* (Required for {title} report)</span>
+                  </Label>
+                  <Select 
+                    name="feeType" // This will be mapped to feeId in handleGenerateReport
+                    value={reportFilters.feeType} // Ensure reportFilters.feeType is managed
+                    onValueChange={(value) => handleReportFilterChange('feeType', value)}
+                  >
+                    <SelectTrigger className="w-full mt-1 text-xs h-9">
+                      <SelectValue placeholder="Select Fee Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {/* Do NOT include 'All Fee Types' if it's mandatory */}
+                      {/* <SelectItem value="all">All Fee Types</SelectItem> */}
+                      {(title === 'payment' ? filterOptions.feeType : filterOptions.fee)?.map(fee => (
+                        <SelectItem key={fee.id || fee.name} value={fee.id || fee.name}>
+                          {fee.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Program Filter */} 
+              <div>
+                <Label htmlFor="reportProgram" className="text-xs">Program</Label>
+                <Select 
+                  name="program"
+                  value={reportFilters.program}
+                  onValueChange={(value) => handleReportFilterChange('program', value)}
+                >
+                  <SelectTrigger className="w-full mt-1 text-xs h-9">
+                    <SelectValue placeholder="Select Program" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Programs</SelectItem>
+                    {filterOptions.program?.map(prog => (
+                      <SelectItem key={prog.id || prog.name} value={prog.id || prog.name}>
+                        {prog.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Year Level Filter */} 
+              <div>
+                <Label htmlFor="reportYearLevel" className="text-xs">Year Level</Label>
+                <Select 
+                  name="yearLevel"
+                  value={reportFilters.yearLevel}
+                  onValueChange={(value) => handleReportFilterChange('yearLevel', value)}
+                >
+                  <SelectTrigger className="w-full mt-1 text-xs h-9">
+                    <SelectValue placeholder="Select Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Year Levels</SelectItem>
+                    {filterOptions.yearLevel?.map(yl => (
+                      <SelectItem key={yl} value={yl}>{yl}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Section Filter */} 
+              <div>
+                <Label htmlFor="reportSection" className="text-xs">Section</Label>
+                <Select 
+                  name="section"
+                  value={reportFilters.section}
+                  onValueChange={(value) => handleReportFilterChange('section', value)}
+                >
+                  <SelectTrigger className="w-full mt-1 text-xs h-9">
+                    <SelectValue placeholder="Select Section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sections</SelectItem>
+                    {filterOptions.section?.map(sec => (
+                      <SelectItem key={sec} value={sec}>{sec}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Status Filter (Student Status, Payment Status, or Remittance Status) */} 
+              <div>
+                <Label htmlFor="reportStatus" className="text-xs">Status</Label>
+                <Select 
+                  name="status"
+                  value={reportFilters.status}
+                  onValueChange={(value) => handleReportFilterChange('status', value)}
+                >
+                  <SelectTrigger className="w-full mt-1 text-xs h-9">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    {filterOptions.status?.map(stat => (
+                      <SelectItem key={stat} value={stat}>{stat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Remitted By Filter (Only for Remittance Report) */} 
+              {title === 'remittance' && (
+                <div>
+                  <Label htmlFor="reportRemittedBy" className="text-xs">Remitted By (Treasurer)</Label>
+                  <Select 
+                    name="remittedBy" // This will be mapped to accountId
+                    value={reportFilters.remittedBy}
+                    onValueChange={(value) => handleReportFilterChange('remittedBy', value)}
+                  >
+                    <SelectTrigger className="w-full mt-1 text-xs h-9">
+                      <SelectValue placeholder="Select Treasurer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Treasurers</SelectItem>
+                      {filterOptions.remittedBy?.map(user => (
+                        <SelectItem key={user.id || user.name} value={user.id || user.name}>
+                          {user.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex justify-end gap-2 mt-6">
+            <Button type="button" className="cursor-pointer" variant="outline" onClick={() => setReportDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              className="cursor-pointer bg-rose-600 hover:bg-rose-600/90"
+              onClick={handleGenerateReport}
+            >
+              Generate Report
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

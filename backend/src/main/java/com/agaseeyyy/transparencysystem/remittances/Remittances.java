@@ -1,10 +1,15 @@
 package com.agaseeyyy.transparencysystem.remittances;
 
 import java.time.LocalDate;
+import java.time.Year;
+import java.util.List;
+
 import jakarta.persistence.*;
 
 import com.agaseeyyy.transparencysystem.accounts.Accounts;
+import com.agaseeyyy.transparencysystem.enums.RemittanceStatus;
 import com.agaseeyyy.transparencysystem.fees.Fees;
+import com.agaseeyyy.transparencysystem.payments.Payments;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -27,11 +32,20 @@ public class Remittances {
     @Column(name = "amount_remitted", nullable = false)
     private Double amountRemitted;
 
+    @Enumerated(EnumType.STRING)    
     @Column(name = "status", nullable = false)
-    private Boolean status = true;
+    private RemittanceStatus status = RemittanceStatus.PARTIAL;
 
     @Column(name = "remittance_date", nullable = false)
     private LocalDate remittanceDate = LocalDate.now();
+
+    @OneToMany
+    @JoinTable(
+        name = "remittance_payments",
+        joinColumns = @JoinColumn(name = "remittance_id"),
+        inverseJoinColumns = @JoinColumn(name = "payment_id")
+    )
+    private List<Payments> payments;
 
     // Constructors
     public Remittances() {}
@@ -58,6 +72,11 @@ public class Remittances {
         this.fee = fee;
     }
 
+    @JsonProperty("accountId")
+    public Integer getAccountId() {
+        return account != null ? account.getAccountId() : null;
+    }
+
     @JsonProperty("lastName")
     public String getRemittedFor() {
         return account != null ? account.getLastName() : null;
@@ -71,6 +90,21 @@ public class Remittances {
     @JsonProperty("middleInitial")
     public Character getMiddleInitial() {
         return account != null ? account.getMiddleInitial() : null;
+    }
+
+    @JsonProperty("yearLevel")
+    public Year getYearLevel() {
+        return account != null ? account.getStudent().getYearLevel() : null;
+    }
+
+    @JsonProperty("section") 
+    public Character getSection() {
+        return account != null ? account.getStudent().getSection() : null;
+    }
+
+    @JsonProperty("programCode")
+    public String getProgram() {
+        return account != null ? account.getStudent().getProgramId() : null;
     }
 
     public Accounts getAccount() {
@@ -89,11 +123,11 @@ public class Remittances {
         this.amountRemitted = amountRemitted;
     }
 
-    public Boolean getStatus() {
+    public RemittanceStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Boolean status) {
+    public void setStatus(RemittanceStatus status) {
         this.status = status;
     }
 
@@ -103,5 +137,13 @@ public class Remittances {
 
     public void setRemittanceDate(LocalDate remittanceDate) {
         this.remittanceDate = remittanceDate;
+    }
+
+    public List<Payments> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payments> payments) {
+        this.payments = payments;
     }
 }

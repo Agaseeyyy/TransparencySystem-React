@@ -5,6 +5,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DepartmentRepository extends  JpaRepository<Departments, String> {
-  Departments findByDepartmentId(String departmentId);
-  
+    Departments findByDepartmentId(String departmentId);
+    Departments findByDepartmentName(String departmentName);
+    boolean existsByDepartmentName(String departmentName);
+    boolean existsByDepartmentNameAndDepartmentIdNot(String departmentName, String departmentId);
 } 

@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'; // Add useRef and useEffect
-import { useLocation, Link } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Menu, Search, Bell, X, Send, Clock, AlertTriangle } from 'lucide-react'
+import { useLocation, Link, useNavigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, Menu, Search, Bell, X, Send, Clock, AlertTriangle, User, Briefcase } from 'lucide-react'
 import { useAuth } from '../context/AuthProvider';
-import axios from 'axios';
+import { studentService, accountService } from '../utils/apiService'; // Import necessary services
 
 // Add this CSS to your project for the animations
 // You can add this to a separate CSS file or use styled-components
@@ -20,11 +20,12 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
   // Existing state variables and hooks...
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [showNotifications, setShowNotifications] = useState(false);
   const [loading, setLoading] = useState(false);
   const [actionResult, setActionResult] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState(null);
+  const [searchResults, setSearchResults] = useState({ students: [], treasurers: [] }); // Updated structure
   const [isSearching, setIsSearching] = useState(false);
   
   // Add this for click-outside behavior
@@ -34,7 +35,8 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
   useEffect(() => {
     function handleClickOutside(event) {
       if (searchFormRef.current && !searchFormRef.current.contains(event.target)) {
-        setSearchResults(null);
+        setSearchResults({ students: [], treasurers: [] }); // Clear results
+        setSearchTerm(''); // Clear search term
       }
     }
     
@@ -47,61 +49,98 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
   // Function to trigger email actions
   const triggerAction = async (action) => {
     setLoading(true);
-    
+    setActionResult(null); // Clear previous results
     try {
-      await axios.get(
-        `http://localhost:8080/api/v1/emails/trigger-${action}`,
-        {
+      // Assuming the email trigger endpoint is still /api/v1/emails/trigger-{action}
+      // And it's using an external API client, not the one from apiService.js for this specific case.
+      // If this needs to use the api.js from utils, this should be refactored.
+      await fetch(`http://localhost:8080/api/v1/emails/trigger-${action}`, { // Changed to fetch for simplicity, can be reverted to axios if preferred
+        method: 'GET',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}` // Ensure this token key is correct
         }
-      );
+      });
       
       setActionResult({
         success: true,
         message: `${action === 'reminders' ? 'Payment reminders' : 'Overdue notifications'} sent!`
       });
-
-      // Hide success message after 3 seconds
       setTimeout(() => setActionResult(null), 3000);
     } catch (error) {
+      console.error(`Error sending ${action}:`, error);
       setActionResult({
         success: false,
-        message: `Failed to send ${action}`
+        message: `Failed to send ${action}. Check console for details.`
       });
+      setTimeout(() => setActionResult(null), 5000); // Keep error message longer
     } finally {
       setLoading(false);
     }
   };
 
-  // Update handleSearch function to properly process the results
+  // New search logic
   const handleSearch = async (e) => {
-    e.preventDefault();
-    if (searchTerm.trim().length < 2) return;
+    if (e) e.preventDefault(); // Prevent form submission if event is passed
+    if (searchTerm.trim().length < 2) {
+      setSearchResults({ students: [], treasurers: [] });
+      return;
+    }
     
     setIsSearching(true);
     try {
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/search/global?q=${encodeURIComponent(searchTerm)}`
-      );
+      const [studentsResponse, treasurersResponse] = await Promise.all([
+        studentService.getAllStudents(), // Fetches all students
+        accountService.getAccountsByRole('Class_Treasurer') // Fetches Class Treasurers
+      ]);
+
+      const filteredStudents = studentsResponse
+        .filter(student => 
+          `${student.firstName || ''} ${student.lastName || ''} ${student.studentId || ''}`
+          .toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .map(s => ({ ...s, type: 'student' }));
+
+      const filteredTreasurers = treasurersResponse
+        .filter(acc => 
+          `${acc.firstName || ''} ${acc.lastName || ''} ${acc.email || ''}`
+          .toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .map(t => ({ ...t, type: 'treasurer' }));
+
+      setSearchResults({ students: filteredStudents, treasurers: filteredTreasurers });
       
-      if (response.data && response.data.status === 'success') {
-        setSearchResults(response.data.results);
-        console.log("Search results:", response.data.results);
-      } else {
-        setSearchResults({
-          students: [],
-          fees: [],
-          payments: [],
-          remittances: []
-        });
-      }
     } catch (error) {
       console.error('Search failed:', error);
-      setSearchResults(null);
+      setSearchResults({ students: [], treasurers: [] });
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  // Effect to trigger search when searchTerm changes (debounced)
+  useEffect(() => {
+    if (searchTerm.trim().length === 0) {
+      setSearchResults({ students: [], treasurers: [] });
+      setIsSearching(false);
+      return;
+    }
+    if (searchTerm.trim().length >= 2) {
+      const debounceSearch = setTimeout(() => {
+        handleSearch(); // Call without event
+      }, 300); // 300ms debounce
+      return () => clearTimeout(debounceSearch);
+    }
+  }, [searchTerm]);
+
+  const handleResultClick = (item) => {
+    setSearchTerm(''); // Clear search term
+    setSearchResults({ students: [], treasurers: [] }); // Clear results
+    if (item.type === 'student') {
+      navigate(`/payments?studentId=${item.studentId}&studentName=${encodeURIComponent(`${item.lastName}, ${item.firstName}`)}`);
+    } else if (item.type === 'treasurer') {
+      // Use top-level firstName and lastName from the account object if available, else email
+      const treasurerName = (item.firstName && item.lastName) ? `${item.lastName}, ${item.firstName}` : item.email;
+      navigate(`/remittances?accountId=${item.accountId}&treasurerName=${encodeURIComponent(treasurerName)}`);
     }
   };
 
@@ -178,7 +217,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
           {/* Right Side Content */}
           {isAuthenticated && (
             <div className="flex items-center space-x-4">
-              <form ref={searchFormRef} onSubmit={handleSearch} className="relative z-50">
+              <form ref={searchFormRef} onSubmit={handleSearch} className="relative"> {/* Removed z-50, let dropdown handle it */}
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   {isSearching ? (
                     <div className="w-4 h-4 border-2 border-t-0 border-l-0 rounded-full animate-spin border-rose-600"></div>
@@ -188,16 +227,18 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
                 </div>
                 <input
                   type="search"
-                  className="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-red-500 focus:border-red-500"
-                  placeholder="Search..."
+                  className="block w-full p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-rose-500 focus:border-rose-500"
+                  placeholder="Search student or treasurer..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
 
-                {/* Search Results - Fixed width */}
-                {searchResults && (
-                  <div className="absolute z-50 mt-1 origin-top bg-white border border-gray-200 rounded-lg shadow-lg -left-20 top-full search-results-animation" 
-                       style={{ width: '350px', maxWidth: 'calc(100vw - 20px)' }}>
+                {/* Search Results Dropdown */}
+                {(searchResults.students.length > 0 || searchResults.treasurers.length > 0) && (
+                  <div 
+                    className="absolute z-50 mt-1 origin-top bg-white border border-gray-200 rounded-lg shadow-lg -left-20 top-full search-results-animation" 
+                    style={{ width: '350px', maxWidth: 'calc(100vw - 20px)' }}
+                  >
                     <div className="p-3 border-b border-gray-200 bg-gradient-to-r from-rose-50 to-gray-50">
                       <h3 className="flex items-center text-sm font-medium text-gray-800">
                         <Search className="w-3.5 h-3.5 mr-1.5 text-rose-500" />
@@ -206,32 +247,28 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
                     </div>
                     
                     <div className="overflow-y-auto max-h-[70vh] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                      {/* Students */}
-                      {searchResults.students && searchResults.students.length > 0 && (
+                      {/* Students Results */}
+                      {searchResults.students.length > 0 && (
                         <div className="p-2">
                           <h4 className="px-2 py-1 mb-1 text-xs font-medium text-gray-500 uppercase border-b border-gray-100">
-                            Students ({searchResults.students.length})
+                            <User className="inline w-3 h-3 mr-1" /> Students ({searchResults.students.length})
                           </h4>
                           <div className="space-y-1">
                             {searchResults.students.map((student) => (
                               <div 
-                                key={student.id} 
+                                key={`student-${student.studentId}`} 
                                 className="p-2 transition-colors duration-150 rounded-md cursor-pointer hover:bg-rose-50"
+                                onClick={() => handleResultClick(student)}
                               >
                                 <div className="flex items-center justify-between">
-                                  <div className="font-medium text-gray-800">{student.title}</div>
+                                  <div className="font-medium text-gray-800">{student.lastName}, {student.firstName} {student.middleInitial || ''}</div>
                                   <div className="text-xs font-medium px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">
-                                    {student.formatted_id || `ID: ${student.id}`}
+                                    ID: {student.studentId}
                                   </div>
                                 </div>
                                 <div className="flex items-center mt-1 text-xs text-gray-500">
                                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-400 mr-1.5"></span>
-                                  {student.secondary_info || student.email || ''}
-                                  {(student.year || student.section) && (
-                                    <span className="ml-2 text-gray-400">
-                                      • Year {student.year} {student.section && `Section ${student.section}`}
-                                    </span>
-                                  )}
+                                  {student.program?.programCode || 'N/A Program'} - Year {student.yearLevel || 'N/A'}
                                 </div>
                               </div>
                             ))}
@@ -239,13 +276,41 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
                         </div>
                       )}
                       
-                      {/* Rest of your results sections... */}
+                      {/* Treasurers Results */}
+                      {searchResults.treasurers.length > 0 && (
+                        <div className="p-2">
+                          <h4 className="px-2 py-1 mb-1 text-xs font-medium text-gray-500 uppercase border-b border-gray-100">
+                            <Briefcase className="inline w-3 h-3 mr-1" /> Class Treasurers ({searchResults.treasurers.length})
+                          </h4>
+                          <div className="space-y-1">
+                            {searchResults.treasurers.map((treasurer) => (
+                              <div 
+                                key={`treasurer-${treasurer.accountId}`} 
+                                className="p-2 transition-colors duration-150 rounded-md cursor-pointer hover:bg-rose-50"
+                                onClick={() => handleResultClick(treasurer)}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="font-medium text-gray-800">
+                                    {/* Use top-level firstName and lastName for display */}
+                                    {(treasurer.firstName && treasurer.lastName) ? `${treasurer.lastName}, ${treasurer.firstName}` : treasurer.email}
+                                  </div>
+                                  <div className="text-xs font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
+                                    Account ID: {treasurer.accountId}
+                                  </div>
+                                </div>
+                                <div className="flex items-center mt-1 text-xs text-gray-500">
+                                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 mr-1.5"></span>
+                                  {/* Display program and year level if available from student object (if it's populated), otherwise role */}
+                                  {(treasurer.programCode && treasurer.yearLevel) ? `${treasurer.programCode} - Year ${treasurer.yearLevel}` : treasurer.role}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       
-                      {/* No results message */}
-                      {(!searchResults.students || searchResults.students.length === 0) &&
-                      (!searchResults.fees || searchResults.fees.length === 0) &&
-                      (!searchResults.payments || searchResults.payments.length === 0) &&
-                      (!searchResults.remittances || searchResults.remittances.length === 0) && (
+                      {/* No results message if search term is present but no results */}
+                      {searchTerm && searchResults.students.length === 0 && searchResults.treasurers.length === 0 && !isSearching && (
                         <div className="p-6 text-center">
                           <div className="inline-flex items-center justify-center w-10 h-10 mb-3 bg-gray-100 rounded-full">
                             <Search className="w-4 h-4 text-gray-400" />
@@ -259,7 +324,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
                     
                     <div className="p-2 text-center border-t border-gray-100 bg-gray-50">
                       <button 
-                        onClick={() => setSearchResults(null)} 
+                        onClick={() => { setSearchResults({ students: [], treasurers: [] }); setSearchTerm(''); }} 
                         className="px-3 py-1 text-xs transition-colors rounded-md text-rose-600 hover:text-rose-800 hover:bg-rose-50"
                       >
                         Close

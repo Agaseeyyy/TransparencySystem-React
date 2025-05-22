@@ -18,19 +18,26 @@ import Unauthorized from './pages/Unauthorized';
 import TransparencyBoard from './pages/TransparencyBoard';
 import EmailManagement from './pages/EmailManagement';
 import PaymentAnnouncement from './components/PaymentAnnouncement';
+import { Toaster } from 'sonner';
 
+// For debugging - set up route role matching
+const ROLES = {
+  ADMIN: 'Admin', // Role from backend
+  ORG_TREASURER: 'Org\u00A0Treasurer', // Org Treasurer with non-breaking space
+  CLASS_TREASURER: 'Class\u00A0Treasurer' // Class Treasurer with non-breaking space
+};
 
-const App =() => {
-
+const App = () => {
   const route = createBrowserRouter([
-    { path: '/', 
+    { 
+      path: '/', 
       element: <Layout />,
-      children:[
+      children: [
         { path: '/', element: <TransparencyBoard /> },
         { path: '/login', element: <LoginPage /> },
         { path: '/unauthorized', element: <Unauthorized /> },
         {
-          element: <ProtectedRoute /> ,
+          element: <ProtectedRoute />,
           children: [
             { path: '/dashboard', element: <TransparencyBoard /> },
             { path: '/payments', element: <Payments /> },
@@ -38,32 +45,35 @@ const App =() => {
           ]
         },
         {
-          element: <ProtectedRoute requiredRoles={['Admin']} /> ,
+          // Admin only routes
+          element: <ProtectedRoute requiredRoles={[ROLES.ADMIN]} />,
           children: [
-            { path: '/accounts', element: <Account /> },
             { path: '/programs', element: <Program /> },
             { path: '/departments', element: <Department /> },
           ]
         },
         {
-          element: <ProtectedRoute requiredRoles={['Admin', 'Org\u00A0Treasurer']} /> ,
+          // Admin and Org Treasurer routes
+          element: <ProtectedRoute requiredRoles={[ROLES.ADMIN, ROLES.ORG_TREASURER]} />,
           children: [
             { path: '/fees', element: <Fees/> },
             { path: '/remittances', element: <Remittance /> },
             { path: '/students', element: <Student /> },
             { path: '/email-management', element: <EmailManagement /> },
             { path: '/announcements/payment', element: <PaymentAnnouncement /> },
+            { path: '/accounts', element: <Account /> },
+
           ]
         },
         { path: '/*', element: <NoPage />},
       ]
     },
-    
-  ])
+  ]);
 
   return (
     <AuthProvider>
-     <RouterProvider router={route} />
+      <RouterProvider router={route} />
+      <Toaster position="top-right" closeButton richColors theme="light" />
     </AuthProvider>
   )
 }

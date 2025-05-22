@@ -2,49 +2,52 @@ package com.agaseeyyy.transparencysystem.departments;
 
 import java.util.List;
 
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
-
-
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping(path = "api/v1/departments")
+@RequestMapping("/api/v1/departments")
 public class DepartmentsController {
-  private final DepartmentService departmentService;
+    private final DepartmentService departmentService;
 
-  public DepartmentsController(DepartmentService departmentService) {
-    this.departmentService = departmentService;
-  }
+    public DepartmentsController(DepartmentService departmentService) {
+        this.departmentService = departmentService;
+    }
 
-  @GetMapping
-  @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer')")
-  public List<Departments> getDepartments() {
-    return departmentService.getAllDepartments();
-  }
+    @GetMapping
+    public ResponseEntity<Page<Departments>> getDepartments(
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "departmentId") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDirection
+    ) {
+        Page<Departments> departments = departmentService.getDepartments(pageNumber, pageSize, sortField, sortDirection);
+        return ResponseEntity.ok(departments);
+    }
+    
+    @GetMapping("/all")
+    public ResponseEntity<List<Departments>> getAllDepartments() {
+        List<Departments> departments = departmentService.getAllDepartments();
+        return ResponseEntity.ok(departments);
+    }
 
-  @PostMapping
-  @PreAuthorize("hasAuthority('Admin')")
-  public Departments addNewDepartment(@RequestBody Departments department) {
-      return departmentService.addDepartment(department);
-  }
+    @PostMapping
+    public ResponseEntity<Departments> addDepartment(@RequestBody Departments department) {
+        Departments newDepartment = departmentService.addDepartment(department);
+        return new ResponseEntity<>(newDepartment, HttpStatus.CREATED);
+    }
 
-  @PreAuthorize("hasAuthority('Admin')")
-  @PutMapping(path = "/{departmentId}")
-  public Departments updateDepartment(@PathVariable String departmentId, @RequestBody Departments department) {
-      return departmentService.updateDepartment(department, departmentId);
-  }
+    @PutMapping("/{oldDepartmentId}")
+    public ResponseEntity<Departments> updateDepartment(@PathVariable String oldDepartmentId, @RequestBody Departments updatedDepartmentInfo) {
+        Departments department = departmentService.updateDepartment(oldDepartmentId, updatedDepartmentInfo);
+        return ResponseEntity.ok(department);
+    }
 
-  @PreAuthorize("hasAuthority('Admin')")
-  @DeleteMapping(path = "{departmentId}")
-  public void deleteDepartment(@PathVariable String departmentId) {
-    departmentService.deleteDepartment(departmentId);
-  } 
-  
+    @DeleteMapping("/{departmentId}")
+    public ResponseEntity<Void> deleteDepartment(@PathVariable String departmentId) {
+        departmentService.deleteDepartment(departmentId);
+        return ResponseEntity.noContent().build();
+    } 
 }

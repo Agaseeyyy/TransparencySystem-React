@@ -10,56 +10,56 @@ import jakarta.persistence.*;
 @Table(name = "programs")
 @JsonIgnoreProperties({"department"})
 public class Programs {
-  @Id
-  @Column(name = "program_id")
-  private String programId;
+    @Id
+    @Column(name = "program_id")
+    private String programId;
 
-  @Column(name = "program_name", nullable = false)
-  private String programName;
-  
-  @ManyToOne
-  @JoinColumn(name = "department_id", nullable = false)
-  private Departments department ;
+    @Column(name = "program_name", nullable = false)
+    private String programName;
+    
+    @ManyToOne
+    @JoinColumn(name = "department_id", nullable = false)
+    private Departments department ;
 
-  @JsonProperty("departmentId")
-  public String getDepartmentId() {
-    return department != null ? department.getDepartmentId() : null;
-  }
+    @JsonProperty("departmentId")
+    public String getDepartmentId() {
+        return department != null ? department.getDepartmentId() : null;
+    }
 
-  // Constructors
-  public Programs() {
-  }
+    // Constructors
+    public Programs() {
+    }
 
-  public Programs(String programId, String programName, Departments department) {
-    this.programId = programId;
-    this.programName = programName;
-    this.department = department;
-  }
-  
+    public Programs(String programId, String programName, Departments department) {
+        this.programId = programId;
+        this.programName = programName;
+        this.department = department;
+    }
+    
 
-  // Getters and Setters
-  public String getProgramId() {
-    return this.programId;
-  }
+    // Getters and Setters
+    public String getProgramId() {
+        return this.programId;
+    }
 
-  public void setProgramId(String programId) {
-    this.programId = programId;
-  }
+    public void setProgramId(String programId) {
+        this.programId = programId;
+    }
 
-  public String getProgramName() {
-    return this.programName;
-  }
+    public String getProgramName() {
+        return this.programName;
+    }
 
-  public void setProgramName(String programName) {
-    this.programName = programName;
-  }
+    public void setProgramName(String programName) {
+        this.programName = programName;
+    }
 
-  public Departments getDepartment() {
-    return this.department;
-  }
+    public Departments getDepartment() {
+        return this.department;
+    }
 
-  public void setDepartment(Departments department) {
-    this.department = department;
-  }
+    public void setDepartment(Departments department) {
+        this.department = department;
+    }
 
 }

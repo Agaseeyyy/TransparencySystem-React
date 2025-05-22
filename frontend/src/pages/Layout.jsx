@@ -1,14 +1,40 @@
 import { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthProvider';
+import { authService } from '../utils/apiService';
 
 const Layout = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // Verify token is valid on component mount
+  useEffect(() => {
+    // Skip token verification if not authenticated
+    if (!isAuthenticated || !token) return;
+
+    const verifyToken = async () => {
+      try {
+        // Use the auth service to verify token
+        const isValid = await authService.verifyToken();
+        if (!isValid) {
+          logout();
+          navigate('/login');
+        }
+      } catch (error) {
+        // If verification fails, log out and redirect
+        console.error('Token verification failed:', error);
+        logout();
+        navigate('/login');
+      }
+    };
+
+    verifyToken();
+  }, [isAuthenticated, token, logout, navigate]);
 
   // Toggle sidebar function that works differently for mobile vs desktop
   const toggleSidebar = () => {

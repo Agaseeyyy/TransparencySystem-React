@@ -9,41 +9,47 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "departments")
 public class Departments {
-  @Id
-  @Column(name = "department_id")
-  private String departmentId;
+    @Id
+    @Column(name = "department_id", unique = true, nullable = false)
+    private String departmentId;
 
-  @Column(name = "department_name", nullable = false)
-  private String departmentName;
+    @Column(name = "department_name", unique = true, nullable = false)
+    private String departmentName;
 
-  @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
-  private List<Programs> programs;
+    @OneToMany(mappedBy = "department")
+    private List<Programs> programs;
 
-  // Constructors
-  public Departments() {
-  }
+    // Constructors
+    public Departments() {
+    }
 
-  public Departments(String departmentId, String departmentName) {
-    this.departmentId = departmentId;
-    this.departmentName = departmentName;
-  }
+    public Departments(String departmentId, String departmentName) {
+        this.departmentId = departmentId;
+        this.departmentName = departmentName;
+    }
 
-  // Getters and Setters
-  public String getDepartmentId() {
-    return this.departmentId;
-  }
+    // Getters and Setters
+    public String getDepartmentId() {
+        return departmentId;
+    }
 
-  public void setDepartmentId(String departmentId) {
-    this.departmentId = departmentId;
-  }
+    public void setDepartmentId(String departmentId) {
+        this.departmentId = departmentId;
+    }
 
-  public String getDepartmentName() {
-    return this.departmentName;
-  }
+    public String getDepartmentName() {
+        return departmentName;
+    }
 
-  public void setDepartmentName(String departmentName) {
-    this.departmentName = departmentName;
-  }
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
 
+    public List<Programs> getPrograms() {
+        return programs;
+    }
 
+    public void setPrograms(List<Programs> programs) {
+        this.programs = programs;
+    }
 }

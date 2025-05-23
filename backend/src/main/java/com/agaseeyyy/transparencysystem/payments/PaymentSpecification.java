@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PaymentSpecification {
-
+    
     public static Specification<Payments> filterBy(
             Long feeId,
             Long studentId,
@@ -40,7 +40,7 @@ public class PaymentSpecification {
                 studentId == null ? cb.conjunction() :
                         cb.equal(root.get("student").get("studentId"), studentId);
     }
-
+    
     public static Specification<Payments> hasStatus(String status) {
         return (root, query, cb) -> {
             if (status == null || status.isEmpty() || "all".equalsIgnoreCase(status)) {
@@ -65,7 +65,7 @@ public class PaymentSpecification {
             }
         };
     }
-
+    
     public static Specification<Payments> hasProgram(String program) {
         return (root, query, cb) -> {
             if (program == null || program.isEmpty() || "all".equalsIgnoreCase(program)) {
@@ -76,7 +76,7 @@ public class PaymentSpecification {
             return cb.equal(programJoin.get("programId"), program);
         };
     }
-
+    
     public static Specification<Payments> hasYearLevel(String yearLevel) {
         return (root, query, cb) -> {
             if (yearLevel == null || yearLevel.isEmpty() || "all".equalsIgnoreCase(yearLevel)) {
@@ -91,7 +91,7 @@ public class PaymentSpecification {
             }
         };
     }
-
+    
     public static Specification<Payments> hasSection(String section) {
         return (root, query, cb) -> {
             if (section == null || section.isEmpty() || "all".equalsIgnoreCase(section) || section.length() != 1) {
@@ -101,7 +101,7 @@ public class PaymentSpecification {
             return cb.equal(studentJoin.get("section"), section.charAt(0));
         };
     }
-
+    
     public static Specification<Payments> filterByStudentDetailsAndFee(
             String program, 
             java.time.Year yearLevel, 
@@ -112,7 +112,7 @@ public class PaymentSpecification {
 
         if (program != null && !program.isEmpty() && !"all".equalsIgnoreCase(program)) {
             spec = spec.and(hasProgram(program));
-        }
+            }
         if (yearLevel != null) {
             spec = spec.and(hasYearLevel(yearLevel.toString())); // Convert Year to String for existing hasYearLevel
         }

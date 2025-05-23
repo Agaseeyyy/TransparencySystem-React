@@ -124,6 +124,16 @@ public interface PaymentRepository extends JpaRepository<Payments, String>, JpaS
     List<Payments> findByStudentStudentIdAndFeeFeeId(Long studentId, Integer feeId);
 
     boolean existsByFeeFeeId(Integer feeId);
+    
+    /**
+     * Find payments by fee ID and status list
+     * Used by email service to identify students who have already paid
+     * 
+     * @param feeId The fee ID to filter by
+     * @param statuses List of statuses to include
+     * @return List of payments matching the criteria
+     */
+    List<Payments> findByFee_FeeIdAndStatusIn(Integer feeId, List<Status> statuses);
 
     // Aggregate total amount paid by a student
 }

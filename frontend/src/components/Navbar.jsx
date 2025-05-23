@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'; // Add useRef and useEffect
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Menu, Search, Bell, X, Send, Clock, AlertTriangle, User, Briefcase } from 'lucide-react'
 import { useAuth } from '../context/AuthProvider';
-import { studentService, accountService } from '../utils/apiService'; // Import necessary services
+import { studentService, accountService, emailService } from '../utils/apiService'; // Import emailService
 
 // Add this CSS to your project for the animations
 // You can add this to a separate CSS file or use styled-components
@@ -20,15 +20,13 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
   // Existing state variables and hooks...
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [loading, setLoading] = useState(false);
   const [actionResult, setActionResult] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState({ students: [], treasurers: [] }); // Updated structure
+  const [searchResults, setSearchResults] = useState({ students: [], treasurers: [] });
   const [isSearching, setIsSearching] = useState(false);
-  
-  // Add this for click-outside behavior
   const searchFormRef = useRef(null);
   
   // Click outside handler
@@ -49,17 +47,9 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
   // Function to trigger email actions
   const triggerAction = async (action) => {
     setLoading(true);
-    setActionResult(null); // Clear previous results
+    setActionResult(null);
     try {
-      // Assuming the email trigger endpoint is still /api/v1/emails/trigger-{action}
-      // And it's using an external API client, not the one from apiService.js for this specific case.
-      // If this needs to use the api.js from utils, this should be refactored.
-      await fetch(`http://localhost:8080/api/v1/emails/trigger-${action}`, { // Changed to fetch for simplicity, can be reverted to axios if preferred
-        method: 'GET',
-          headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}` // Ensure this token key is correct
-        }
-      });
+      await emailService.triggerEmailAction(action); // Use emailService
       
       setActionResult({
         success: true,

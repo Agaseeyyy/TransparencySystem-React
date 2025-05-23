@@ -126,11 +126,12 @@ export const studentService = {
     // Remove 'reportFormat' and 'fields' from params if they exist, as they are for frontend use
     const { reportFormat, fields, ...apiParams } = params;
     const response = await api.get('/api/v1/students/report', { params: apiParams });
-    // The backend currently returns a list of students (JSON)
-    // Actual file generation (PDF, Excel, CSV) would typically be handled by the backend
-    // or by a client-side library using this JSON data.
-    // For now, we return the JSON data.
-    return response.data; 
+    // Map additional fields for report generation
+    return response.data.map(student => ({
+      ...student,
+      fullName: `${student.lastName || ''}, ${student.firstName || ''}${student.middleInitial ? ` ${student.middleInitial}.` : ''}`.trim(),
+      yearSec: student.yearLevel && student.section ? `${student.yearLevel} - ${student.section}` : '-'
+    })); 
   }
 }; 
 
@@ -321,7 +322,12 @@ export const paymentService = {
     }
     // The backend currently returns a list of payments (JSON)
     const response = await api.get('/api/v1/payments/report', { params: apiParams });
-    return response.data; 
+    
+    // Map programId to program attribute
+    return response.data.map(payment => ({
+      ...payment,
+      program: payment.programId
+    }));
   }
 };
 
@@ -389,4 +395,19 @@ export const remittanceService = {
     const response = await api.get('/api/v1/remittances/report', { params: apiParams });
     return response.data;
   }
-}; 
+};
+
+// Email related API calls
+export const emailService = {
+  // Send payment announcement
+  sendAnnouncement: async (data) => {
+    const response = await api.post('/api/v1/emails/announcement', data);
+    return response.data;
+  },
+
+  // Trigger manual email actions (reminders, overdue)
+  triggerEmailAction: async (action) => {
+    const response = await api.get(`/api/v1/emails/trigger-${action}`);
+    return response.data;
+  }
+};

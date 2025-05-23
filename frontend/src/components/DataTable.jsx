@@ -51,7 +51,8 @@ const DataTable = ({
   rowsPerPage = 10,
   onPageChange,
   onRowsPerPageChange,
-  totalElements
+  totalElements,
+  disableReportGeneration
 }) => {
   // State for report generation dialog
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
@@ -70,7 +71,7 @@ const DataTable = ({
   const totalRows = totalElements || data?.length || 0;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
 
-  // Initialize reportFields based on columns
+  // Initialize reportFields based on columns - only run once on mount and when columns change
   useEffect(() => {
     const initialFields = {};
     columns.forEach(col => {
@@ -78,32 +79,56 @@ const DataTable = ({
         initialFields[col.key] = true;
       }
     });
-    setReportFields(initialFields);
+    // Only update if the values are actually different
+    setReportFields(prev => {
+      const hasChanges = Object.keys(initialFields).some(key => prev[key] !== initialFields[key]);
+      return hasChanges ? initialFields : prev;
+    });
   }, [columns]);
 
   // Initialize reportFilters based on current table filters and title
   useEffect(() => {
-    const initialReportFilters = { ...filters }; // Start with main table filters
-    // Ensure specific filters required by report type are initialized if not present
-    if (title === 'payment' || title === 'remittance') {
-      if (!initialReportFilters.feeType || initialReportFilters.feeType === 'all') {
-        // If no specific fee is selected in main table, try to get the first available fee from options
-        const feeOptionsKey = title === 'payment' ? 'feeType' : 'fee'; // filterOptions key for fees
-        if (filterOptions[feeOptionsKey] && filterOptions[feeOptionsKey].length > 0) {
-          initialReportFilters.feeType = filterOptions[feeOptionsKey][0].id; // Default to first fee ID
-        } else {
-          initialReportFilters.feeType = 'all'; // Fallback if no fee options
+    // Skip if no filterOptions are available yet
+    if (!filterOptions || Object.keys(filterOptions).length === 0) return;
+
+    setReportFilters(prev => {
+      const initialReportFilters = { ...filters }; // Start with main table filters
+      let hasChanges = false;
+
+      // Ensure specific filters required by report type are initialized if not present
+      if (title === 'payment' || title === 'remittance') {
+        if (!initialReportFilters.feeType || initialReportFilters.feeType === 'all') {
+          const feeOptionsKey = title === 'payment' ? 'feeType' : 'fee';
+          if (filterOptions[feeOptionsKey]?.length > 0) {
+            initialReportFilters.feeType = filterOptions[feeOptionsKey][0].id;
+            hasChanges = true;
+          }
         }
       }
-    }
-    // Ensure other common filters are present
-    if (!initialReportFilters.program) initialReportFilters.program = 'all';
-    if (!initialReportFilters.yearLevel) initialReportFilters.yearLevel = 'all';
-    if (!initialReportFilters.section) initialReportFilters.section = 'all';
-    if (!initialReportFilters.status) initialReportFilters.status = 'all';
-    if (title === 'remittance' && !initialReportFilters.remittedBy) initialReportFilters.remittedBy = 'all';
 
-    setReportFilters(initialReportFilters);
+      // Ensure other common filters are present
+      const defaultFilters = {
+        program: 'all',
+        yearLevel: 'all',
+        section: 'all',
+        status: 'all'
+      };
+
+      Object.entries(defaultFilters).forEach(([key, defaultValue]) => {
+        if (!initialReportFilters[key]) {
+          initialReportFilters[key] = defaultValue;
+          hasChanges = true;
+        }
+      });
+
+      if (title === 'remittance' && !initialReportFilters.remittedBy) {
+        initialReportFilters.remittedBy = 'all';
+        hasChanges = true;
+      }
+
+      // Only update state if there are actual changes
+      return hasChanges ? initialReportFilters : prev;
+    });
   }, [filters, filterOptions, title]);
 
   const getPaginationInfo = () => {
@@ -202,7 +227,7 @@ const DataTable = ({
       });
       return; // Stop if no fee type is selected for these reports
     }
-    
+
     // Standardize feeType to feeId for the API
     if (reportAPIParams.feeType && reportAPIParams.feeType !== 'all') {
         reportAPIParams.feeId = reportAPIParams.feeType;
@@ -302,13 +327,13 @@ const DataTable = ({
           // Handle specific report types and DTO structures
           if (reportTitle === 'payment') { // Data is PaymentDTO
             if (col.key === 'fullName') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial || ''}`.trim();
-            else if (col.key === 'program') cellValue = row.programName; // from PaymentDTO
+            else if (col.key === 'program') cellValue = row.program;
             else if (col.key === 'yearSec') cellValue = row.yearLevel && row.section ? `${row.yearLevel} - ${row.section}` : (row.yearLevel || row.section || '-');
             else if (col.key === 'status') cellValue = row.status; // Direct status from PaymentDTO
             else if (col.key === 'amount') cellValue = row.amount; // Direct amount from PaymentDTO
           } else if (reportTitle === 'remittance') { // Data is a Remittances object
             if (col.key === 'fullName' || col.key === 'treasurer' || col.key === 'user') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial ? row.middleInitial + '.' : ''}`.trim();
-            else if (col.key === 'program') cellValue = row.programCode; 
+            else if (col.key === 'program') cellValue = row.programCode || row.programId; // from Remittances object
             else if (col.key === 'yearSec' || col.key === 'yearAndSection') cellValue = row.yearLevel && row.section ? `${row.yearLevel}-${row.section}` : (row.yearLevel || row.section || '-');
             else if (col.key === 'status') cellValue = row.status; 
             else if (col.key === 'amountRemitted') cellValue = row.amountRemitted; 
@@ -376,7 +401,7 @@ const DataTable = ({
           let cellValue = row[col.key];
           if (reportTitle === 'payment') { // PaymentDTO
             if (col.key === 'fullName') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial || ''}`.trim();
-            else if (col.key === 'program') cellValue = row.programName;
+            else if (col.key === 'program') cellValue = row.program;
             else if (col.key === 'yearSec') cellValue = row.yearLevel && row.section ? `${row.yearLevel} - ${row.section}` : '-';
             else if (col.key === 'status') cellValue = row.status;
             else if (col.key === 'amount') cellValue = row.amount ? parseFloat(row.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
@@ -387,8 +412,6 @@ const DataTable = ({
             else if (col.key === 'status') cellValue = row.status;
             else if (col.key === 'amountRemitted') cellValue = row.amountRemitted ? parseFloat(row.amountRemitted).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
             else if (col.key === 'feeType') cellValue = row.feeType;
-            // Remove expectedAmount for remittance as it's not in Remittances object
-            // else if (col.key === 'expectedAmount') cellValue = row.expectedAmount ? parseFloat(row.expectedAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
             // Ensure other direct fields from Remittances object are accessed if selected
             else if (row.hasOwnProperty(col.key)) {
               cellValue = row[col.key];
@@ -475,7 +498,7 @@ const DataTable = ({
           let cellValue = row[col.key];
            if (reportTitle === 'payment') { // PaymentDTO
             if (col.key === 'fullName') cellValue = `${row.lastName || ''}, ${row.firstName || ''} ${row.middleInitial || ''}`.trim();
-            else if (col.key === 'program') cellValue = row.programName;
+            else if (col.key === 'program') cellValue = row.program;
             else if (col.key === 'yearSec') cellValue = row.yearLevel && row.section ? `${row.yearLevel} - ${row.section}` : '-';
             else if (col.key === 'status') cellValue = row.status;
             else if (col.key === 'amount') cellValue = row.amount; // Store as number for Excel sum if possible
@@ -633,16 +656,18 @@ const DataTable = ({
             
             <div className="flex items-center gap-2">
               {/* Generate Report Button */}
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="flex items-center gap-1"
-                onClick={() => setReportDialogOpen(true)}
-              >
-                <FileText className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">Generate Report</span>
-                <span className="sm:hidden">Report</span>
-              </Button>
+              {['student', 'remittance', 'payment'].includes(title) && !disableReportGeneration && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => setReportDialogOpen(true)}
+                >
+                  <FileText className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Generate Report</span>
+                  <span className="sm:hidden">Report</span>
+                </Button>
+              )}
 
               {/* Sort Dropdown */}
               {onSort && (

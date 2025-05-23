@@ -14,6 +14,7 @@ public class PaymentDTO {
     private String firstName;
     private String lastName;
     private Character middleInitial;
+    private String programId;
     private String program;
     private Year yearLevel;
     private Character section;
@@ -30,7 +31,7 @@ public class PaymentDTO {
 
     // Single All-arguments constructor (ensure this one is present and unique after fixes)
     public PaymentDTO(Long studentId, String firstName, String lastName, Character middleInitial,
-                      Year yearLevel, Character section, String program, String programName, // programName is illustrative
+                      Year yearLevel, Character section, String programId, String program,
                       Integer feeId, String feeType, Double amount,
                       String paymentId, Status status, LocalDate paymentDate, String remarks) {
         this.studentId = studentId;
@@ -39,8 +40,8 @@ public class PaymentDTO {
         this.middleInitial = middleInitial;
         this.yearLevel = yearLevel;
         this.section = section;
+        this.programId = programId;
         this.program = program;
-        // If programName is part of this DTO, set it: this.programName = programName;
         this.feeId = feeId;
         this.feeType = feeType;
         this.amount = amount;
@@ -95,8 +96,8 @@ public class PaymentDTO {
         return program;
     }
 
-    public void setProgramId(String programId) {
-        this.program = programId;
+    public void setProgram(String program) {
+        this.program = program;
     }
 
     public Year getYearLevel() {
@@ -161,5 +162,13 @@ public class PaymentDTO {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getProgramId() {
+        return programId;
+    }
+
+    public void setProgramId(String programId) {
+        this.programId = programId;
     }
 } 

@@ -1,12 +1,7 @@
 package com.agaseeyyy.transparencysystem.payments;
 
-import java.time.LocalDateTime;
 import java.time.Year;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.time.LocalDate;
-import java.util.Random;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -18,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
@@ -35,7 +29,6 @@ import com.agaseeyyy.transparencysystem.students.StudentRepository;
 import com.agaseeyyy.transparencysystem.students.Students;
 import com.agaseeyyy.transparencysystem.enums.Status;
 import com.agaseeyyy.transparencysystem.exception.ResourceAlreadyExistsException;
-import com.agaseeyyy.transparencysystem.programs.Programs;
 
 @Service
 public class PaymentService {
@@ -47,7 +40,6 @@ public class PaymentService {
     private EntityManager entityManager;
 
     // Dependencies Injection
-    @Autowired
     public PaymentService(PaymentRepository paymentRepository, FeeRepository feeRepository, StudentRepository studentRepository) {
         this.paymentRepository = paymentRepository;
         this.feeRepository = feeRepository;
@@ -237,6 +229,36 @@ public class PaymentService {
     }
 
  
+    /**
+     * Find students who haven't paid for a specific fee
+     * This method is used by the email service to send reminders and notifications
+     * 
+     * @param feeId The ID of the fee to check
+     * @return List of students who haven't paid for the specified fee
+     */
+    public List<Students> findStudentsWhoHaventPaid(Integer feeId) {
+        // Validate fee exists
+        Fees fee = feeRepository.findById(feeId)
+            .orElseThrow(() -> new RuntimeException("Fee not found with id " + feeId));
+            
+        // Get all students
+        List<Students> allStudents = studentRepository.findAll();
+        
+        // Get students who have already paid for this fee
+        List<Students> paidStudents = paymentRepository.findByFee_FeeIdAndStatusIn(
+            feeId, 
+            List.of(Status.Paid, Status.Remitted)
+        )
+        .stream()
+        .map(Payments::getStudent)
+        .collect(Collectors.toList());
+        
+        // Filter out students who have already paid
+        return allStudents.stream()
+            .filter(student -> !paidStudents.contains(student))
+            .collect(Collectors.toList());
+    }
+ 
     // Maps frontend sort fields to database column names
     private String mapSortField(String frontendSortField) {
         switch (frontendSortField) {
@@ -245,7 +267,7 @@ public class PaymentService {
             case "fee.feeType":
                 return "fee.feeType";
             case "student.program.programName":
-                return "student.program.programName";
+                return "student.program.programId";
             case "fee.amount":
                 return "fee.amount";
             case "paymentId":
@@ -259,34 +281,30 @@ public class PaymentService {
     
      // Maps an Object[] result from native query to a PaymentDTO
     private PaymentDTO mapToPaymentDTO(Object[] result) {
+        PaymentDTO dto = new PaymentDTO();
         int i = 0;
-        Long studentId = result[i] != null ? ((Number) result[i]).longValue() : null; i++;
-        String firstName = (String) result[i++];
-        String lastName = (String) result[i++];
-        Character middleInitial = result[i] != null ? result[i].toString().charAt(0) : null; i++; // Handle char conversion
-        Year yearLevel = result[i] != null ? Year.of(((Number) result[i]).intValue()) : null; i++;
-        Character section = result[i] != null ? result[i].toString().charAt(0) : null; i++; // Handle char conversion
-        String programId = (String) result[i++];
-        String programName = (String) result[i++];
-        Integer feeId = result[i] != null ? ((Number) result[i]).intValue() : null; i++;
-        String feeType = (String) result[i++];
-        Double amount = result[i] != null ? ((Number) result[i]).doubleValue() : null; i++;
-        String paymentId = (String) result[i++];
+        dto.setStudentId((Long) result[i++]);
+        dto.setFirstName((String) result[i++]);
+        dto.setLastName((String) result[i++]);
+        dto.setMiddleInitial((Character) result[i++]);
+        dto.setYearLevel(Year.of(Integer.parseInt(result[i++].toString())));
+        Object sectionObj = result[i++];
+        if (sectionObj instanceof Character) {
+            dto.setSection((Character) sectionObj);
+        } else if (sectionObj instanceof String) {
+            dto.setSection(((String) sectionObj).charAt(0));
+        }
+        dto.setProgramId((String) result[i++]);
+        dto.setProgram((String) result[i++]);
+        dto.setFeeId((Integer) result[i++]);
+        dto.setFeeType((String) result[i++]);
+        dto.setAmount((Double) result[i++]);
+        dto.setPaymentId((String) result[i++]);
         String statusStr = (String) result[i++];
-        Status status = statusStr != null ? Status.valueOf(statusStr) : Status.Pending; 
-        
+        dto.setStatus(statusStr != null ? Status.valueOf(statusStr) : Status.Pending);
         java.sql.Date sqlDate = (java.sql.Date) result[i++];
-        LocalDate paymentDate = sqlDate != null ? sqlDate.toLocalDate() : null;
-        
-        String remarks = (String) result[i];
-        
-        PaymentDTO dto = new PaymentDTO(
-            studentId, firstName, lastName, middleInitial,
-            yearLevel, section, programId, programName,
-            feeId, feeType, amount,
-            paymentId, status, paymentDate, remarks
-        );
-        dto.setProgramId(programName); // Ensure program name is set in DTO
+        dto.setPaymentDate(sqlDate != null ? sqlDate.toLocalDate() : null);
+        dto.setRemarks((String) result[i]);
         return dto;
     }
 
@@ -388,10 +406,10 @@ public class PaymentService {
     private String mapSortFieldForNativeQuery(String frontendSortField) {
         switch (frontendSortField) {
             case "studentId": return "s.student_id";
-            case "student.lastName": case "lastName": return "s.last_name";
+            case "student.lastName": case "lastName": return "last_name";
             case "student.firstName": case "firstName": return "s.first_name";
             case "fee.feeType": case "feeType": return "f.fee_type";
-            case "student.program.programName": case "program": return "prog.program_name";
+            case "student.program.programName": case "program": return "program_id";
             case "fee.amount": case "amount": return "f.amount";
             case "paymentId": return "pm.payment_id";
             case "status": return "pm.status";
@@ -415,8 +433,7 @@ public class PaymentService {
             dto.setYearLevel(payment.getStudent().getYearLevel());
             dto.setSection(payment.getStudent().getSection());
             if (payment.getStudent().getProgram() != null) {
-                dto.setProgramId(payment.getStudent().getProgram().getProgramId());
-                dto.setProgramId(payment.getStudent().getProgram().getProgramName());
+                dto.setProgram(payment.getStudent().getProgram().getProgramId());
             }
         }
         if (payment.getFee() != null) {

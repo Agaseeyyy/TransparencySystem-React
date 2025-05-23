@@ -965,6 +965,7 @@ const Remittance = () => {
                 onFilter={handleFilter}
                 filters={filters}
                 filterOptions={filterOptions}
+                disableReportGeneration={viewMode === 'listOfFees'}
             />
 
             <Dialog

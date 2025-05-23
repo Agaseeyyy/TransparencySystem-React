@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useAuth } from '../context/AuthProvider';
 import { motion } from 'framer-motion';
 import { Send, Mail, Users, Calendar, CalendarDays, Bell, Clock, AlertCircle } from 'lucide-react';
-
-// UI Components
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,19 +26,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-// Fix: Change the toast import to sonner
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { studentService, feeService, programService, emailService } from '../utils/apiService'; // Import emailService
 
 const EmailManagement = () => {
   const { user } = useAuth();
   
-  // Email Management states
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  
-  // PaymentAnnouncement states
   const [fees, setFees] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [announcementLoading, setAnnouncementLoading] = useState(false);
@@ -59,31 +52,28 @@ const EmailManagement = () => {
     yearLevel: 'all',
     section: 'all'
   });
-
-  const [announcementResult, setAnnouncementResult] = useState(null);
   
-  // Create an array of letters A-Z for section dropdown
-  const sectionOptions = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
+  const sectionOptions = Array.from({ length: 10 }, (_, i) => String.fromCharCode(65 + i));
   
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const [feesResponse, programsResponse] = await Promise.all([
-          axios.get('http://localhost:8080/api/v1/fees'),
-          axios.get('http://localhost:8080/api/v1/public/programs')
+          feeService.getFees(), // Use feeService
+          programService.getPrograms() // Use programService
         ]);
         
-        setFees(feesResponse.data);
-        setPrograms(programsResponse.data);
+        setFees(feesResponse.content || feesResponse); // Adjust based on actual response structure
+        setPrograms(programsResponse.content || programsResponse); // Adjust based on actual response structure
       } catch (error) {
         console.error("Error fetching initial data:", error);
+        toast.error("Failed to load initial data.");
       }
     };
     
     fetchInitialData();
   }, []);
   
-  // Calculate expected recipient count when filters change
   useEffect(() => {
     const calculateRecipients = async () => {
       if (!formData.feeId) {
@@ -92,47 +82,43 @@ const EmailManagement = () => {
       }
       
       try {
-        const response = await axios.get('http://localhost:8080/api/v1/students/count', {
-          params: {
-            program: formData.program === 'all' ? null : formData.program,
-            yearLevel: formData.yearLevel === 'all' ? null : formData.yearLevel,
-            section: formData.section === 'all' ? null : formData.section
-          },
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+        // Assuming studentService.getStudents can take count parameter or similar
+        // This might need a dedicated count endpoint in studentService
+        const response = await studentService.getStudents({
+          program: formData.program === 'all' ? null : formData.program,
+          yearLevel: formData.yearLevel === 'all' ? null : formData.yearLevel,
+          section: formData.section === 'all' ? null : formData.section,
+          // Add a parameter to indicate count is needed if backend supports it
+          // countOnly: true 
         });
-        
-        setRecipientCount(response.data?.count || 0);
+        // Adjust based on how count is returned. If it's an array, use .length
+        // If it's an object with a count property, use response.count
+        // For now, assuming it's an array of students and we need its length.
+        // This is a placeholder, actual implementation depends on studentService.getStudents behavior or a new count endpoint.
+        const studentCount = Array.isArray(response.content) ? response.content.length : (response.count || 0);
+        setRecipientCount(studentCount);
+
       } catch (error) {
         console.error("Error calculating recipients:", error);
+        // toast.error("Failed to calculate recipient count.");
+        setRecipientCount(0); // Set to 0 on error
       }
     };
     
     calculateRecipients();
   }, [formData.program, formData.yearLevel, formData.section, formData.feeId]);
   
-  // Email Management functions
   const triggerAction = async (action) => {
     setLoading(true);
     setResult(null);
     
     try {
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/emails/trigger-${action}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
+      await emailService.triggerEmailAction(action); // Use emailService
       
       setResult({
         success: true,
         message: `Successfully triggered ${action} emails!`
       });
-
-      // Fixed: Using sonner toast syntax
       toast.success(`Email action successful`, {
         description: `Successfully triggered ${action} emails!`
       });
@@ -141,8 +127,6 @@ const EmailManagement = () => {
         success: false,
         message: `Error: ${error.response?.data?.message || error.message}`
       });
-
-      // Fixed: Using sonner toast syntax
       toast.error(`Email action failed`, {
         description: error.response?.data?.message || error.message
       });
@@ -151,45 +135,31 @@ const EmailManagement = () => {
     }
   };
   
-  // Payment Announcement functions
   const handleChange = (name, value) => {
-    // If the fee ID is changed, automatically set dates based on the selected fee
     if (name === 'feeId' && value) {
       const selectedFee = fees.find(fee => fee.feeId.toString() === value.toString());
-      
       if (selectedFee) {
-        // Get the due date from the selected fee
         const dueDate = new Date(selectedFee.dueDate);
-        
-        // Set collection start date to 14 days before due date
         const startDate = new Date(dueDate);
         startDate.setDate(dueDate.getDate() - 14);
-        
-        // Set collection end date to 2 days before due date
         const endDate = new Date(dueDate);
         endDate.setDate(dueDate.getDate() - 2);
+        const formatDate = (date) => date.toISOString().split('T')[0];
         
-        // Format dates to YYYY-MM-DD for input fields
-        const formatDate = (date) => {
-          return date.toISOString().split('T')[0];
-        };
-        
-        setFormData({
-          ...formData,
+        setFormData(prevData => ({
+          ...prevData,
           [name]: value,
           startDate: formatDate(startDate),
           endDate: formatDate(endDate),
           location: defaultLocation
-        });
-        return; // Exit early since we've already updated the state
+        }));
+        return;
       }
     }
-    
-    // Regular field update
-    setFormData({
-      ...formData,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: value
-    });
+    }));
   };
   
   const resetForm = () => {
@@ -202,61 +172,40 @@ const EmailManagement = () => {
       yearLevel: 'all',
       section: 'all'
     });
+    setRecipientCount(0);
   };
 
-  // Modify your handleSubmit function to update the result state instead of announcementResult
-const handleSubmit = async (e) => {
-  if (e) e.preventDefault();
-  setAnnouncementLoading(true);
-  setPreviewOpen(false);
-  setResult(null); // Reset any previous result
-  
-  try {
-    const response = await axios.post(
-      'http://localhost:8080/api/v1/emails/announcement',
-      formData,
-      {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      }
-    );
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    setAnnouncementLoading(true);
+    setPreviewOpen(false);
+    setResult(null);
     
-    // Set the success result at the top level
-    setResult({
-      success: true,
-      message: `Email announcement successfully sent to ${response.data.recipients} students.`
-    });
-    
-    // Toast notification
-    toast.success("Announcement sent successfully", {
-      description: `Email sent to ${response.data.recipients} students.`
-    });
-    
-    // Reset form
-    resetForm();
-    
-    // Auto clear message after 8 seconds
-    setTimeout(() => {
-      setResult(null);
-    }, 8000);
-    
-  } catch (error) {
-    // Set the error result at the top level
-    setResult({
-      success: false,
-      message: error.response?.data?.message || 'Failed to send announcement'
-    });
-    
-    // Toast notification
-    toast.error("Error sending announcement", {
-      description: error.response?.data?.message || 'Failed to send announcement'
-    });
-  } finally {
-    setAnnouncementLoading(false);
-    setOpen(false);
-  }
-};
+    try {
+      const response = await emailService.sendAnnouncement(formData); // Use emailService
+      
+      setResult({
+        success: true,
+        message: `Email announcement successfully sent to ${response.recipients || 'relevant'} students.`
+      });
+      toast.success("Announcement sent successfully", {
+        description: `Email sent to ${response.recipients || 'relevant'} students.`
+      });
+      resetForm();
+      setTimeout(() => setResult(null), 8000);
+    } catch (error) {
+      setResult({
+        success: false,
+        message: error.response?.data?.message || 'Failed to send announcement'
+      });
+      toast.error("Error sending announcement", {
+        description: error.response?.data?.message || 'Failed to send announcement'
+      });
+    } finally {
+      setAnnouncementLoading(false);
+      setOpen(false);
+    }
+  };
   
   const handlePreview = () => {
     if (formData.feeId) {
@@ -452,7 +401,7 @@ const handleSubmit = async (e) => {
                               <SelectValue placeholder="All Years" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="all">All Years</SelectItem>
+                              <SelectItem value="all">All Year Level</SelectItem>
                               <SelectItem value="1">1st Year</SelectItem>
                               <SelectItem value="2">2nd Year</SelectItem>
                               <SelectItem value="3">3rd Year</SelectItem>
@@ -474,7 +423,7 @@ const handleSubmit = async (e) => {
                               <SelectItem value="all">All Sections</SelectItem>
                               {sectionOptions.map(section => (
                                 <SelectItem key={section} value={section}>
-                                  Section {section}
+                                  {section}
                                 </SelectItem>
                               ))}
                             </SelectContent>

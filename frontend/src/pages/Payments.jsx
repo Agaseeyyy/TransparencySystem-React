@@ -93,7 +93,7 @@ const Payments = () => {
             label: 'Program', 
             sortable: true,
             sortKey: 'student.program.programName',
-            render: (_, row) => <span>{row.program || '-'}</span>
+            render: (_, row) => <span>{row.program || row.programId || '-'}</span>
         },
         { 
             key: "yearSec", 
@@ -724,6 +724,7 @@ const Payments = () => {
                 onFilter={handleFilter}
                 filters={filters}
                 filterOptions={filterOptions}
+                disableReportGeneration={viewMode === 'listOfFees'}
             />
 
             {/* Payment Form Dialog */}

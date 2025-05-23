@@ -17,7 +17,6 @@ import Remittance from './pages/Remittance';
 import Unauthorized from './pages/Unauthorized';
 import TransparencyBoard from './pages/TransparencyBoard';
 import EmailManagement from './pages/EmailManagement';
-import PaymentAnnouncement from './components/PaymentAnnouncement';
 import { Toaster } from 'sonner';
 
 // For debugging - set up route role matching
@@ -60,7 +59,6 @@ const App = () => {
             { path: '/remittances', element: <Remittance /> },
             { path: '/students', element: <Student /> },
             { path: '/email-management', element: <EmailManagement /> },
-            { path: '/announcements/payment', element: <PaymentAnnouncement /> },
             { path: '/accounts', element: <Account /> },
 
           ]

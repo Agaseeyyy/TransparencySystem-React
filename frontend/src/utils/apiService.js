@@ -728,6 +728,30 @@ export const expenseService = {
     );
     return response.data;
   },
+
+  // Get expense categories for filtering
+  getExpenseCategories: async () => {
+    const response = await api.get('/api/expenses/categories');
+    return response.data;
+  },
+
+  // Get expense statuses for filtering
+  getExpenseStatuses: async () => {
+    const response = await api.get('/api/expenses/statuses');
+    return response.data;
+  },
+
+  // Get expenses analytics
+  getExpenseAnalytics: async () => {
+    const response = await api.get('/api/expenses/analytics/summary');
+    return response.data;
+  },
+
+  // Generate expense transparency report
+  generateTransparencyReport: async (params = {}) => {
+    const response = await api.get('/api/expenses/transparency/report', { params });
+    return response.data;
+  },
 };
 
 // Dashboard related API calls

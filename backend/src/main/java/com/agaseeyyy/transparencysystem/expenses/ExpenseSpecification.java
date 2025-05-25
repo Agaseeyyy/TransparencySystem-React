@@ -20,36 +20,48 @@ public class ExpenseSpecification {
     
     public static Specification<Expenses> hasCategory(ExpenseCategory category) {
         return (root, query, cb) -> {
-            if (category == null) return cb.conjunction();
+            if (category == null) return null;
             return cb.equal(root.get("expenseCategory"), category);
         };
     }
     
     public static Specification<Expenses> hasStatus(ExpenseStatus status) {
         return (root, query, cb) -> {
-            if (status == null) return cb.conjunction();
+            if (status == null) return null;
             return cb.equal(root.get("expenseStatus"), status);
         };
     }
     
     public static Specification<Expenses> hasApprovalStatus(ApprovalStatus approvalStatus) {
         return (root, query, cb) -> {
-            if (approvalStatus == null) return cb.conjunction();
+            if (approvalStatus == null) return null;
             return cb.equal(root.get("approvalStatus"), approvalStatus);
         };
     }
     
     public static Specification<Expenses> hasDepartment(String departmentId) {
         return (root, query, cb) -> {
-            if (departmentId == null || departmentId.trim().isEmpty()) return cb.conjunction();
-            Join<Expenses, Departments> departmentJoin = root.join("department", JoinType.LEFT);
-            return cb.equal(departmentJoin.get("departmentId"), departmentId);
+            if (departmentId == null || departmentId.trim().isEmpty()) return null;
+            
+            try {
+                // Try to parse as integer first
+                Integer deptId = Integer.parseInt(departmentId);
+                Join<Expenses, Departments> departmentJoin = root.join("department", JoinType.LEFT);
+                return cb.equal(departmentJoin.get("departmentId"), deptId);
+            } catch (NumberFormatException e) {
+                // If not a number, treat as string and match department name or ID
+                Join<Expenses, Departments> departmentJoin = root.join("department", JoinType.LEFT);
+                return cb.or(
+                    cb.equal(departmentJoin.get("departmentId"), departmentId),
+                    cb.equal(departmentJoin.get("departmentName"), departmentId)
+                );
+            }
         };
     }
     
     public static Specification<Expenses> hasCreatedBy(Integer accountId) {
         return (root, query, cb) -> {
-            if (accountId == null) return cb.conjunction();
+            if (accountId == null) return null;
             Join<Expenses, Accounts> createdByJoin = root.join("createdByAccount", JoinType.LEFT);
             return cb.equal(createdByJoin.get("accountId"), accountId);
         };
@@ -57,7 +69,7 @@ public class ExpenseSpecification {
     
     public static Specification<Expenses> hasApprovedBy(Integer accountId) {
         return (root, query, cb) -> {
-            if (accountId == null) return cb.conjunction();
+            if (accountId == null) return null;
             Join<Expenses, Accounts> approvedByJoin = root.join("approvedByAccount", JoinType.LEFT);
             return cb.equal(approvedByJoin.get("accountId"), accountId);
         };
@@ -65,14 +77,14 @@ public class ExpenseSpecification {
     
     public static Specification<Expenses> hasAcademicYear(String academicYear) {
         return (root, query, cb) -> {
-            if (academicYear == null || academicYear.trim().isEmpty()) return cb.conjunction();
+            if (academicYear == null || academicYear.trim().isEmpty()) return null;
             return cb.equal(root.get("academicYear"), academicYear);
         };
     }
     
     public static Specification<Expenses> hasSemester(String semester) {
         return (root, query, cb) -> {
-            if (semester == null || semester.trim().isEmpty()) return cb.conjunction();
+            if (semester == null || semester.trim().isEmpty()) return null;
             return cb.equal(root.get("semester"), semester);
         };
     }
@@ -89,7 +101,7 @@ public class ExpenseSpecification {
                 predicates.add(cb.lessThanOrEqualTo(root.get("expenseDate"), endDate));
             }
             
-            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+            return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
         };
     }
     
@@ -105,13 +117,13 @@ public class ExpenseSpecification {
                 predicates.add(cb.lessThanOrEqualTo(root.get("amount"), maxAmount));
             }
             
-            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+            return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
         };
     }
     
     public static Specification<Expenses> hasVendorSupplier(String vendorSupplier) {
         return (root, query, cb) -> {
-            if (vendorSupplier == null || vendorSupplier.trim().isEmpty()) return cb.conjunction();
+            if (vendorSupplier == null || vendorSupplier.trim().isEmpty()) return null;
             return cb.like(cb.lower(root.get("vendorSupplier")), 
                           "%" + vendorSupplier.toLowerCase() + "%");
         };
@@ -119,21 +131,21 @@ public class ExpenseSpecification {
     
     public static Specification<Expenses> hasBudgetAllocation(String budgetAllocation) {
         return (root, query, cb) -> {
-            if (budgetAllocation == null || budgetAllocation.trim().isEmpty()) return cb.conjunction();
+            if (budgetAllocation == null || budgetAllocation.trim().isEmpty()) return null;
             return cb.equal(root.get("budgetAllocation"), budgetAllocation);
         };
     }
     
     public static Specification<Expenses> isRecurring(Boolean isRecurring) {
         return (root, query, cb) -> {
-            if (isRecurring == null) return cb.conjunction();
+            if (isRecurring == null) return null;
             return cb.equal(root.get("isRecurring"), isRecurring);
         };
     }
     
     public static Specification<Expenses> hasSearchTerm(String searchTerm) {
         return (root, query, cb) -> {
-            if (searchTerm == null || searchTerm.trim().isEmpty()) return cb.conjunction();
+            if (searchTerm == null || searchTerm.trim().isEmpty()) return null;
             
             String pattern = "%" + searchTerm.toLowerCase() + "%";
             
@@ -143,7 +155,12 @@ public class ExpenseSpecification {
                 cb.like(cb.lower(root.get("expenseDescription")), pattern),
                 cb.like(cb.lower(root.get("vendorSupplier")), pattern),
                 cb.like(cb.lower(root.get("receiptInvoiceNumber")), pattern),
-                cb.like(cb.lower(root.get("remarks")), pattern)
+                cb.like(cb.lower(root.get("remarks")), pattern),
+                cb.like(cb.lower(root.get("approvalRemarks")), pattern),
+                cb.like(cb.lower(root.get("budgetAllocation")), pattern),
+                cb.like(cb.lower(root.get("academicYear")), pattern),
+                cb.like(cb.lower(root.get("semester")), pattern),
+                cb.like(cb.toString(root.get("amount")), pattern)
             );
         };
     }

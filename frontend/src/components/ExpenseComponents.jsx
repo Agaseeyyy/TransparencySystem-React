@@ -21,8 +21,8 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
   // Check if this card is the currently expanded one
   const expanded = expandedCardId === expense.expenseId;
 
-  // Log current card's ID and its expanded state whenever it renders
-  console.log(`ExpenseCard Rendered: ID = ${expense?.expenseId}, Expanded = ${expanded}`);
+  // Remove the console.log to reduce spam
+  // console.log(`ExpenseCard Rendered: ID = ${expense?.expenseId}, Expanded = ${expanded}`);
 
   // Status badge styling
   const getStatusStyles = (status, type = 'expense') => {
@@ -244,7 +244,8 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
           size="sm"
           className="w-full py-2 mt-4 text-sm font-medium text-rose-500 hover:text-rose-700 hover:bg-rose-50"
           onClick={() => {
-            console.log(`Button Clicked: ID = ${expense?.expenseId}, Current Expanded = ${expanded}, Toggling to = ${!expanded}`);
+            // Only log when button is actually clicked
+            console.log(`Toggle Button Clicked: ID = ${expense?.expenseId}, Current Expanded = ${expanded}, Setting to = ${!expanded}`);
             // Toggle: if this card is expanded, collapse it; if not expanded, expand it
             setExpandedCardId(expanded ? null : expense.expenseId);
           }}

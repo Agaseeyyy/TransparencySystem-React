@@ -154,15 +154,15 @@ const Expenses = () => {
       // Add card filters when in card view
       if (viewMode === 'cards') {
         if (cardFilters.search?.trim()) {
-          params.search = cardFilters.search.trim();
+          params.searchTerm = cardFilters.search.trim(); // Changed from 'search' to 'searchTerm'
         }
-        if (cardFilters.category) {
+        if (cardFilters.category && cardFilters.category !== 'all') {
           params.expenseCategory = cardFilters.category;
         }
-        if (cardFilters.department) {
+        if (cardFilters.department && cardFilters.department !== 'all') {
           params.departmentId = cardFilters.department;
         }
-        if (cardFilters.status) {
+        if (cardFilters.status && cardFilters.status !== 'all') {
           params.expenseStatus = cardFilters.status;
         }
       } else {
@@ -173,6 +173,8 @@ const Expenses = () => {
           }
         });
       }
+
+      console.log('Fetching expenses with params:', params); // Debug log
 
       const data = await expenseService.getExpenses(params);
       setExpenses(data.content || []);
@@ -190,7 +192,7 @@ const Expenses = () => {
 
   useEffect(() => {
     fetchExpenses();
-  }, [filters, page, size, sortBy, sortDirection, activeTab, cardFilters, viewMode]);
+  }, [filters, page, size, sortBy, sortDirection, activeTab, viewMode]);
 
   // Reset page when switching views or changing tab
   useEffect(() => {
@@ -212,6 +214,17 @@ const Expenses = () => {
       setPageSuccess('');
     }
   }, [viewMode]);
+
+  // Card filters with debouncing - separate useEffect for card view only
+  useEffect(() => {
+    if (viewMode === 'cards') {
+      const timeoutId = setTimeout(() => {
+        fetchExpenses();
+      }, cardFilters.search ? 500 : 0); // 500ms debounce for search, immediate for other filters
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [cardFilters, activeTab, page, size, sortBy, sortDirection]); // Only for card filters
 
   const openForm = (mode, expense = null) => {
     setDialogMode(mode);
@@ -708,7 +721,7 @@ const Expenses = () => {
                       <SelectContent>
                         <SelectItem value="all">All departments</SelectItem>
                         {departments.map(dep => (
-                          <SelectItem key={dep.departmentId} value={dep.departmentId}>
+                          <SelectItem key={dep.departmentId} value={dep.departmentId.toString()}>
                             {dep.departmentName}
                           </SelectItem>
                         ))}

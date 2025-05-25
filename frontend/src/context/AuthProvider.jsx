@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../utils/apiService';
+import { authService, accountService } from '../utils/apiService';
 
 const AuthContext = createContext();
 const TOKEN_STORAGE_KEY = 'auth_token';
@@ -69,15 +69,43 @@ export const AuthProvider = ({ children }) => {
         userRole = data.role;
       }
       
-      // Save token and user data
+      // Save token first for API authentication
       setToken(data.token);
-      setUser({
+      
+      // For Class Treasurers, fetch complete account data including student information
+      let completeUserData = {
         email: data.email,
         role: userRole,
         accountId: data.accountId
-      });
+      };
       
-      console.log('Login successful:', email, 'with role:', userRole);
+      if (data.role === 'Class_Treasurer') {
+        try {
+          const accountDetails = await accountService.getAccountById(data.accountId);
+          console.log('Complete account details:', accountDetails);
+          
+          // Add class information directly from account response
+          completeUserData = {
+            ...completeUserData,
+            // Extract class information from the direct account response
+            program: accountDetails.programCode,
+            programCode: accountDetails.programCode,
+            yearLevel: accountDetails.yearLevel,
+            section: accountDetails.section,
+            firstName: accountDetails.firstName,
+            lastName: accountDetails.lastName,
+            middleInitial: accountDetails.middleInitial,
+            studentId: accountDetails.studentId
+          };
+        } catch (error) {
+          console.error('Failed to fetch complete account details:', error);
+          // Continue with basic user data even if fetching details fails
+        }
+      }
+      
+      setUser(completeUserData);
+      
+      console.log('Login successful:', email, 'with role:', userRole, 'Complete data:', completeUserData);
       return true;
     } catch (error) {
       console.error('Login failed:', error);

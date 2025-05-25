@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pencil, CreditCard, AlertCircle, CheckCircle, BarChart2, List, UserX, FilterX } from "lucide-react";
-import { paymentService, studentService, feeService, programService } from "../utils/apiService";
+import { paymentService, studentService, feeService, programService, accountService } from "../utils/apiService";
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Payments = () => {
@@ -268,16 +268,38 @@ const Payments = () => {
                     if (filters.yearLevel !== 'all') params.yearLevel = filters.yearLevel;
                     if (filters.section !== 'all') params.section = filters.section;
                     
-                    if (user.role === 'Class\u00A0Treasurer') {
+                    if (user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer') {
                         // For Class Treasurer's default view, get their class payments.
                         // This endpoint might not support all generic filters or pagination/sorting like the main getPayments.
                         // This might need further review if advanced filtering/sorting is needed for C.T. default view.
-                        response = await paymentService.getClassPayments(
-                            user.program,
-                            user.yearLevel,
-                            user.section
-                            // Note: getClassPayments in apiService doesn't currently pass page/sort params
-                        );
+                        
+                        const program = user.programCode || user.program;
+                        
+                        if (!program || !user.yearLevel || !user.section) {
+                            console.error("Missing class information for Class Treasurer:", user);
+                            // Fallback: try to fetch account details directly to get class information
+                            try {
+                                const accountDetails = await accountService.getAccountById(user.accountId);
+                                response = await paymentService.getClassPayments(
+                                    accountDetails.programCode,
+                                    accountDetails.yearLevel,
+                                    accountDetails.section
+                                );
+                            } catch (accountError) {
+                                console.error("Failed to fetch account details:", accountError);
+                                setPageError("Failed to load payment data: Missing class information");
+                                setPayments([]);
+                                setLoading(false);
+                                return;
+                            }
+                        } else {
+                            response = await paymentService.getClassPayments(
+                                program,
+                                user.yearLevel,
+                                user.section
+                                // Note: getClassPayments in apiService doesn't currently pass page/sort params
+                            );
+                        }
                     } else {
                         response = await paymentService.getPayments(params);
                     }
@@ -314,13 +336,35 @@ const Payments = () => {
         try {
             let response;
             
-            if (user.role === 'Class\u00A0Treasurer') {
-                response = await studentService.getStudentsByClass(
-                    user.program,
-                    user.yearLevel,
-                    user.section
-                );
+            if (user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer') {
+                // Class treasurers can only see students in their class
+                // Use the enhanced user data from AuthProvider
+                const program = user.programCode || user.program;
+                
+                if (!program || !user.yearLevel || !user.section) {
+                    console.error("Missing class information for Class Treasurer:", user);
+                    // Fallback: try to fetch account details directly to get class information
+                    try {
+                        const accountDetails = await accountService.getAccountById(user.accountId);
+                        response = await studentService.getStudentsByClass(
+                            accountDetails.programCode,
+                            accountDetails.yearLevel,
+                            accountDetails.section
+                        );
+                    } catch (accountError) {
+                        console.error("Failed to fetch account details:", accountError);
+                        setPageError("Failed to load student data: Missing class information");
+                        return;
+                    }
+                } else {
+                    response = await studentService.getStudentsByClass(
+                        program,
+                        user.yearLevel,
+                        user.section
+                    );
+                }
             } else {
+                // Admin and Org treasurers can see all students
                 response = await studentService.getAllStudents();
             }
             
@@ -329,6 +373,7 @@ const Payments = () => {
             console.error("API error:", err);
         }
     };
+
 
     const fetchFees = async () => {
         try {

@@ -192,6 +192,11 @@ public class AccountService {
         accountRepository.delete(account);
     }
 
+    @Transactional(readOnly = true)
+    public Accounts getAccountById(Integer accountId) {
+        return accountRepository.findById(accountId)
+            .orElseThrow(() -> new ResourceNotFoundException("Account not found with ID: " + accountId));
+    }
 
     @PostConstruct
     public void initializeDefaultAdmin() {

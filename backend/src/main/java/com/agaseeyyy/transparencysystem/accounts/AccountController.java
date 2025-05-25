@@ -75,4 +75,9 @@ public class AccountController {
         accountService.deleteAccount(accountId);
     }
     
+    @GetMapping("/{accountId}")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
+    public Accounts getAccountById(@PathVariable Integer accountId) {
+        return accountService.getAccountById(accountId);
+    }
 }

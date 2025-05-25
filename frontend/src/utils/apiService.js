@@ -55,6 +55,12 @@ export const accountService = {
     return response.data;
   },
   
+  // Get account by ID
+  getAccountById: async (accountId) => {
+    const response = await api.get(`/api/v1/accounts/${accountId}`);
+    return response.data;
+  },
+
   // Get remittance status for class treasurers by fee
   getRemittanceStatusByFee: async (feeId, pageNumber = 0, pageSize = 10, sortField = 'account.student.lastName', sortDirection = 'asc', program = 'all', yearLevel = 'all', section = 'all') => {
     try {

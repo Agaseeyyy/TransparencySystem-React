@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
 import com.agaseeyyy.transparencysystem.dto.AccountWithRemittanceInfoDTO;
 
@@ -79,5 +82,35 @@ public class AccountController {
     @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
     public Accounts getAccountById(@PathVariable Integer accountId) {
         return accountService.getAccountById(accountId);
+    }
+
+    @GetMapping("/profile")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
+    public ResponseEntity<Accounts> getCurrentUserProfile(Authentication authentication) {
+        String email = authentication.getName();
+        Accounts account = accountService.getAccountByEmail(email);
+        if (account == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(account);
+    }
+
+    @PutMapping("/profile")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
+    public ResponseEntity<Accounts> updateCurrentUserProfile(
+            @RequestBody Accounts updatedAccount, 
+            Authentication authentication) {
+        String email = authentication.getName();
+        Accounts currentAccount = accountService.getAccountByEmail(email);
+        if (currentAccount == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        try {
+            Accounts updated = accountService.updateUserProfile(updatedAccount, currentAccount.getAccountId());
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

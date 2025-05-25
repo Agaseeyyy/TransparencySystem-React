@@ -19,6 +19,7 @@ import TransparencyBoard from './pages/TransparencyBoard';
 import EmailManagement from './pages/EmailManagement';
 import { Toaster } from 'sonner';
 import Expenses from './pages/Expenses';
+import Settings from './pages/Settings';
 
 // For debugging - set up route role matching
 const ROLES = {
@@ -41,7 +42,7 @@ const App = () => {
           children: [
             { path: '/dashboard', element: <Dashboard /> },
             { path: '/payments', element: <Payments /> },
-            { path: '/settings', element: <></> },
+            { path: '/settings', element: <Settings /> },
           ]
         },
         {

@@ -599,4 +599,32 @@ public class AccountService {
                 return null; // Or throw an exception for unhandled property
         }
     }
+
+    @Transactional
+    public Accounts updateUserProfile(Accounts updatedAccount, Integer accountId) {
+        if (updatedAccount == null || updatedAccount.getEmail() == null || updatedAccount.getEmail().isBlank()) {
+            throw new BadRequestException("Email cannot be empty.");
+        }
+
+        Accounts existingAccount = accountRepository.findById(accountId)
+            .orElseThrow(() -> new ResourceNotFoundException("Account not found with ID: " + accountId));
+
+        // Check if email is being changed and if the new email already exists for another account
+        if (!existingAccount.getEmail().equalsIgnoreCase(updatedAccount.getEmail())) {
+            if (accountRepository.existsByEmailAndAccountIdNot(updatedAccount.getEmail(), accountId)) {
+                throw new ResourceAlreadyExistsException("Another account with email '" + updatedAccount.getEmail() + "' already exists.");
+            }
+            existingAccount.setEmail(updatedAccount.getEmail());
+        }
+
+        // Only update password if provided (not empty)
+        if (updatedAccount.getPassword() != null && !updatedAccount.getPassword().isEmpty()) {
+            existingAccount.setPassword(passwordEncoder.encode(updatedAccount.getPassword()));
+        }
+
+        // Role updates are restricted for profile updates (users can't change their own role)
+        // existingAccount.setRole(updatedAccount.getRole()); // Commented out for security
+
+        return accountRepository.save(existingAccount);
+    }
 }

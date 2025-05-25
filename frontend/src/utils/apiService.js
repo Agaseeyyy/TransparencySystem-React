@@ -86,6 +86,30 @@ export const accountService = {
       console.error('Error retrieving remittance status:', error);
       throw error;
     }
+  },
+
+  // Get current user profile
+  getCurrentProfile: async () => {
+    try {
+      const response = await api.get('/api/v1/accounts/profile');
+      console.log('Profile response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching current user profile:', error);
+      throw error;
+    }
+  },
+
+  // Update current user profile
+  updateCurrentProfile: async (profileData) => {
+    try {
+      const response = await api.put('/api/v1/accounts/profile', profileData);
+      console.log('Profile update response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating current user profile:', error);
+      throw error;
+    }
   }
 };
 

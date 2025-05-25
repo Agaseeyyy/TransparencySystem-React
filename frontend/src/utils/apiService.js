@@ -57,8 +57,14 @@ export const accountService = {
   
   // Get account by ID
   getAccountById: async (accountId) => {
-    const response = await api.get(`/api/v1/accounts/${accountId}`);
-    return response.data;
+    try {
+      const response = await api.get(`/api/v1/accounts/${accountId}`);
+      console.log('Account details response for ID', accountId, ':', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching account by ID:', error);
+      throw error;
+    }
   },
 
   // Get remittance status for class treasurers by fee
@@ -131,6 +137,58 @@ export const studentService = {
   generateStudentReport: async (params = {}) => {
     // Remove 'reportFormat' and 'fields' from params if they exist, as they are for frontend use
     const { reportFormat, fields, ...apiParams } = params;
+    
+    // For Class Treasurers, automatically apply class restrictions
+    try {
+      const userString = localStorage.getItem('auth_user');
+      const user = userString ? JSON.parse(userString) : null;
+      
+      if (user && (user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer')) {
+        console.log('Applying class restrictions for Class Treasurer student report generation');
+        
+        // Try to get class info from user object first
+        let program = user.programCode || user.program;
+        let yearLevel = user.yearLevel;
+        let section = user.section;
+        
+        // If not available in user object, fetch from API
+        if (!program || !yearLevel || !section) {
+          try {
+            const accountDetails = await accountService.getAccountById(user.accountId);
+            
+            // Try nested structure first
+            if (accountDetails.student && accountDetails.student.program) {
+              const student = accountDetails.student;
+              const programInfo = student.program;
+              
+              program = programInfo.programId;
+              yearLevel = student.yearLevel;
+              section = student.section;
+            }
+            // Try direct fields as fallback
+            else if (accountDetails.programCode) {
+              program = accountDetails.programCode;
+              yearLevel = accountDetails.yearLevel;
+              section = accountDetails.section;
+            }
+          } catch (error) {
+            console.error('Error fetching class info for student report generation:', error);
+            throw new Error('Failed to load class information for report generation');
+          }
+        }
+        
+        // Override any existing class filters with the treasurer's actual class
+        if (program) apiParams.program = program;
+        if (yearLevel) apiParams.yearLevel = String(yearLevel);
+        if (section) apiParams.section = section;
+        
+        console.log('Class restrictions applied to student report:', { program, yearLevel, section });
+      }
+    } catch (error) {
+      console.error('Error applying class restrictions for student report:', error);
+      // Continue with original params if class restriction fails
+    }
+    
     const response = await api.get('/api/v1/students/report', { params: apiParams });
     // Map additional fields for report generation
     return response.data.map(student => ({
@@ -252,7 +310,7 @@ export const paymentService = {
   },
   
   
-  // Add new payment
+  // Add new payment: feeId, studentId, paymentData
   addPayment: async (feeId, studentId, paymentData) => {
     const response = await api.post(
       `/api/v1/payments/fees/${feeId}/students/${studentId}`, 
@@ -285,6 +343,8 @@ export const paymentService = {
       sortDirection: sortDirection
     };
     
+    // Note: For Class Treasurers, the backend will automatically apply class restrictions
+    // regardless of what filter values are passed from the frontend
     if (program !== 'all') params.program = program;
     if (yearLevel !== 'all') params.yearLevel = yearLevel;
     if (section !== 'all') params.section = section;
@@ -321,12 +381,65 @@ export const paymentService = {
   generatePaymentReport: async (params = {}) => {
     // Remove 'reportFormat' and 'fields' from params if they exist, as they are for frontend use
     const { reportFormat, fields, ...apiParams } = params;
+    
     // Ensure feeId is prioritized if feeType is present (as per DataTable's reportFilters)
     if (apiParams.feeType && apiParams.feeType !== 'all') {
       apiParams.feeId = apiParams.feeType;
       delete apiParams.feeType; // Remove original feeType to avoid conflict if backend expects only feeId
     }
-    // The backend currently returns a list of payments (JSON)
+    
+    // For Class Treasurers, automatically apply class restrictions by fetching their class info
+    try {
+      const userString = localStorage.getItem('auth_user');
+      const user = userString ? JSON.parse(userString) : null;
+      
+      if (user && (user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer')) {
+        console.log('Applying class restrictions for Class Treasurer report generation');
+        
+        // Try to get class info from user object first
+        let program = user.programCode || user.program;
+        let yearLevel = user.yearLevel;
+        let section = user.section;
+        
+        // If not available in user object, fetch from API
+        if (!program || !yearLevel || !section) {
+          try {
+            const accountDetails = await accountService.getAccountById(user.accountId);
+            
+            // Try nested structure first
+            if (accountDetails.student && accountDetails.student.program) {
+              const student = accountDetails.student;
+              const programInfo = student.program;
+              
+              program = programInfo.programId;
+              yearLevel = student.yearLevel;
+              section = student.section;
+            }
+            // Try direct fields as fallback
+            else if (accountDetails.programCode) {
+              program = accountDetails.programCode;
+              yearLevel = accountDetails.yearLevel;
+              section = accountDetails.section;
+            }
+          } catch (error) {
+            console.error('Error fetching class info for report generation:', error);
+            throw new Error('Failed to load class information for report generation');
+          }
+        }
+        
+        // Override any existing class filters with the treasurer's actual class
+        if (program) apiParams.program = program;
+        if (yearLevel) apiParams.yearLevel = String(yearLevel);
+        if (section) apiParams.section = section;
+        
+        console.log('Class restrictions applied to payment report:', { program, yearLevel, section });
+      }
+    } catch (error) {
+      console.error('Error applying class restrictions for report:', error);
+      // Continue with original params if class restriction fails
+    }
+    
+    // Note: The backend will also apply class restrictions server-side for Class Treasurers
     const response = await api.get('/api/v1/payments/report', { params: apiParams });
     
     // Map programId to program attribute
@@ -398,6 +511,58 @@ export const remittanceService = {
       apiParams.feeId = apiParams.feeType;
       delete apiParams.feeType;
     }
+    
+    // For Class Treasurers, automatically apply class restrictions
+    try {
+      const userString = localStorage.getItem('auth_user');
+      const user = userString ? JSON.parse(userString) : null;
+      
+      if (user && (user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer')) {
+        console.log('Applying class restrictions for Class Treasurer remittance report generation');
+        
+        // Try to get class info from user object first
+        let program = user.programCode || user.program;
+        let yearLevel = user.yearLevel;
+        let section = user.section;
+        
+        // If not available in user object, fetch from API
+        if (!program || !yearLevel || !section) {
+          try {
+            const accountDetails = await accountService.getAccountById(user.accountId);
+            
+            // Try nested structure first
+            if (accountDetails.student && accountDetails.student.program) {
+              const student = accountDetails.student;
+              const programInfo = student.program;
+              
+              program = programInfo.programId;
+              yearLevel = student.yearLevel;
+              section = student.section;
+            }
+            // Try direct fields as fallback
+            else if (accountDetails.programCode) {
+              program = accountDetails.programCode;
+              yearLevel = accountDetails.yearLevel;
+              section = accountDetails.section;
+            }
+          } catch (error) {
+            console.error('Error fetching class info for remittance report generation:', error);
+            throw new Error('Failed to load class information for report generation');
+          }
+        }
+        
+        // Override any existing class filters with the treasurer's actual class
+        if (program) apiParams.program = program;
+        if (yearLevel) apiParams.yearLevel = String(yearLevel);
+        if (section) apiParams.section = section;
+        
+        console.log('Class restrictions applied to remittance report:', { program, yearLevel, section });
+      }
+    } catch (error) {
+      console.error('Error applying class restrictions for remittance report:', error);
+      // Continue with original params if class restriction fails
+    }
+    
     const response = await api.get('/api/v1/remittances/report', { params: apiParams });
     return response.data;
   }

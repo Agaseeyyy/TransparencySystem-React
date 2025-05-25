@@ -1,5 +1,6 @@
 package com.agaseeyyy.transparencysystem.fees;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -20,13 +21,14 @@ public class FeeController {
     // REST API Endpoints
     @GetMapping("/all")
     @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
-    public List<Fees> getAllFees() {
+    public List<Fees> getAllFees(Principal principal) {
         return feeService.getFees();
     }
     
     @GetMapping
     @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
     public Page<Fees> displayFees(
+            Principal principal,
             @RequestParam(defaultValue = "0") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "feeId") String sortField,

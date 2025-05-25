@@ -385,18 +385,25 @@ public class PaymentService {
             String section,
             Pageable pageable
     ) {
-        // Check if the user is a Class Treasurer and apply class-based filtering
+        // Get class restriction details for Class Treasurers
+        String restrictToProgram = null;
+        String restrictToYearLevel = null; 
+        String restrictToSection = null;
+        
         if (principal != null && isClassTreasurer(principal)) {
             ClassTreasurerDetails treasurerDetails = getClassTreasurerDetails(principal.getName());
             if (treasurerDetails != null) {
-                // Override the program, year level, and section parameters with the treasurer's class details
-                program = treasurerDetails.getProgram();
-                yearLevel = treasurerDetails.getYearLevel();
-                section = treasurerDetails.getSection();
+                restrictToProgram = treasurerDetails.getProgram();
+                restrictToYearLevel = treasurerDetails.getYearLevel();
+                restrictToSection = treasurerDetails.getSection();
             }
         }
 
-        Specification<Payments> spec = PaymentSpecification.filterBy(feeId, studentId, status, program, yearLevel, section);
+        Specification<Payments> spec = PaymentSpecification.filterByWithClassRestriction(
+            feeId, studentId, status, program, yearLevel, section,
+            restrictToProgram, restrictToYearLevel, restrictToSection
+        );
+        
         Page<Payments> paymentsPage = paymentRepository.findAll(spec, pageable);
         return paymentsPage.map(this::convertToDTO);
     }

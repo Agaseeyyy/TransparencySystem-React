@@ -16,16 +16,22 @@ import com.agaseeyyy.transparencysystem.exception.BadRequestException;
 import com.agaseeyyy.transparencysystem.exception.ResourceAlreadyExistsException;
 import com.agaseeyyy.transparencysystem.exception.ResourceNotFoundException;
 import com.agaseeyyy.transparencysystem.payments.PaymentRepository;
+import com.agaseeyyy.transparencysystem.accounts.AccountRepository;
+import com.agaseeyyy.transparencysystem.accounts.Accounts;
+import com.agaseeyyy.transparencysystem.students.Students;
+import java.security.Principal;
 
 @Service
 public class FeeService {
     private final FeeRepository feeRepository;
     private final PaymentRepository paymentRepository;
+    private final AccountRepository accountRepository;
 
     // Constructors
-    public FeeService(FeeRepository feeRepository, PaymentRepository paymentRepository) {
+    public FeeService(FeeRepository feeRepository, PaymentRepository paymentRepository, AccountRepository accountRepository) {
         this.feeRepository = feeRepository;
         this.paymentRepository = paymentRepository;
+        this.accountRepository = accountRepository;
     }
   
     // Named Methods and Business Logics
@@ -144,4 +150,56 @@ public class FeeService {
             e.printStackTrace();
         }
     }
-} 
+
+    // Helper method to check if the current user is a Class Treasurer
+    private boolean isClassTreasurer(Principal principal) {
+        if (principal == null || principal.getName() == null) {
+            return false;
+        }
+        
+        try {
+            Accounts account = accountRepository.findByEmail(principal.getName());
+            return account != null && "Class_Treasurer".equals(account.getRole());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // Helper method to get Class Treasurer's class details
+    private ClassTreasurerDetails getClassTreasurerDetails(String username) {
+        try {
+            Accounts treasurerAccount = accountRepository.findByEmail(username);
+            if (treasurerAccount != null && treasurerAccount.getStudent() != null) {
+                Students treasurerStudentInfo = treasurerAccount.getStudent();
+                
+                String program = treasurerStudentInfo.getProgram() != null ? 
+                    treasurerStudentInfo.getProgram().getProgramId() : null;
+                String yearLevel = treasurerStudentInfo.getYearLevel() != null ? 
+                    String.valueOf(treasurerStudentInfo.getYearLevel()) : null;
+                String section = String.valueOf(treasurerStudentInfo.getSection());
+                
+                return new ClassTreasurerDetails(program, yearLevel, section);
+            }
+        } catch (Exception e) {
+            // Log error if needed
+        }
+        return null;
+    }
+
+    // Helper class for Class Treasurer details
+    private static class ClassTreasurerDetails {
+        private final String program;
+        private final String yearLevel;
+        private final String section;
+
+        public ClassTreasurerDetails(String program, String yearLevel, String section) {
+            this.program = program;
+            this.yearLevel = yearLevel;
+            this.section = section;
+        }
+
+        public String getProgram() { return program; }
+        public String getYearLevel() { return yearLevel; }
+        public String getSection() { return section; }
+    }
+}

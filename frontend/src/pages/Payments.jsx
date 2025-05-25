@@ -194,6 +194,59 @@ const Payments = () => {
         },
     ];
 
+    // Helper function to extract class info for Class Treasurers
+    const getClassTreasurerInfo = async () => {
+      if (user.role !== 'Class Treasurer' && user.role !== 'Class\u00A0Treasurer' && user.role !== 'Class_Treasurer') {
+        return null;
+      }
+
+      // Try to get from user object first
+      let program = user.programCode || user.program;
+      let yearLevel = user.yearLevel;
+      let section = user.section;
+
+      if (program && yearLevel && section) {
+        console.log('Using class info from user object:', { program, yearLevel, section });
+        return { program, yearLevel, section };
+      }
+
+      // Fallback: fetch from API
+      try {
+        console.log('Fetching class info from API for accountId:', user.accountId);
+        const accountDetails = await accountService.getAccountById(user.accountId);
+        console.log('Fetched account details:', accountDetails);
+        
+        // Try nested structure first
+        if (accountDetails.student && accountDetails.student.program) {
+          const student = accountDetails.student;
+          const programInfo = student.program;
+          
+          program = programInfo.programId;
+          yearLevel = student.yearLevel;
+          section = student.section;
+          
+          console.log('Extracted class info from nested structure:', { program, yearLevel, section });
+          return { program, yearLevel, section };
+        }
+        
+        // Try direct fields as fallback
+        if (accountDetails.programCode) {
+          program = accountDetails.programCode;
+          yearLevel = accountDetails.yearLevel;
+          section = accountDetails.section;
+          
+          console.log('Extracted class info from direct fields:', { program, yearLevel, section });
+          return { program, yearLevel, section };
+        }
+        
+        console.error('No class information found in account details');
+        return null;
+      } catch (error) {
+        console.error('Error fetching class info:', error);
+        return null;
+      }
+    };
+
     // Data fetching functions
     const fetchPayments = async () => {
         setLoading(true);
@@ -218,11 +271,32 @@ const Payments = () => {
                     apiStatus = 'Remitted'; 
                 }
                 
+                // For Class Treasurers in List of Fees mode, always apply class restrictions
+                let programFilter = filters.program;
+                let yearLevelFilter = filters.yearLevel;
+                let sectionFilter = filters.section;
+                
+                if (user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer') {
+                    const classInfo = await getClassTreasurerInfo();
+                    if (classInfo) {
+                        console.log('Applying class restrictions for List of Fees:', classInfo);
+                        // Override filters with class treasurer's class info
+                        programFilter = classInfo.program;
+                        yearLevelFilter = String(classInfo.yearLevel);
+                        sectionFilter = classInfo.section;
+                    } else {
+                        setPageError("Failed to load payment data: Missing class information for Class Treasurer");
+                        setPayments([]);
+                        setLoading(false);
+                        return;
+                    }
+                }
+                
                 response = await paymentService.getPaymentStatusByFee(
                     filters.feeType, // This is feeId
-                    filters.program,
-                    filters.yearLevel,
-                    filters.section,
+                    programFilter,
+                    yearLevelFilter,
+                    sectionFilter,
                     apiStatus,
                     sortField,      
                     sortDirection,  
@@ -245,8 +319,6 @@ const Payments = () => {
                 if (studentIdFromUrl) {
                     params.studentId = studentIdFromUrl;
                     // When searching for a specific student via navbar, always use the getPayments endpoint that supports studentId.
-                    // Other filters (like feeType, status etc.) can still be applied if the UI supports it while a student filter is active.
-                    // For now, let's ensure studentId search works and can be combined with existing page filters.
                     if (filters.feeType !== 'all') params.feeId = filters.feeType; // Send as feeId
                     if (filters.status !== 'all') {
                         if (filters.status === 'Remitted') params.status = 'Remitted';
@@ -269,36 +341,29 @@ const Payments = () => {
                     if (filters.section !== 'all') params.section = filters.section;
                     
                     if (user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer') {
-                        // For Class Treasurer's default view, get their class payments.
-                        // This endpoint might not support all generic filters or pagination/sorting like the main getPayments.
-                        // This might need further review if advanced filtering/sorting is needed for C.T. default view.
+                        // For Class Treasurer's records view, try to get class info
+                        const classInfo = await getClassTreasurerInfo();
                         
-                        const program = user.programCode || user.program;
-                        
-                        if (!program || !user.yearLevel || !user.section) {
-                            console.error("Missing class information for Class Treasurer:", user);
-                            // Fallback: try to fetch account details directly to get class information
+                        if (classInfo) {
+                            console.log('Using class info for Records view:', classInfo);
                             try {
-                                const accountDetails = await accountService.getAccountById(user.accountId);
                                 response = await paymentService.getClassPayments(
-                                    accountDetails.programCode,
-                                    accountDetails.yearLevel,
-                                    accountDetails.section
+                                    classInfo.program,
+                                    classInfo.yearLevel,
+                                    classInfo.section
                                 );
-                            } catch (accountError) {
-                                console.error("Failed to fetch account details:", accountError);
-                                setPageError("Failed to load payment data: Missing class information");
+                            } catch (classPaymentError) {
+                                console.error("Failed to fetch class payments:", classPaymentError);
+                                setPageError("Failed to load payment data for your class. Please try again.");
                                 setPayments([]);
                                 setLoading(false);
                                 return;
                             }
                         } else {
-                            response = await paymentService.getClassPayments(
-                                program,
-                                user.yearLevel,
-                                user.section
-                                // Note: getClassPayments in apiService doesn't currently pass page/sort params
-                            );
+                            setPageError("Failed to load payment data: Missing class information for Class Treasurer");
+                            setPayments([]);
+                            setLoading(false);
+                            return;
                         }
                     } else {
                         response = await paymentService.getPayments(params);
@@ -338,30 +403,24 @@ const Payments = () => {
             
             if (user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer') {
                 // Class treasurers can only see students in their class
-                // Use the enhanced user data from AuthProvider
-                const program = user.programCode || user.program;
+                const classInfo = await getClassTreasurerInfo();
                 
-                if (!program || !user.yearLevel || !user.section) {
-                    console.error("Missing class information for Class Treasurer:", user);
-                    // Fallback: try to fetch account details directly to get class information
+                if (classInfo) {
+                    console.log('Fetching students for class:', classInfo);
                     try {
-                        const accountDetails = await accountService.getAccountById(user.accountId);
                         response = await studentService.getStudentsByClass(
-                            accountDetails.programCode,
-                            accountDetails.yearLevel,
-                            accountDetails.section
+                            classInfo.program,
+                            classInfo.yearLevel,
+                            classInfo.section
                         );
-                    } catch (accountError) {
-                        console.error("Failed to fetch account details:", accountError);
-                        setPageError("Failed to load student data: Missing class information");
+                    } catch (classStudentError) {
+                        console.error("Failed to fetch class students:", classStudentError);
+                        setPageError("Failed to load student data for your class. Please try again.");
                         return;
                     }
                 } else {
-                    response = await studentService.getStudentsByClass(
-                        program,
-                        user.yearLevel,
-                        user.section
-                    );
+                    setPageError("Failed to load student data: Missing class information for Class Treasurer");
+                    return;
                 }
             } else {
                 // Admin and Org treasurers can see all students
@@ -370,7 +429,8 @@ const Payments = () => {
             
             setStudents(response);
         } catch (err) {
-            console.error("API error:", err);
+            console.error("API error in fetchStudents:", err);
+            setPageError("Failed to load student data. Please try again.");
         }
     };
 
@@ -770,6 +830,13 @@ const Payments = () => {
                 filters={filters}
                 filterOptions={filterOptions}
                 disableReportGeneration={viewMode === 'listOfFees'}
+                // Class Treasurer info for report generation
+                classTreasurerInfo={user.role === 'Class Treasurer' || user.role === 'Class\u00A0Treasurer' || user.role === 'Class_Treasurer' ? {
+                    program: user.programCode || user.program,
+                    yearLevel: user.yearLevel,
+                    section: user.section,
+                    accountId: user.accountId
+                } : null}
             />
 
             {/* Payment Form Dialog */}

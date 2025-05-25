@@ -84,19 +84,47 @@ export const AuthProvider = ({ children }) => {
           const accountDetails = await accountService.getAccountById(data.accountId);
           console.log('Complete account details:', accountDetails);
           
-          // Add class information directly from account response
-          completeUserData = {
-            ...completeUserData,
-            // Extract class information from the direct account response
-            program: accountDetails.programCode,
-            programCode: accountDetails.programCode,
-            yearLevel: accountDetails.yearLevel,
-            section: accountDetails.section,
-            firstName: accountDetails.firstName,
-            lastName: accountDetails.lastName,
-            middleInitial: accountDetails.middleInitial,
-            studentId: accountDetails.studentId
-          };
+          // Extract class information from nested student object
+          if (accountDetails.student && accountDetails.student.program) {
+            const student = accountDetails.student;
+            const program = student.program;
+            
+            completeUserData = {
+              ...completeUserData,
+              // Extract class information from the nested structure
+              program: program.programId,
+              programCode: program.programId,
+              programName: program.programName,
+              yearLevel: student.yearLevel,
+              section: student.section,
+              firstName: student.firstName,
+              lastName: student.lastName,
+              middleInitial: student.middleInitial,
+              studentId: student.studentId,
+              // Store complete objects for reference
+              studentInfo: student,
+              programInfo: program
+            };
+            
+            console.log('Class Treasurer data with extracted class info:', completeUserData);
+          } else {
+            console.warn('Student or program information not found in account details:', accountDetails);
+            // Try alternative structure if it exists
+            if (accountDetails.programCode) {
+              completeUserData = {
+                ...completeUserData,
+                program: accountDetails.programCode,
+                programCode: accountDetails.programCode,
+                yearLevel: accountDetails.yearLevel,
+                section: accountDetails.section,
+                firstName: accountDetails.firstName,
+                lastName: accountDetails.lastName,
+                middleInitial: accountDetails.middleInitial,
+                studentId: accountDetails.studentId
+              };
+              console.log('Class Treasurer data from direct account fields:', completeUserData);
+            }
+          }
         } catch (error) {
           console.error('Failed to fetch complete account details:', error);
           // Continue with basic user data even if fetching details fails

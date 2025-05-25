@@ -141,4 +141,42 @@ public class PaymentSpecification {
             }
         };
     }
-} 
+
+    // New overloaded method for class-based filtering
+    public static Specification<Payments> filterByWithClassRestriction(
+            Long feeId,
+            Long studentId,
+            String status,
+            String program,
+            String yearLevel,
+            String section,
+            String restrictToProgram,
+            String restrictToYearLevel,
+            String restrictToSection
+    ) {
+        Specification<Payments> spec = Specification.where(hasFee(feeId))
+                .and(hasStudent(studentId))
+                .and(hasStatus(status));
+        
+        // Apply class restriction if provided (overrides user-selected filters)
+        if (restrictToProgram != null && !restrictToProgram.isEmpty()) {
+            spec = spec.and(hasProgram(restrictToProgram));
+        } else {
+            spec = spec.and(hasProgram(program));
+        }
+        
+        if (restrictToYearLevel != null && !restrictToYearLevel.isEmpty()) {
+            spec = spec.and(hasYearLevel(restrictToYearLevel));
+        } else {
+            spec = spec.and(hasYearLevel(yearLevel));
+        }
+        
+        if (restrictToSection != null && !restrictToSection.isEmpty()) {
+            spec = spec.and(hasSection(restrictToSection));
+        } else {
+            spec = spec.and(hasSection(section));
+        }
+        
+        return spec;
+    }
+}

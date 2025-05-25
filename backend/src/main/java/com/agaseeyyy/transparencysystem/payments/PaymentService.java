@@ -425,25 +425,25 @@ public class PaymentService {
     // The mapToPaymentDTO is for native queries.
     private PaymentDTO convertToDTO(Payments payment) {
         PaymentDTO dto = new PaymentDTO();
-        if (payment.getStudent() != null) {
-            dto.setStudentId(payment.getStudent().getStudentId());
-            dto.setFirstName(payment.getStudent().getFirstName());
-            dto.setLastName(payment.getStudent().getLastName());
-            dto.setMiddleInitial(payment.getStudent().getMiddleInitial());
-            dto.setYearLevel(payment.getStudent().getYearLevel());
-            dto.setSection(payment.getStudent().getSection());
-            if (payment.getStudent().getProgram() != null) {
-                dto.setProgram(payment.getStudent().getProgram().getProgramId());
-            }
-        }
-        if (payment.getFee() != null) {
-            dto.setFeeId(payment.getFee().getFeeId());
-            dto.setFeeType(payment.getFee().getFeeType());
-            dto.setAmount(payment.getFee().getAmount());
-        }
         dto.setPaymentId(payment.getPaymentId());
-        dto.setPaymentDate(payment.getPaymentDate());
+        dto.setStudentId(payment.getStudentId());
+        dto.setFirstName(payment.getFirstName());
+        dto.setLastName(payment.getLastName());
+        dto.setMiddleInitial(payment.getMiddleInitial());
+        dto.setProgramId(payment.getProgramId());
+        dto.setProgram(payment.getProgram()); 
+        dto.setYearLevel(payment.getYearLevel());
+        dto.setSection(payment.getSection());
+        dto.setFeeId(payment.getFeeId());
+        dto.setFeeType(payment.getFeeType());
+        // Ensure payment.getAmount() is not null before calling .doubleValue()
+        if (payment.getAmount() != null) { 
+            dto.setAmount(payment.getAmount().doubleValue());
+        } else {
+            dto.setAmount(null); // Or handle as 0.0 or throw error, depending on logic
+        }
         dto.setStatus(payment.getStatus());
+        dto.setPaymentDate(payment.getPaymentDate());
         dto.setRemarks(payment.getRemarks());
         return dto;
     }

@@ -1,7 +1,10 @@
 package com.agaseeyyy.transparencysystem.remittances;
  
 public enum RemittanceStatus {
-    COMPLETED,
+    PENDING_VERIFICATION,
+    VERIFIED,
+    REJECTED,
     PARTIAL,
+    COMPLETED,
     NOT_REMITTED
 } 

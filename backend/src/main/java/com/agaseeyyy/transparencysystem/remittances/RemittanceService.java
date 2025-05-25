@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -112,15 +113,23 @@ public class RemittanceService {
                                         ". Nothing to remit.");
         }
 
-        double sumOfPaidPayments = paidPayments.stream()
-                                             .mapToDouble(Payments::getAmount)
-                                             .sum();
+        // sumOfPaidPayments is now BigDecimal, calculation uses BigDecimal stream operations
+        BigDecimal sumOfPaidPayments = paidPayments.stream()
+                                             .filter(p -> p.getAmount() != null)
+                                             .map(Payments::getAmount) // Payments.getAmount() is now BigDecimal
+                                             .reduce(BigDecimal.ZERO, BigDecimal::add);
         
-        if (Math.abs(sumOfPaidPayments - newRemittanceDetails.getAmountRemitted()) > 0.001) {
-            throw new BadRequestException("The provided amount to remit (" + newRemittanceDetails.getAmountRemitted() + 
+        // Compare BigDecimal values using compareTo
+        // Ensure newRemittanceDetails.getAmountRemitted() also returns BigDecimal or is converted
+        BigDecimal amountToRemit = newRemittanceDetails.getAmountRemitted() != null 
+                                    ? newRemittanceDetails.getAmountRemitted() 
+                                    : BigDecimal.ZERO;
+
+        if (sumOfPaidPayments.subtract(amountToRemit).abs().compareTo(new BigDecimal("0.001")) > 0) {
+            throw new BadRequestException("The provided amount to remit (" + amountToRemit + 
                                         ") does not match the sum of available PAID payments (" + sumOfPaidPayments + "). Please refresh and try again.");
         }
-        if (sumOfPaidPayments <= 0) {
+        if (sumOfPaidPayments.compareTo(BigDecimal.ZERO) <= 0) { // Compare to BigDecimal.ZERO
              throw new BadRequestException("Total amount of PAID payments is zero or less. Nothing to remit.");
         }
 
@@ -129,15 +138,33 @@ public class RemittanceService {
         remittanceToSave.setRemittanceId(generateRemittanceId(accountId));
         remittanceToSave.setFee(fee);
         remittanceToSave.setAccount(account);
-        remittanceToSave.setAmountRemitted(sumOfPaidPayments);
+        remittanceToSave.setAmountRemitted(sumOfPaidPayments); // Now expects and receives BigDecimal
         remittanceToSave.setRemittanceDate(LocalDate.now());
         
         // Use the calculator to determine status
-        RemittanceStatus calculatedStatus = remittanceStatusCalculator.calculateStatus(
+        com.agaseeyyy.transparencysystem.enums.RemittanceStatus simpleCalculatedStatus = remittanceStatusCalculator.calculateStatus(
                 feeId, programId, yearLevel, section, true);
         
-        // Use RemittanceStatus directly - no conversion needed
-        remittanceToSave.setStatus(calculatedStatus);
+        // Map to the detailed RemittanceStatus for storage
+        com.agaseeyyy.transparencysystem.remittances.RemittanceStatus detailedStatus;
+        switch (simpleCalculatedStatus) {
+            case COMPLETED:
+                detailedStatus = com.agaseeyyy.transparencysystem.remittances.RemittanceStatus.COMPLETED;
+                break;
+            case PARTIAL:
+                detailedStatus = com.agaseeyyy.transparencysystem.remittances.RemittanceStatus.PARTIAL;
+                break;
+            case NOT_REMITTED:
+                // This case should ideally not be reached if we are creating a new remittance,
+                // as it implies something went wrong or no payments were found (which is checked earlier).
+                // However, to be safe, map it to a pending state or similar.
+                detailedStatus = com.agaseeyyy.transparencysystem.remittances.RemittanceStatus.PENDING_VERIFICATION; 
+                break;
+            default:
+                detailedStatus = com.agaseeyyy.transparencysystem.remittances.RemittanceStatus.PENDING_VERIFICATION; // Default fallback
+                break;
+        }
+        remittanceToSave.setStatus(detailedStatus);
         
         // Set the payments included in this remittance
         remittanceToSave.setPayments(paidPayments);
@@ -245,12 +272,15 @@ public class RemittanceService {
         return remittanceRepository.getAmountRemittedGroupByAccountIdAndFeeId();
     }
 
-    public double calculateTotalRemittedByFeeType(Integer feeId) {
+    public BigDecimal calculateTotalRemittedByFeeType(Integer feeId) {
         List<Remittances> remittances = remittanceRepository.findByFee_FeeId(feeId);
-        
+        if (remittances == null || remittances.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
         return remittances.stream()
-            .mapToDouble(Remittances::getAmountRemitted)
-            .sum();
+                          .filter(r -> r.getAmountRemitted() != null) // Ensure amount is not null
+                          .map(Remittances::getAmountRemitted) // This is now BigDecimal
+                          .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public List<Remittances> getRecentRemittances() {

@@ -411,3 +411,104 @@ export const emailService = {
     return response.data;
   }
 };
+
+// Expense related API calls
+export const expenseService = {
+  // Get all expenses with optional filters and pagination
+  getExpenses: async (params = {}) => {
+    const response = await api.get('/api/expenses', { params });
+    return response.data;
+  },
+
+  // Get a single expense by ID
+  getExpenseById: async (expenseId) => {
+    const response = await api.get(`/api/expenses/${expenseId}`);
+    return response.data;
+  },
+
+  // Create a new expense
+  createExpense: async (expenseData) => {
+    // Get the current user's accountId from localStorage
+    const userString = localStorage.getItem('auth_user');
+    const user = userString ? JSON.parse(userString) : null;
+    const accountId = user?.accountId;
+    
+    if (!accountId) {
+      throw new Error('User account ID is required to create an expense');
+    }
+    
+    const response = await api.post('/api/expenses', expenseData, {
+      params: { createdByAccountId: accountId }
+    });
+    return response.data;
+  },
+
+  // Update an existing expense
+  updateExpense: async (expenseId, expenseData) => {
+    const response = await api.put(`/api/expenses/${expenseId}`, expenseData);
+    return response.data;
+  },
+
+  // Delete an expense
+  deleteExpense: async (expenseId) => {
+    const response = await api.delete(`/api/expenses/${expenseId}`);
+    return response.data;
+  },
+
+  // Approve an expense
+  approveExpense: async (expenseId, approvalRemarks = '') => {
+    // Get the current user's accountId from localStorage
+    const userString = localStorage.getItem('auth_user');
+    const user = userString ? JSON.parse(userString) : null;
+    const accountId = user?.accountId;
+    
+    if (!accountId) {
+      throw new Error('User account ID is required to approve an expense');
+    }
+    
+    const response = await api.post(`/api/expenses/${expenseId}/approve`, 
+      { approvalRemarks },
+      { params: { approvedByAccountId: accountId } }
+    );
+    return response.data;
+  },
+
+  // Reject an expense
+  rejectExpense: async (expenseId, approvalRemarks = '') => {
+    // Get the current user's accountId from localStorage
+    const userString = localStorage.getItem('auth_user');
+    const user = userString ? JSON.parse(userString) : null;
+    const accountId = user?.accountId;
+    
+    if (!accountId) {
+      throw new Error('User account ID is required to reject an expense');
+    }
+    
+    const response = await api.post(`/api/expenses/${expenseId}/reject`, 
+      { approvalRemarks },
+      { params: { rejectedByAccountId: accountId } }
+    );
+    return response.data;
+  },
+};
+
+// Dashboard related API calls
+export const dashboardService = {
+  getAdminDashboardSummary: async () => {
+    const response = await api.get('/api/v1/dashboard/admin-summary');
+    return response.data;
+  },
+  getClassTreasurerDashboardSummary: async () => {
+    const response = await api.get('/api/v1/dashboard/class-treasurer-summary');
+    return response.data;
+  },
+  getPublicDashboardSummary: async () => {
+    const response = await api.get('/api/v1/public/dashboard-summary');
+    return response.data;
+  },
+  // New function to get fee utilization breakdown
+  getFeeUtilizationBreakdown: async () => {
+    const response = await api.get('/api/v1/dashboard/admin/fee-utilization');
+    return response.data;
+  }
+};

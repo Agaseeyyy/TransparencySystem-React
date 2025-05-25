@@ -1,6 +1,7 @@
 package com.agaseeyyy.transparencysystem.dashboard;
 
 import com.agaseeyyy.transparencysystem.programs.ProgramService;
+import com.agaseeyyy.transparencysystem.dashboard.dto.PublicDashboardSummaryDto;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -36,5 +37,10 @@ public class PublicController {
     @GetMapping("/remittances/summary")
     public ResponseEntity<?> getRemittancesSummary() {
         return ResponseEntity.ok(transparencyService.getPublicRemittanceSummary());
+    }
+
+    @GetMapping("/dashboard-summary")
+    public ResponseEntity<PublicDashboardSummaryDto> getPublicDashboardSummary() {
+        return ResponseEntity.ok(transparencyService.getPublicDashboardSummary());
     }
 }

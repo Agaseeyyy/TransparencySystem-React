@@ -152,8 +152,8 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
         return 'Payments';
       case '/remittances':
         return 'Remittance';
-      case '/events':
-        return 'Events';
+      case '/expenses':
+        return 'Expenses';
       case '/email-management':
         return 'Email Management';
       case '/settings':

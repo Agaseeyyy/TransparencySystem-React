@@ -102,4 +102,8 @@ public interface RemittanceRepository extends JpaRepository<Remittances, String>
             @Param("yearLevel") Year yearLevel,
             @Param("section") Character section,
             @Param("status") RemittanceStatus status);
+
+    List<Remittances> findByAccountAccountIdOrderByRemittanceDateDesc(Integer accountId, Pageable pageable);
+    long countByAccountAccountId(Integer accountId);
+    List<Remittances> findByAccountAccountId(Integer accountId);
 }

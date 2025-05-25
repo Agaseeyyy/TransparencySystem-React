@@ -12,7 +12,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "accounts")
-@JsonIgnoreProperties("student")
+@JsonIgnoreProperties({"student", "hibernateLazyInitializer", "handler"})
 public class Accounts {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

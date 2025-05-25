@@ -2,6 +2,7 @@ package com.agaseeyyy.transparencysystem.fees;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.math.BigDecimal;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -53,7 +54,7 @@ public class FeeService {
         if (fee.getAmount() == null) {
             throw new BadRequestException("Amount is required.");
         }
-        if (fee.getAmount() <= 0) {
+        if (fee.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("Amount must be greater than zero.");
         }
         if (fee.getDueDate() == null) {
@@ -81,7 +82,7 @@ public class FeeService {
         if (updatedFeeDetails.getAmount() == null) {
             throw new BadRequestException("Amount is required in the request body.");
         }
-         if (updatedFeeDetails.getAmount() <= 0) {
+         if (updatedFeeDetails.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("Amount must be greater than zero.");
         }
         if (updatedFeeDetails.getDueDate() == null) {
@@ -124,13 +125,13 @@ public class FeeService {
                 // Create default fees
                 Fees membershipFee = new Fees();
                 membershipFee.setFeeType("JPCS Membership Fee");
-                membershipFee.setAmount(150.00);
+                membershipFee.setAmount(new BigDecimal("150.00"));
                 membershipFee.setDueDate(LocalDate.now().plusMonths(1));
                 feeRepository.save(membershipFee);
 
                 Fees semestralFee = new Fees();
                 semestralFee.setFeeType("JPCS Semestral Fee");
-                semestralFee.setAmount(250.00);
+                semestralFee.setAmount(new BigDecimal("250.00"));
                 semestralFee.setDueDate(LocalDate.now().plusMonths(1));
                 feeRepository.save(semestralFee);
 

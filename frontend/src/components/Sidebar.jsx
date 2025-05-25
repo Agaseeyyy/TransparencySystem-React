@@ -32,6 +32,7 @@ const Sidebar = ({ collapsed, mobileOpen, closeMobile }) => {
     { path: "/payments", title: "Payments", icon: CreditCard, access: "all" },
     { path: "/students", title: "Students", icon: GraduationCap, access: "orgTreasurer" },
     { path: "/remittances", title: "Remittance", icon: CircleDollarSign, access: "orgTreasurer" },
+    { path: "/expenses", title: "Expenses", icon: CircleDollarSign, access: "orgTreasurer" },
     { path: "/fees", title: "Fees", icon: Calendar, access: "orgTreasurer" },
     { path: "/departments", title: "Departments", icon: Users, access: "admin" },
     { path: "/programs", title: "Programs", icon: School, access: "admin" },

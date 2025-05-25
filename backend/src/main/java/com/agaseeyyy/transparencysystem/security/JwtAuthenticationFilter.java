@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                      
         // Check for Authorization header
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            logger.debug("No valid Authorization header found");
+            logger.debug("No valid Authorization header found for path: {}", requestPath);
             filterChain.doFilter(request, response);
             return;
         }
@@ -57,9 +57,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // Extract the JWT token (remove "Bearer " prefix)
             final String jwt = authHeader.substring(7);
+
+            // Additional check: if token is empty or too short, don't try to parse
+            if (jwt.isEmpty() || jwt.length() < 5) { // Basic check, real JWTs are much longer
+                logger.debug("Extracted JWT is empty or too short for path: {}", requestPath);
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             final String userEmail = jwtService.extractUsername(jwt);
             
-            logger.debug("JWT token processed, extracted email: {}", userEmail);
+            logger.debug("JWT token processed for path: {}, extracted email: {}", requestPath, userEmail);
             
             // Check if user is already authenticated
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {

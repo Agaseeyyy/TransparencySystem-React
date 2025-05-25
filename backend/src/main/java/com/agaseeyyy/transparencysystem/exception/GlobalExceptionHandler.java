@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,6 +19,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -180,23 +183,39 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
     
     // Handle validation exceptions
+    @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, 
             HttpHeaders headers,
-            HttpStatus status, 
+            HttpStatusCode status,
             WebRequest request) {
         
         String path = getRequestPath(request);
+        List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
+        String detailedMessage;
+
+        if (fieldErrors.isEmpty()) {
+            detailedMessage = "Validation failed with no specific field errors.";
+        } else if (fieldErrors.size() == 1) {
+            FieldError error = fieldErrors.get(0);
+            detailedMessage = error.getDefaultMessage();
+        } else {
+            detailedMessage = fieldErrors.stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        }
+
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
             "Validation Error",
-            "Validation failed",
+            detailedMessage,
             path
         );
         
-        // Add field-specific validation errors
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            errorResponse.addValidationError(error.getField(), error.getDefaultMessage());
+        if (!fieldErrors.isEmpty()) {
+            for (FieldError error : fieldErrors) {
+                errorResponse.addValidationError(error.getField(), error.getDefaultMessage());
+            }
         }
         
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);

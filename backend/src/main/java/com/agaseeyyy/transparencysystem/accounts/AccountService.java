@@ -268,7 +268,7 @@ public class AccountService {
                         // If student details are incomplete, return with NOT_REMITTED status
                         AccountWithRemittanceInfoDTO newDto = new AccountWithRemittanceInfoDTO(
                                 dto.getAccount(),
-                                dto.getTotalRemittedAmount(),
+                                dto.getTotalRemittedAmountBigDecimal(),
                                 RemittanceStatus.NOT_REMITTED,
                                 dto.getFeeId(),
                                 dto.getFeeType()
@@ -288,7 +288,7 @@ public class AccountService {
                     // Create a new DTO with updated status
                     AccountWithRemittanceInfoDTO newDto = new AccountWithRemittanceInfoDTO(
                             dto.getAccount(),
-                            dto.getTotalRemittedAmount(),
+                            dto.getTotalRemittedAmountBigDecimal(),
                             status,
                             dto.getFeeId(),
                             dto.getFeeType()

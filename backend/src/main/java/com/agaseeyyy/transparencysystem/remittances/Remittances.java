@@ -1,5 +1,6 @@
 package com.agaseeyyy.transparencysystem.remittances;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
 import jakarta.persistence.*;
 
 import com.agaseeyyy.transparencysystem.accounts.Accounts;
-import com.agaseeyyy.transparencysystem.enums.RemittanceStatus;
+import com.agaseeyyy.transparencysystem.remittances.RemittanceStatus;
 import com.agaseeyyy.transparencysystem.fees.Fees;
 import com.agaseeyyy.transparencysystem.payments.Payments;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -15,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "remittances")
-@JsonIgnoreProperties({"account", "fee"})
+@JsonIgnoreProperties({"account", "fee", "hibernateLazyInitializer", "handler"})
 public class Remittances {
     @Id
     @Column(name = "remittance_id", columnDefinition = "VARCHAR(40)")
@@ -29,8 +30,8 @@ public class Remittances {
     @JoinColumn(name = "account_id", nullable = false)
     private Accounts account;
 
-    @Column(name = "amount_remitted", nullable = false)
-    private Double amountRemitted;
+    @Column(name = "amount_remitted", nullable = false, precision = 10, scale = 2)
+    private BigDecimal amountRemitted;
 
     @Enumerated(EnumType.STRING)    
     @Column(name = "status", nullable = false)
@@ -115,11 +116,11 @@ public class Remittances {
         this.account = account;
     }
 
-    public Double getAmountRemitted() {
+    public BigDecimal getAmountRemitted() {
         return amountRemitted;
     }
 
-    public void setAmountRemitted(Double amountRemitted) {
+    public void setAmountRemitted(BigDecimal amountRemitted) {
         this.amountRemitted = amountRemitted;
     }
 

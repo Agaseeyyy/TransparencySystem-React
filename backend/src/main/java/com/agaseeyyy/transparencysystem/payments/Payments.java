@@ -139,7 +139,7 @@ public class Payments {
     }
 
     @JsonProperty("amount")
-    public Double getAmount() {
+    public java.math.BigDecimal getAmount() {
         return fee != null ? fee.getAmount() : null;
     }
 

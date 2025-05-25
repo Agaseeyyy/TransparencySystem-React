@@ -1,8 +1,9 @@
 package com.agaseeyyy.transparencysystem.dto;
 
 import java.time.Year;
+import java.math.BigDecimal;
 
-import com.agaseeyyy.transparencysystem.enums.RemittanceStatus;
+import com.agaseeyyy.transparencysystem.remittances.RemittanceStatus;
 
 public class RemittanceSummary {
     private String lastName;
@@ -12,9 +13,9 @@ public class RemittanceSummary {
     private char section;
     private String feeType;
     private RemittanceStatus status;
-    private double totalAmount;
+    private BigDecimal totalAmount;
 
-    public RemittanceSummary(String lastName, String firstName, char middleInitial, Year yearLevel, char section, String feeType, RemittanceStatus status, double totalAmount) {
+    public RemittanceSummary(String lastName, String firstName, char middleInitial, Year yearLevel, char section, String feeType, RemittanceStatus status, BigDecimal totalAmount) {
         this.lastName = lastName;
         this.firstName = firstName;
         this.middleInitial = middleInitial;
@@ -50,7 +51,7 @@ public class RemittanceSummary {
         return this.feeType;
     }
 
-    public double getTotalAmount() {
+    public BigDecimal getTotalAmount() {
         return this.totalAmount;
     }
 

@@ -18,6 +18,7 @@ import Unauthorized from './pages/Unauthorized';
 import TransparencyBoard from './pages/TransparencyBoard';
 import EmailManagement from './pages/EmailManagement';
 import { Toaster } from 'sonner';
+import Expenses from './pages/Expenses';
 
 // For debugging - set up route role matching
 const ROLES = {
@@ -32,13 +33,13 @@ const App = () => {
       path: '/', 
       element: <Layout />,
       children: [
-        { path: '/', element: <TransparencyBoard /> },
+        { path: '/', element: <Dashboard /> },
         { path: '/login', element: <LoginPage /> },
         { path: '/unauthorized', element: <Unauthorized /> },
         {
           element: <ProtectedRoute />,
           children: [
-            { path: '/dashboard', element: <TransparencyBoard /> },
+            { path: '/dashboard', element: <Dashboard /> },
             { path: '/payments', element: <Payments /> },
             { path: '/settings', element: <></> },
           ]
@@ -60,7 +61,7 @@ const App = () => {
             { path: '/students', element: <Student /> },
             { path: '/email-management', element: <EmailManagement /> },
             { path: '/accounts', element: <Account /> },
-
+            { path : '/expenses', element: <Expenses /> }, 
           ]
         },
         { path: '/*', element: <NoPage />},

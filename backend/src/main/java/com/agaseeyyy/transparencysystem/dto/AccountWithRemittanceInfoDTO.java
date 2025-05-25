@@ -1,6 +1,7 @@
 package com.agaseeyyy.transparencysystem.dto;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 import com.agaseeyyy.transparencysystem.accounts.Accounts;
 import com.agaseeyyy.transparencysystem.enums.RemittanceStatus;
@@ -8,7 +9,7 @@ import com.agaseeyyy.transparencysystem.enums.RemittanceStatus;
 
 public class AccountWithRemittanceInfoDTO {
     private Accounts account;
-    private double totalRemittedAmount;
+    private BigDecimal totalRemittedAmount;
     private String remittanceStatus; // String representation for backward compatibility
     private Integer feeId;
     private String feeType;
@@ -16,7 +17,7 @@ public class AccountWithRemittanceInfoDTO {
 
     public AccountWithRemittanceInfoDTO(
         Accounts account,
-        double totalRemittedAmount,
+        BigDecimal totalRemittedAmount,
         String remittanceStatus, // String version for backward compatibility
         Integer feeId,
         String feeType
@@ -32,7 +33,7 @@ public class AccountWithRemittanceInfoDTO {
     // Alternate constructor using RemittanceStatus enum
     public AccountWithRemittanceInfoDTO(
         Accounts account,
-        double totalRemittedAmount,
+        BigDecimal totalRemittedAmount,
         RemittanceStatus status, // Enum version for type safety
         Integer feeId,
         String feeType
@@ -51,6 +52,10 @@ public class AccountWithRemittanceInfoDTO {
     }
 
     public double getTotalRemittedAmount() {
+        return totalRemittedAmount.doubleValue();
+    }
+
+    public BigDecimal getTotalRemittedAmountBigDecimal() {
         return totalRemittedAmount;
     }
 

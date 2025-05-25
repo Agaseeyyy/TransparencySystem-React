@@ -41,6 +41,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                // Adding rule for public API v1 endpoints
+                .requestMatchers("/api/v1/public/**").permitAll()
                 // Auth verification endpoint - requires authentication
                 .requestMatchers("/api/auth/verify").authenticated()
                 // Default - require authentication for everything else

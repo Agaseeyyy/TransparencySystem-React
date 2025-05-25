@@ -1,5 +1,6 @@
 package com.agaseeyyy.transparencysystem.fees;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.persistence.*;
@@ -14,8 +15,8 @@ public class Fees {
     @Column(name = "fee_type", nullable = false)
     private String feeType;
 
-    @Column(name = "amount", nullable = false)
-    private Double amount;
+    @Column(name = "amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal amount;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -30,7 +31,7 @@ public class Fees {
     public Fees() {
     }
 
-    public Fees(Integer feeId, String feeType, Double amount, LocalDate dueDate, LocalDate createdAt) {
+    public Fees(Integer feeId, String feeType, BigDecimal amount, LocalDate dueDate, LocalDate createdAt) {
         this.feeId = feeId;
         this.feeType = feeType;
         this.amount = amount;
@@ -56,11 +57,11 @@ public class Fees {
         this.feeType = feeType;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return this.amount;
     }
 
-    public void setAmount(Double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

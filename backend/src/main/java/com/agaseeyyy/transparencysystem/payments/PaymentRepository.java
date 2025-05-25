@@ -135,5 +135,7 @@ public interface PaymentRepository extends JpaRepository<Payments, String>, JpaS
      */
     List<Payments> findByFee_FeeIdAndStatusIn(Integer feeId, List<Status> statuses);
 
+    List<Payments> findByStudentStudentIdIn(List<Long> studentIds, Pageable pageable);
+
     // Aggregate total amount paid by a student
 }

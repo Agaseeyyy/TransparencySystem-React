@@ -287,7 +287,8 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
             </Button>
           </div>
           
-          {(expense.approvalStatus !== 'APPROVED' || expense.approvalStatus !== 'REJECTED') && can.manageTransaction() && (
+          {/* Only show approve/reject for admin users */}
+          {can.manageSystem() && (expense.approvalStatus !== 'APPROVED' || expense.approvalStatus !== 'REJECTED') && (
             <div className="flex w-full gap-3">
               {expense.approvalStatus !== 'APPROVED' && (
                 <Button 
@@ -317,7 +318,7 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
             </div>
           )}
 
-          {expense.approvalStatus === 'APPROVED' && expense.expenseStatus !== 'PAID' && can.manageTransaction() && (
+          {expense.approvalStatus === 'APPROVED' && expense.expenseStatus !== 'PAID' && (
             <Button 
               variant="outline"
               size="sm"
@@ -355,7 +356,8 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
           </div>
           
           <div className="flex gap-3">
-            {can.manageTransaction() && expense.approvalStatus !== 'APPROVED' && (
+            {/* Only show approve/reject for admin users */}
+            {can.manageSystem() && expense.approvalStatus !== 'APPROVED' && (
               <Button 
                 variant="outline"
                 size="sm"
@@ -368,7 +370,7 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
               </Button>
             )}
             
-            {can.manageTransaction() && expense.approvalStatus !== 'REJECTED' && (
+            {can.manageSystem() && expense.approvalStatus !== 'REJECTED' && (
               <Button 
                 variant="outline" 
                 size="sm"
@@ -381,7 +383,7 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
               </Button>
             )}
 
-            {can.manageTransaction() && expense.approvalStatus === 'APPROVED' && expense.expenseStatus !== 'PAID' && (
+            {expense.approvalStatus === 'APPROVED' && expense.expenseStatus !== 'PAID' && (
               <Button 
                 variant="outline"
                 size="sm"

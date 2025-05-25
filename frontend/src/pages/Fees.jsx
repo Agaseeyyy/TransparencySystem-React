@@ -277,7 +277,7 @@ const Fees = () => {
                 columns={columns} 
                 data={fees}
                 title={'fee'}
-                showAdd={user?.role === 'Admin' || user?.role === 'Treasurer' ? handleAdd : undefined}
+                showAdd={handleAdd}
                 user={user}
                 loading={loading}
                 currentPage={currentPage + 1}

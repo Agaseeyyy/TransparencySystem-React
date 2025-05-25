@@ -17,6 +17,7 @@ import ActionButton from '../components/ActionButton';
 import { ExpenseCard } from '../components/ExpenseComponents';
 import { formatCurrency, formatDate } from '../utils/formatUtils';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
+import { useAuth } from '../context/AuthProvider';
 
 const EXPENSE_CATEGORIES = [
   'OFFICE_SUPPLIES', 'UTILITIES', 'MAINTENANCE', 'TRANSPORTATION', 'COMMUNICATION', 'EVENTS', 'TRAINING', 'EQUIPMENT', 'SOFTWARE_LICENSES', 'PRINTING', 'CATERING', 'SECURITY', 'CLEANING', 'RENT', 'INSURANCE', 'LEGAL_FEES', 'CONSULTING', 'MARKETING', 'STUDENT_ACTIVITIES', 'EMERGENCY_FUND', 'MISCELLANEOUS'
@@ -57,6 +58,8 @@ const defaultExpense = {
 };
 
 const Expenses = () => {
+  const { can } = useAuth();
+  
   // Basic UI states
   const [viewMode, setViewMode] = useState('cards');
   const [loading, setLoading] = useState(false);
@@ -510,13 +513,18 @@ const Expenses = () => {
       key: 'actions',
       label: 'Actions',
       width: '150px',
-      render: (_, row) => (
-        <ActionButton
-          row={row}
-          idField="expenseId"
-          onEdit={() => openForm('edit', row)}
-          onDelete={() => handleDeleteRequest(row)}
-          extraActions={[
+      render: (_, row) => {
+        const extraActions = [
+          {
+            label: 'Mark as Paid',
+            onClick: () => openForm('pay', row),
+            disabled: row.approvalStatus !== 'APPROVED' || row.expenseStatus === 'PAID',
+          },
+        ];
+
+        // Only show approve/reject actions for admin users
+        if (can.manageSystem()) {
+          extraActions.unshift(
             {
               label: 'Approve',
               onClick: () => openForm('approve', row),
@@ -526,15 +534,20 @@ const Expenses = () => {
               label: 'Reject',
               onClick: () => openForm('reject', row),
               disabled: row.approvalStatus === 'REJECTED',
-            },
-            {
-              label: 'Mark as Paid',
-              onClick: () => openForm('pay', row),
-              disabled: row.approvalStatus !== 'APPROVED' || row.expenseStatus === 'PAID',
-            },
-          ]}
-        />
-      ),
+            }
+          );
+        }
+
+        return (
+          <ActionButton
+            row={row}
+            idField="expenseId"
+            onEdit={() => openForm('edit', row)}
+            onDelete={() => handleDeleteRequest(row)}
+            extraActions={extraActions}
+          />
+        );
+      },
     },
   ];
 
@@ -1030,7 +1043,7 @@ const Expenses = () => {
                   </p>
                 </div>
 
-                <div className="p-3 border rounded-md bg-blue-50 border-blue-200">
+                <div className="p-3 border border-blue-200 rounded-md bg-blue-50">
                   <div className="flex items-start">
                     <AlertCircle className="w-4 h-4 mr-2 text-blue-600 mt-0.5" />
                     <div className="text-sm text-blue-700">
@@ -1056,7 +1069,7 @@ const Expenses = () => {
                   </Button>
                   <Button 
                     type="submit" 
-                    className="cursor-pointer bg-blue-600 hover:bg-blue-600/90"
+                    className="bg-blue-600 cursor-pointer hover:bg-blue-600/90"
                   >
                     Mark as Paid
                   </Button>

@@ -6,12 +6,11 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Checkbox } from '../components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import { Card, CardContent } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Badge } from '../components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from '../components/ui/pagination';
-import { AlertCircle, Receipt, Pencil, CheckCircle, Ban, FileText, Grid, List, ArrowUpDown, Filter, ChevronDown, Search, CreditCard } from 'lucide-react';
+import { AlertCircle, Receipt, Pencil, CheckCircle, Ban, FileText, Grid, List, ArrowUpDown, Filter, ChevronDown, Search, CreditCard, Download } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import ActionButton from '../components/ActionButton';
 import { ExpenseCard } from '../components/ExpenseComponents';
@@ -154,21 +153,21 @@ const Expenses = () => {
       // Add card filters when in card view
       if (viewMode === 'cards') {
         if (cardFilters.search?.trim()) {
-          params.searchTerm = cardFilters.search.trim(); // Changed from 'search' to 'searchTerm'
+          params.searchTerm = cardFilters.search.trim();
         }
-        if (cardFilters.category && cardFilters.category !== 'all') {
+        if (cardFilters.category && cardFilters.category !== 'all' && cardFilters.category !== '') {
           params.expenseCategory = cardFilters.category;
         }
-        if (cardFilters.department && cardFilters.department !== 'all') {
+        if (cardFilters.department && cardFilters.department !== 'all' && cardFilters.department !== '') {
           params.departmentId = cardFilters.department;
         }
-        if (cardFilters.status && cardFilters.status !== 'all') {
+        if (cardFilters.status && cardFilters.status !== 'all' && cardFilters.status !== '') {
           params.expenseStatus = cardFilters.status;
         }
       } else {
         // Add table filters, only including non-empty values
         Object.entries(filters).forEach(([key, value]) => {
-          if (value && value !== 'all') {
+          if (value && value !== 'all' && value !== '') {
             params[key] = value;
           }
         });
@@ -452,6 +451,9 @@ const Expenses = () => {
     expenseCategory: EXPENSE_CATEGORIES.map(cat => ({ value: cat, label: cat.replace(/_/g, ' ') })),
     departmentId: departments.map(dep => ({ value: dep.departmentId, label: dep.departmentName })),
     approvalStatus: APPROVAL_STATUSES.map(status => ({ value: status, label: status.replace(/_/g, ' ') })),
+    academicYear: ACADEMIC_YEARS.map(year => ({ value: year, label: year })),
+    semester: SEMESTERS.map(sem => ({ value: sem, label: sem })),
+    expenseStatus: EXPENSE_STATUSES.map(status => ({ value: status, label: status.replace(/_/g, ' ') }))
   };
 
   // Filtering handler for DataTable
@@ -570,13 +572,15 @@ const Expenses = () => {
       {viewMode === 'cards' && (
         <div className="flex flex-col items-start justify-between gap-4 mb-6 sm:flex-row sm:items-center">
           <h2 className="text-2xl font-bold text-gray-800">Expenses Management</h2>
-          <Button 
-            onClick={() => openForm('create')}
-            className="flex items-center gap-2 px-4 py-2 shadow-sm bg-rose-600 hover:bg-rose-700"
-          >
-            <Receipt className="w-4 h-4" />
-            Add Expense
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => openForm('create')}
+              className="flex items-center gap-2 px-4 py-2 shadow-sm bg-rose-600 hover:bg-rose-700"
+            >
+              <Receipt className="w-4 h-4" />
+              Add Expense
+            </Button>
+          </div>
         </div>
       )}
       
@@ -921,7 +925,7 @@ const Expenses = () => {
               filterOptions={filterOptions}
               onFilter={handleTableFilter}
               showAdd={() => openForm('create')}
-              title="expenses"
+              title="expense"
               emptyStateMessage={`No ${activeTab !== 'all' ? activeTab : ''} expenses found.`}
               tableClassName="w-full border-collapse"
             />
@@ -1264,7 +1268,7 @@ const Expenses = () => {
                               rel="noopener noreferrer"
                               className="text-sm text-blue-600 underline hover:text-blue-800"
                             >
-                              View File
+                                                           View File
                             </a>
                             <a 
                               href={fileUtils.getFileDownloadUrl(form.documentationPath)}

@@ -3,205 +3,138 @@ package com.agaseeyyy.transparencysystem.expenses;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
 
-import com.agaseeyyy.transparencysystem.departments.DepartmentRepository;
+import com.agaseeyyy.transparencysystem.departments.Departments;
 import com.agaseeyyy.transparencysystem.dto.ExpenseDTO;
 import com.agaseeyyy.transparencysystem.dto.ExpenseInputDTO;
-import com.agaseeyyy.transparencysystem.fees.FeeRepository;
+import com.agaseeyyy.transparencysystem.fees.Fees;
 
 /**
  * Helper class to convert between Expenses entity and ExpenseDTO
  */
 @Component
 public class ExpenseMapper {
-    
-    @Autowired
-    private DepartmentRepository departmentRepository;
-    
-    @Autowired
-    private FeeRepository feeRepository;
-    
+
     /**
      * Converts an Expenses entity to ExpenseDTO
      */
     public ExpenseDTO toDTO(Expenses expense) {
-        if (expense == null) {
-            return null;
-        }
+        if (expense == null) return null;
         
         ExpenseDTO dto = new ExpenseDTO();
         dto.setExpenseId(expense.getExpenseId());
         dto.setExpenseReference(expense.getExpenseReference());
         dto.setExpenseTitle(expense.getExpenseTitle());
-        dto.setExpenseCategory(expense.getExpenseCategory());
+        dto.setExpenseCategory(expense.getExpenseCategory() != null ? expense.getExpenseCategory().toString() : null);
         dto.setAmount(expense.getAmount());
         dto.setExpenseDescription(expense.getExpenseDescription());
         dto.setVendorSupplier(expense.getVendorSupplier());
         dto.setReceiptInvoiceNumber(expense.getReceiptInvoiceNumber());
         dto.setExpenseDate(expense.getExpenseDate());
         dto.setPaymentDate(expense.getPaymentDate());
-        dto.setPaymentMethod(expense.getPaymentMethod());
-        dto.setExpenseStatus(expense.getExpenseStatus());
-        dto.setApprovalStatus(expense.getApprovalStatus());
-        dto.setApprovalRemarks(expense.getApprovalRemarks());
+        dto.setPaymentMethod(expense.getPaymentMethod() != null ? expense.getPaymentMethod().toString() : null);
+        dto.setExpenseStatus(expense.getExpenseStatus() != null ? expense.getExpenseStatus().toString() : null);
+        dto.setApprovalStatus(expense.getApprovalStatus() != null ? expense.getApprovalStatus().toString() : null);
+        dto.setApprovedByName(expense.getApprovedByName());
         dto.setApprovalDate(expense.getApprovalDate());
+        dto.setApprovalRemarks(expense.getApprovalRemarks());
+        dto.setCreatedByName(expense.getCreatedByName());
+        dto.setDepartmentId(expense.getDepartmentId());
+        dto.setDepartmentName(expense.getDepartmentName());
+        dto.setRelatedFeeId(expense.getRelatedFee() != null ? expense.getRelatedFee().getFeeId() : null);
+        dto.setRelatedFeeType(expense.getRelatedFeeType());
         dto.setBudgetAllocation(expense.getBudgetAllocation());
         dto.setIsRecurring(expense.getIsRecurring());
+        dto.setRecurringFrequency(expense.getRecurringFrequency() != null ? expense.getRecurringFrequency().toString() : null);
         dto.setAcademicYear(expense.getAcademicYear());
         dto.setSemester(expense.getSemester());
+        dto.setDocumentationPath(expense.getDocumentationPath());
         dto.setTaxAmount(expense.getTaxAmount());
         dto.setIsTaxInclusive(expense.getIsTaxInclusive());
         dto.setCreatedAt(expense.getCreatedAt());
         dto.setUpdatedAt(expense.getUpdatedAt());
         dto.setRemarks(expense.getRemarks());
-        dto.setDocumentationPath(expense.getDocumentationPath());
-        
-        // Safe handling of related entities - extract only what we need
-        if (expense.getCreatedByAccount() != null) {
-            dto.setCreatedByAccountId(expense.getCreatedByAccount().getAccountId());
-            dto.setCreatedByName(expense.getCreatedByAccount().getFirstName() + " " + 
-                                expense.getCreatedByAccount().getLastName());
-        }
-        
-        if (expense.getApprovedByAccount() != null) {
-            dto.setApprovedByAccountId(expense.getApprovedByAccount().getAccountId());
-            dto.setApprovedByName(expense.getApprovedByAccount().getFirstName() + " " + 
-                                 expense.getApprovedByAccount().getLastName());
-        }
-        
-        if (expense.getDepartment() != null) {
-            dto.setDepartmentId(expense.getDepartment().getDepartmentId());
-            dto.setDepartmentName(expense.getDepartment().getDepartmentName());
-        }
-        
-        if (expense.getRelatedFee() != null) {
-            dto.setRelatedFeeId(expense.getRelatedFee().getFeeId());
-            dto.setRelatedFeeType(expense.getRelatedFee().getFeeType());
-        }
-        
-        // Calculate derived fields
-        if (expense.getAmount() != null) {
-            if (expense.getTaxAmount() != null) {
-                if (expense.getIsTaxInclusive()) {
-                    dto.setTotalAmount(expense.getAmount());
-                    dto.setNetAmount(expense.getAmount().subtract(expense.getTaxAmount()));
-                } else {
-                    dto.setNetAmount(expense.getAmount());
-                    dto.setTotalAmount(expense.getAmount().add(expense.getTaxAmount()));
-                }
-            } else {
-                dto.setTotalAmount(expense.getAmount());
-                dto.setNetAmount(expense.getAmount());
-            }
-        }
         
         return dto;
     }
-    
+
     /**
      * Converts a list of Expenses entities to a list of ExpenseDTOs
      */
     public List<ExpenseDTO> toDTOList(List<Expenses> expenses) {
-        if (expenses == null) {
-            return List.of();
-        }
         return expenses.stream()
-            .map(this::toDTO)
-            .collect(Collectors.toList());
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
-    
+
     /**
      * Converts a Page of Expenses entities to a Page of ExpenseDTOs
      */
-    public Page<ExpenseDTO> toPageDTO(Page<Expenses> page) {
-        if (page == null) {
-            return Page.empty();
-        }
-        List<ExpenseDTO> dtos = page.getContent().stream()
-            .map(this::toDTO)
-            .collect(Collectors.toList());
+    public Page<ExpenseDTO> toPageDTO(Page<Expenses> expensePage) {
+        List<ExpenseDTO> dtos = expensePage.getContent().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
         
-        return new PageImpl<>(dtos, page.getPageable(), page.getTotalElements());
+        return new PageImpl<>(dtos, expensePage.getPageable(), expensePage.getTotalElements());
     }
-    
+
     /**
      * Maps InputDTO to Expenses entity for creating or updating
      */
-    public Expenses toEntity(ExpenseInputDTO inputDTO, Expenses existingExpense) {
-        Expenses expense = existingExpense == null ? new Expenses() : existingExpense;
+    public Expenses toEntity(ExpenseInputDTO dto, Expenses existingExpense) {
+        Expenses expense = existingExpense != null ? existingExpense : new Expenses();
         
-        if (inputDTO.getExpenseReference() != null) {
-            expense.setExpenseReference(inputDTO.getExpenseReference());
+        if (dto.getExpenseReference() != null) {
+            expense.setExpenseReference(dto.getExpenseReference());
         }
-        if (inputDTO.getExpenseTitle() != null) {
-            expense.setExpenseTitle(inputDTO.getExpenseTitle());
+        if (dto.getExpenseTitle() != null) {
+            expense.setExpenseTitle(dto.getExpenseTitle());
         }
-        if (inputDTO.getExpenseCategory() != null) {
-            expense.setExpenseCategory(inputDTO.getExpenseCategory());
+        if (dto.getExpenseCategory() != null) {
+            expense.setExpenseCategory(Expenses.ExpenseCategory.valueOf(dto.getExpenseCategory()));
         }
-        if (inputDTO.getAmount() != null) {
-            expense.setAmount(inputDTO.getAmount());
+        if (dto.getAmount() != null) {
+            expense.setAmount(dto.getAmount());
         }
-        if (inputDTO.getExpenseDescription() != null) {
-            expense.setExpenseDescription(inputDTO.getExpenseDescription());
+        expense.setExpenseDescription(dto.getExpenseDescription());
+        expense.setVendorSupplier(dto.getVendorSupplier());
+        expense.setReceiptInvoiceNumber(dto.getReceiptInvoiceNumber());
+        if (dto.getExpenseDate() != null) {
+            expense.setExpenseDate(dto.getExpenseDate());
         }
-        if (inputDTO.getVendorSupplier() != null) {
-            expense.setVendorSupplier(inputDTO.getVendorSupplier());
-        }
-        if (inputDTO.getReceiptInvoiceNumber() != null) {
-            expense.setReceiptInvoiceNumber(inputDTO.getReceiptInvoiceNumber());
-        }
-        if (inputDTO.getExpenseDate() != null) {
-            expense.setExpenseDate(inputDTO.getExpenseDate());
-        }
-        if (inputDTO.getPaymentDate() != null) {
-            expense.setPaymentDate(inputDTO.getPaymentDate());
-        }
-        if (inputDTO.getPaymentMethod() != null) {
-            expense.setPaymentMethod(inputDTO.getPaymentMethod());
-        }
-        if (inputDTO.getBudgetAllocation() != null) {
-            expense.setBudgetAllocation(inputDTO.getBudgetAllocation());
-        }
-        if (inputDTO.getIsRecurring() != null) {
-            expense.setIsRecurring(inputDTO.getIsRecurring());
-        }
-        if (inputDTO.getRecurringFrequency() != null) {
-            expense.setRecurringFrequency(inputDTO.getRecurringFrequency());
-        }
-        if (inputDTO.getAcademicYear() != null) {
-            expense.setAcademicYear(inputDTO.getAcademicYear());
-        }
-        if (inputDTO.getSemester() != null) {
-            expense.setSemester(inputDTO.getSemester());
-        }
-        if (inputDTO.getTaxAmount() != null) {
-            expense.setTaxAmount(inputDTO.getTaxAmount());
-        }
-        if (inputDTO.getIsTaxInclusive() != null) {
-            expense.setIsTaxInclusive(inputDTO.getIsTaxInclusive());
-        }
-        if (inputDTO.getRemarks() != null) {
-            expense.setRemarks(inputDTO.getRemarks());
-        }
-        if (inputDTO.getDocumentationPath() != null) {
-            expense.setDocumentationPath(inputDTO.getDocumentationPath());
+        expense.setPaymentDate(dto.getPaymentDate());
+        if (dto.getPaymentMethod() != null) {
+            expense.setPaymentMethod(Expenses.PaymentMethod.valueOf(dto.getPaymentMethod()));
         }
         
-        // Handle related entities
-        if (inputDTO.getDepartmentId() != null && !inputDTO.getDepartmentId().isEmpty()) {
-            departmentRepository.findById(inputDTO.getDepartmentId())
-                .ifPresent(expense::setDepartment);
+        // Handle department
+        if (dto.getDepartmentId() != null) {
+            Departments department = new Departments();
+            department.setDepartmentId(dto.getDepartmentId());
+            expense.setDepartment(department);
         }
         
-        if (inputDTO.getRelatedFeeId() != null) {
-            feeRepository.findById(inputDTO.getRelatedFeeId())
-                .ifPresent(expense::setRelatedFee);
+        // Handle related fee
+        if (dto.getRelatedFeeId() != null) {
+            Fees fee = new Fees();
+            fee.setFeeId(Integer.valueOf(dto.getRelatedFeeId()));
+            expense.setRelatedFee(fee);
         }
+        
+        expense.setBudgetAllocation(dto.getBudgetAllocation());
+        expense.setIsRecurring(dto.getIsRecurring());
+        if (dto.getRecurringFrequency() != null) {
+            expense.setRecurringFrequency(Expenses.RecurringFrequency.valueOf(dto.getRecurringFrequency()));
+        }
+        expense.setAcademicYear(dto.getAcademicYear());
+        expense.setSemester(dto.getSemester());
+        expense.setDocumentationPath(dto.getDocumentationPath());
+        expense.setTaxAmount(dto.getTaxAmount());
+        expense.setIsTaxInclusive(dto.getIsTaxInclusive());
+        expense.setRemarks(dto.getRemarks());
         
         return expense;
     }

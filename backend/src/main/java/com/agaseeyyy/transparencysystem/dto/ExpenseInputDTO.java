@@ -3,14 +3,9 @@ package com.agaseeyyy.transparencysystem.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.agaseeyyy.transparencysystem.expenses.Expenses.ExpenseCategory;
-import com.agaseeyyy.transparencysystem.expenses.Expenses.PaymentMethod;
-import com.agaseeyyy.transparencysystem.expenses.Expenses.RecurringFrequency;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.agaseeyyy.transparencysystem.util.RecurringFrequencyDeserializer;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
-// Import validation constraints
-import jakarta.validation.constraints.*; 
+import jakarta.validation.constraints.*;
 
 /**
  * DTO for creating or updating an expense
@@ -26,11 +21,10 @@ public class ExpenseInputDTO {
     private String expenseTitle;
 
     @NotNull(message = "Expense category is required")
-    private ExpenseCategory expenseCategory;
+    private String expenseCategory;
 
     @NotNull(message = "Amount is required")
-    @DecimalMin(value = "0.01", message = "Amount must be greater than 0.00")
-    @Digits(integer = 8, fraction = 2, message = "Amount must be a valid monetary value with up to 8 integer and 2 decimal places")
+    @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
     private BigDecimal amount;
 
     @Size(max = 1000, message = "Description cannot exceed 1000 characters")
@@ -43,56 +37,38 @@ public class ExpenseInputDTO {
     private String receiptInvoiceNumber;
 
     @NotNull(message = "Expense date is required")
-    @PastOrPresent(message = "Expense date cannot be in the future")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expenseDate;
 
-    @PastOrPresent(message = "Payment date cannot be in the future")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate paymentDate; // Optional, but if present, must be past or present
 
-    // paymentMethod is optional on input based on current frontend defaults, can be null
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
 
-    @NotBlank(message = "Budget allocation is required")
-    @Size(max = 100, message = "Budget allocation cannot exceed 100 characters")
+    private String departmentId;
+
+    @NotNull(message = "Related fee is required")
+    private String relatedFeeId;
+
     private String budgetAllocation;
-    
-    @NotNull(message = "'Is Recurring' flag must be provided (true or false)")
-    private Boolean isRecurring;
-    
-    @JsonDeserialize(using = RecurringFrequencyDeserializer.class)
-    // recurringFrequency is conditionally required if isRecurring is true.
-    // This typically requires a class-level custom validator or service-level check.
-    // For DTO validation, we can ensure it fits enum if provided.
-    private RecurringFrequency recurringFrequency; 
-    
-    @Size(max = 10, message = "Academic year cannot exceed 10 characters") // e.g., "2023-2024"
-    // @Pattern(regexp = "^\\d{4}-\\d{4}$", message = "Academic year must be in YYYY-YYYY format") // Optional more specific pattern
-    private String academicYear; // Can be null if not always applicable from start
+
+    private Boolean isRecurring = false;
+
+    private String recurringFrequency;
+
+    private String academicYear;
 
     @NotBlank(message = "Semester is required")
-    @Size(max = 20, message = "Semester cannot exceed 20 characters")
     private String semester;
 
-    @Digits(integer = 8, fraction = 2, message = "Tax amount must be a valid monetary value with up to 8 integer and 2 decimal places")
-    @DecimalMin(value = "0.00", message = "Tax amount cannot be negative")
-    private BigDecimal taxAmount; // Optional
+    private String documentationPath;
 
-    @NotNull(message = "'Is Tax Inclusive' flag must be provided (true or false)")
-    private Boolean isTaxInclusive;
+    private BigDecimal taxAmount;
 
-    @Size(max = 1000, message = "Remarks cannot exceed 1000 characters")
+    private Boolean isTaxInclusive = false;
+
     private String remarks;
-    
-    // departmentId can be null if an expense doesn't belong to a department
-    @NotBlank(message = "Department ID is required")
-    private String departmentId; 
 
-    @NotNull(message = "Related Fee ID is required")
-    private Integer relatedFeeId;
-    
-    @Size(max = 500, message = "Documentation path cannot exceed 500 characters")
-    private String documentationPath; // Path to uploaded documentation/receipts
-    
     // Default constructor
     public ExpenseInputDTO() {}
     
@@ -113,11 +89,11 @@ public class ExpenseInputDTO {
         this.expenseTitle = expenseTitle;
     }
     
-    public ExpenseCategory getExpenseCategory() {
+    public String getExpenseCategory() {
         return expenseCategory;
     }
     
-    public void setExpenseCategory(ExpenseCategory expenseCategory) {
+    public void setExpenseCategory(String expenseCategory) {
         this.expenseCategory = expenseCategory;
     }
     
@@ -169,12 +145,28 @@ public class ExpenseInputDTO {
         this.paymentDate = paymentDate;
     }
     
-    public PaymentMethod getPaymentMethod() {
+    public String getPaymentMethod() {
         return paymentMethod;
     }
     
-    public void setPaymentMethod(PaymentMethod paymentMethod) {
+    public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+    
+    public String getDepartmentId() {
+        return departmentId;
+    }
+    
+    public void setDepartmentId(String departmentId) {
+        this.departmentId = departmentId;
+    }
+    
+    public String getRelatedFeeId() {
+        return relatedFeeId;
+    }
+    
+    public void setRelatedFeeId(String relatedFeeId) {
+        this.relatedFeeId = relatedFeeId;
     }
     
     public String getBudgetAllocation() {
@@ -193,11 +185,11 @@ public class ExpenseInputDTO {
         this.isRecurring = isRecurring;
     }
     
-    public RecurringFrequency getRecurringFrequency() {
+    public String getRecurringFrequency() {
         return recurringFrequency;
     }
     
-    public void setRecurringFrequency(RecurringFrequency recurringFrequency) {
+    public void setRecurringFrequency(String recurringFrequency) {
         this.recurringFrequency = recurringFrequency;
     }
     
@@ -215,6 +207,14 @@ public class ExpenseInputDTO {
     
     public void setSemester(String semester) {
         this.semester = semester;
+    }
+    
+    public String getDocumentationPath() {
+        return documentationPath;
+    }
+    
+    public void setDocumentationPath(String documentationPath) {
+        this.documentationPath = documentationPath;
     }
     
     public BigDecimal getTaxAmount() {
@@ -239,29 +239,5 @@ public class ExpenseInputDTO {
     
     public void setRemarks(String remarks) {
         this.remarks = remarks;
-    }
-    
-    public String getDepartmentId() {
-        return departmentId;
-    }
-    
-    public void setDepartmentId(String departmentId) {
-        this.departmentId = departmentId;
-    }
-    
-    public Integer getRelatedFeeId() {
-        return relatedFeeId;
-    }
-    
-    public void setRelatedFeeId(Integer relatedFeeId) {
-        this.relatedFeeId = relatedFeeId;
-    }
-    
-    public String getDocumentationPath() {
-        return documentationPath;
-    }
-    
-    public void setDocumentationPath(String documentationPath) {
-        this.documentationPath = documentationPath;
     }
 }

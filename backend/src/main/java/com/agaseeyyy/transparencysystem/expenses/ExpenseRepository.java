@@ -115,5 +115,13 @@ public interface ExpenseRepository extends JpaRepository<Expenses, Long>, JpaSpe
     @Query("SELECT e.expenseCategory, SUM(e.amount) as total FROM Expenses e WHERE e.expenseStatus = 'PAID' GROUP BY e.expenseCategory ORDER BY total DESC")
     List<Object[]> getTopExpenseCategories();
 
+    // Find expenses by related fee
     List<Expenses> findByRelatedFeeFeeId(Integer feeId);
+    
+    // Get total expenses by category - returns Object[] with category and total
+    @Query("SELECT e.expenseCategory, SUM(e.amount) FROM Expenses e WHERE e.expenseStatus = 'PAID' GROUP BY e.expenseCategory")
+    List<Object[]> getTotalExpensesByCategory();
+    
+    // Find expenses by recurring status
+    List<Expenses> findByIsRecurringTrue();
 }

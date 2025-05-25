@@ -320,4 +320,60 @@ public class ExpenseController {
         String reference = expenseService.generateExpenseReference();
         return ResponseEntity.ok(Map.of("reference", reference));
     }
+    
+    // Export Endpoints
+    
+    // Export expenses with filters
+    @GetMapping("/export")
+    public ResponseEntity<List<ExpenseDTO>> exportExpenses(
+            @RequestParam(required = false) ExpenseCategory category,
+            @RequestParam(required = false) ExpenseStatus status,
+            @RequestParam(required = false) ApprovalStatus approvalStatus,
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) Integer createdBy,
+            @RequestParam(required = false) Integer approvedBy,
+            @RequestParam(required = false) String academicYear,
+            @RequestParam(required = false) String semester,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Double minAmount,
+            @RequestParam(required = false) Double maxAmount,
+            @RequestParam(required = false) String vendorSupplier,
+            @RequestParam(required = false) String budgetAllocation,
+            @RequestParam(required = false) Boolean isRecurring,
+            @RequestParam(required = false) String searchTerm) {
+        
+        List<Expenses> expenses = expenseService.getExpensesForExport(
+            category, status, approvalStatus, departmentId, createdBy, approvedBy,
+            academicYear, semester, startDate, endDate, minAmount, maxAmount,
+            vendorSupplier, budgetAllocation, isRecurring, searchTerm
+        );
+        
+        return ResponseEntity.ok(expenseMapper.toDTOList(expenses));
+    }
+    
+    // Export expenses by department
+    @GetMapping("/export/department/{departmentId}")
+    public ResponseEntity<List<ExpenseDTO>> exportExpensesByDepartment(@PathVariable String departmentId) {
+        List<Expenses> expenses = expenseService.getExpensesByDepartment(departmentId);
+        return ResponseEntity.ok(expenseMapper.toDTOList(expenses));
+    }
+    
+    // Export expenses by academic year
+    @GetMapping("/export/academic-year/{academicYear}")
+    public ResponseEntity<List<ExpenseDTO>> exportExpensesByAcademicYear(@PathVariable String academicYear) {
+        List<Expenses> expenses = expenseService.getExpensesForExport(
+            null, null, null, null, null, null, academicYear, null, null, null, null, null, null, null, null, null
+        );
+        return ResponseEntity.ok(expenseMapper.toDTOList(expenses));
+    }
+    
+    // Export transparency report
+    @GetMapping("/export/transparency-report")
+    public ResponseEntity<Map<String, Object>> exportTransparencyReport(
+            @RequestParam String academicYear,
+            @RequestParam(required = false) String semester) {
+        Map<String, Object> report = expenseService.generateTransparencyReport(academicYear, semester);
+        return ResponseEntity.ok(report);
+    }
 }

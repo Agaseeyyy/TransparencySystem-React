@@ -27,7 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { studentService, remittanceService, paymentService } from "../utils/apiService";
+import { studentService, remittanceService, paymentService, expenseService } from "../utils/apiService";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -260,6 +260,8 @@ const DataTable = ({
         reportData = await remittanceService.generateRemittanceReport(reportAPIParams);
       } else if (title === 'payment') {
         reportData = await paymentService.generatePaymentReport(reportAPIParams);
+      } else if (title === 'expense') {
+        reportData = await expenseService.generateExpenseReport(reportAPIParams);
       } else {
         console.error("Unknown report title for API call:", title);
         toast.error(`Unknown report type: ${title}`, { id: loadingToastId });
@@ -270,7 +272,7 @@ const DataTable = ({
       if (!reportData || reportData.length === 0) {
         toast.error(`No data available for report`, {
           id: loadingToastId,
-          description: "Try adjusting your filters or ensure the selected Fee Type has associated data."
+          description: "Try adjusting your filters or ensure the selected filters have associated data."
         });
         return;
       }
@@ -293,8 +295,6 @@ const DataTable = ({
             description: `Your ${title} report has been downloaded.` 
         });
       } else {
-        // Errors within generation functions should ideally show their own toasts or return specific error messages.
-        // This is a fallback.
         toast.error(`Failed to Generate ${reportFormat.toUpperCase()} Report`, { 
             id: loadingToastId, 
             description: "An issue occurred during file creation. Check console for details." 
@@ -339,6 +339,21 @@ const DataTable = ({
             else if (col.key === 'amountRemitted') cellValue = row.amountRemitted; 
             else if (col.key === 'feeType') cellValue = row.feeType;
             // Ensure other direct fields from Remittances object are accessed if selected
+            else if (row.hasOwnProperty(col.key)) {
+              cellValue = row[col.key];
+            }
+          } else if (reportTitle === 'expense') { // Data is ExpenseDTO
+            if (col.key === 'expenseCategory') cellValue = row.expenseCategory ? row.expenseCategory.replace(/_/g, ' ') : '';
+            else if (col.key === 'amount') cellValue = row.amount;
+            else if (col.key === 'expenseStatus') cellValue = row.expenseStatus;
+            else if (col.key === 'approvalStatus') cellValue = row.approvalStatus;
+            else if (col.key === 'departmentName') cellValue = row.departmentName;
+            else if (col.key === 'expenseDate') cellValue = row.expenseDate;
+            else if (col.key === 'paymentMethod') cellValue = row.paymentMethod ? row.paymentMethod.replace(/_/g, ' ') : '';
+            else if (col.key === 'isRecurring') cellValue = row.isRecurring ? 'Yes' : 'No';
+            else if (col.key === 'isTaxInclusive') cellValue = row.isTaxInclusive ? 'Yes' : 'No';
+            else if (col.key === 'totalAmount') cellValue = row.totalAmount || row.amount;
+            else if (col.key === 'netAmount') cellValue = row.netAmount || row.amount;
             else if (row.hasOwnProperty(col.key)) {
               cellValue = row[col.key];
             }
@@ -413,6 +428,21 @@ const DataTable = ({
             else if (col.key === 'amountRemitted') cellValue = row.amountRemitted ? parseFloat(row.amountRemitted).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
             else if (col.key === 'feeType') cellValue = row.feeType;
             // Ensure other direct fields from Remittances object are accessed if selected
+            else if (row.hasOwnProperty(col.key)) {
+              cellValue = row[col.key];
+            }
+          } else if (reportTitle === 'expense') { // Data is ExpenseDTO
+            if (col.key === 'expenseCategory') cellValue = row.expenseCategory ? row.expenseCategory.replace(/_/g, ' ') : '';
+            else if (col.key === 'amount') cellValue = row.amount ? parseFloat(row.amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
+            else if (col.key === 'expenseStatus') cellValue = row.expenseStatus;
+            else if (col.key === 'approvalStatus') cellValue = row.approvalStatus;
+            else if (col.key === 'departmentName') cellValue = row.departmentName;
+            else if (col.key === 'expenseDate') cellValue = row.expenseDate;
+            else if (col.key === 'paymentMethod') cellValue = row.paymentMethod ? row.paymentMethod.replace(/_/g, ' ') : '';
+            else if (col.key === 'isRecurring') cellValue = row.isRecurring ? 'Yes' : 'No';
+            else if (col.key === 'isTaxInclusive') cellValue = row.isTaxInclusive ? 'Yes' : 'No';
+            else if (col.key === 'totalAmount') cellValue = row.totalAmount ? parseFloat(row.totalAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
+            else if (col.key === 'netAmount') cellValue = row.netAmount ? parseFloat(row.netAmount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
             else if (row.hasOwnProperty(col.key)) {
               cellValue = row[col.key];
             }
@@ -513,6 +543,21 @@ const DataTable = ({
             else if (row.hasOwnProperty(col.key)) {
               cellValue = row[col.key];
             }
+          } else if (reportTitle === 'expense') { // Data is ExpenseDTO
+            if (col.key === 'expenseCategory') cellValue = row.expenseCategory ? row.expenseCategory.replace(/_/g, ' ') : '';
+            else if (col.key === 'amount') cellValue = row.amount; // Store as number
+            else if (col.key === 'expenseStatus') cellValue = row.expenseStatus;
+            else if (col.key === 'approvalStatus') cellValue = row.approvalStatus;
+            else if (col.key === 'departmentName') cellValue = row.departmentName;
+            else if (col.key === 'expenseDate') cellValue = row.expenseDate;
+            else if (col.key === 'paymentMethod') cellValue = row.paymentMethod ? row.paymentMethod.replace(/_/g, ' ') : '';
+            else if (col.key === 'isRecurring') cellValue = row.isRecurring ? 'Yes' : 'No';
+            else if (col.key === 'isTaxInclusive') cellValue = row.isTaxInclusive ? 'Yes' : 'No';
+            else if (col.key === 'totalAmount') cellValue = row.totalAmount || row.amount; // Store as number
+            else if (col.key === 'netAmount') cellValue = row.netAmount || row.amount; // Store as number
+            else if (row.hasOwnProperty(col.key)) {
+              cellValue = row[col.key];
+            }
           } else {
             if (col.render) {
                 const rendered = col.render(row[col.key], row);
@@ -521,7 +566,7 @@ const DataTable = ({
             }
           }
           // For Excel, try to keep numbers as numbers if they are amounts for easier sum
-          if ((col.key === 'amount' || col.key === 'amountRemitted') && typeof cellValue === 'string') {
+          if ((col.key === 'amount' || col.key === 'amountRemitted' || col.key === 'totalAmount' || col.key === 'netAmount' || col.key === 'taxAmount') && typeof cellValue === 'string') {
             const num = parseFloat(cellValue.replace(/[^\d.-]/g, ''));
             if (!isNaN(num)) cellValue = num;
           }
@@ -567,19 +612,36 @@ const DataTable = ({
     
     } else if (reportTitle === 'remittance') { // Remittances object based
       const totalRemitted = data.reduce((sum, row) => sum + (parseFloat(row.amountRemitted) || 0), 0);
-      // Expected amount is not directly available in Remittances object, so we remove it from summary for now
-      // const totalExpected = data.reduce((sum, row) => sum + (parseFloat(row.expectedAmount) || 0), 0);
       const completedCount = data.filter(row => String(row.status).toUpperCase() === 'COMPLETED').length;
       const partialCount = data.filter(row => String(row.status).toUpperCase() === 'PARTIAL').length;
-      const notRemittedCount = data.filter(row => String(row.status).toUpperCase() === 'NOT_REMITTED').length; // This status might not appear if only remitted records are fetched
+      const notRemittedCount = data.filter(row => String(row.status).toUpperCase() === 'NOT_REMITTED').length;
 
       stats['Total Amount Remitted'] = `₱${totalRemitted.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      // stats['Total Expected Amount (from paid fees)'] = `₱${totalExpected.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       stats['Completed Remittances'] = completedCount;
       stats['Partial Remittances'] = partialCount;
-      if (notRemittedCount > 0) stats['Not Remitted (by Treasurers in this list)'] = notRemittedCount; // Clarify if this means treasurers who haven't remitted *anything* or *this specific fee*. The current data is only remitted records.
-      // stats['Overall Remittance Rate (Remitted / Expected)'] = totalExpected > 0 ? `${((totalRemitted / totalExpected) * 100).toFixed(1)}%` : 'N/A';
+      if (notRemittedCount > 0) stats['Not Remitted (by Treasurers in this list)'] = notRemittedCount;
     
+    } else if (reportTitle === 'expense') { // ExpenseDTO based
+      const totalAmount = data.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+      const paidCount = data.filter(row => String(row.expenseStatus).toUpperCase() === 'PAID').length;
+      const pendingCount = data.filter(row => String(row.expenseStatus).toUpperCase() === 'PENDING').length;
+      const approvedCount = data.filter(row => String(row.approvalStatus).toUpperCase() === 'APPROVED').length;
+      const rejectedCount = data.filter(row => String(row.approvalStatus).toUpperCase() === 'REJECTED').length;
+      const categoryCounts = data.reduce((acc, row) => {
+        const category = row.expenseCategory || 'Unspecified';
+        acc[category] = (acc[category] || 0) + 1;
+        return acc;
+      }, {});
+
+      stats['Total Amount'] = `₱${totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      stats['Paid Expenses'] = paidCount;
+      stats['Pending Expenses'] = pendingCount;
+      stats['Approved Expenses'] = approvedCount;
+      stats['Rejected Expenses'] = rejectedCount;
+      stats['Expenses by Category'] = Object.entries(categoryCounts)
+        .map(([category, count]) => `${category.replace(/_/g, ' ')}: ${count}`)
+        .join(', ');
+        
     } else if (reportTitle === 'student') { // Existing student logic
       const activeCount = data.filter(row => String(row.status).toUpperCase() === 'ACTIVE').length;
       const inactiveCount = data.filter(row => String(row.status).toUpperCase() === 'INACTIVE').length;
@@ -656,7 +718,7 @@ const DataTable = ({
             
             <div className="flex items-center gap-2">
               {/* Generate Report Button */}
-              {['student', 'remittance', 'payment'].includes(title) && !disableReportGeneration && (
+              {['student', 'remittance', 'payment', 'expense'].includes(title) && !disableReportGeneration && (
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -1040,8 +1102,141 @@ const DataTable = ({
             <DropdownMenuSeparator />
             <Label className="mt-2 mb-1 text-sm font-medium text-gray-700">Report Filters</Label>
             
-            {/* Common Filters for all report types, with Fee Type emphasized for payment/remittance */} 
+            {/* Common Filters for all report types */} 
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {/* Expense-specific filters */}
+              {title === 'expense' && (
+                <>
+                  <div className="col-span-2">
+                    <Label htmlFor="reportExpenseCategory" className="text-xs">
+                      Expense Category
+                    </Label>
+                    <Select 
+                      name="expenseCategory"
+                      value={reportFilters.expenseCategory || 'all'}
+                      onValueChange={(value) => handleReportFilterChange('expenseCategory', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {filterOptions.expenseCategory?.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="reportExpenseStatus" className="text-xs">Expense Status</Label>
+                    <Select 
+                      name="expenseStatus"
+                      value={reportFilters.expenseStatus || 'all'}
+                      onValueChange={(value) => handleReportFilterChange('expenseStatus', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {filterOptions.expenseStatus?.map(status => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="reportApprovalStatus" className="text-xs">Approval Status</Label>
+                    <Select 
+                      name="approvalStatus"
+                      value={reportFilters.approvalStatus || 'all'}
+                      onValueChange={(value) => handleReportFilterChange('approvalStatus', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Approval" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Approvals</SelectItem>
+                        {filterOptions.approvalStatus?.map(status => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="reportDepartment" className="text-xs">Department</Label>
+                    <Select 
+                      name="departmentId"
+                      value={reportFilters.departmentId || 'all'}
+                      onValueChange={(value) => handleReportFilterChange('departmentId', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Departments</SelectItem>
+                        {filterOptions.departmentId?.map(dept => (
+                          <SelectItem key={dept.value} value={dept.value}>
+                            {dept.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="reportAcademicYear" className="text-xs">Academic Year</Label>
+                    <Select 
+                      name="academicYear"
+                      value={reportFilters.academicYear || 'all'}
+                      onValueChange={(value) => handleReportFilterChange('academicYear', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Years</SelectItem>
+                        {filterOptions.academicYear?.map(year => (
+                          <SelectItem key={year.value} value={year.value}>
+                            {year.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="reportSemester" className="text-xs">Semester</Label>
+                    <Select 
+                      name="semester"
+                      value={reportFilters.semester || 'all'}
+                      onValueChange={(value) => handleReportFilterChange('semester', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Semester" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Semesters</SelectItem>
+                        {filterOptions.semester?.map(sem => (
+                          <SelectItem key={sem.value} value={sem.value}>
+                            {sem.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+
               {/* Fee Type Filter - mandatory for payment/remittance */} 
               {(title === 'payment' || title === 'remittance') && (
                 <div className="col-span-2"> {/* Make it full width for emphasis */}
@@ -1069,87 +1264,88 @@ const DataTable = ({
                 </div>
               )}
 
-              {/* Program Filter */} 
-              <div>
-                <Label htmlFor="reportProgram" className="text-xs">Program</Label>
-                <Select 
-                  name="program"
-                  value={reportFilters.program}
-                  onValueChange={(value) => handleReportFilterChange('program', value)}
-                >
-                  <SelectTrigger className="w-full mt-1 text-xs h-9">
-                    <SelectValue placeholder="Select Program" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Programs</SelectItem>
-                    {filterOptions.program?.map(prog => (
-                      <SelectItem key={prog.id || prog.name} value={prog.id || prog.name}>
-                        {prog.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Program, Year, Section filters for payment/remittance/student reports */}
+              {(title === 'payment' || title === 'remittance' || title === 'student') && (
+                <>
+                  <div>
+                    <Label htmlFor="reportProgram" className="text-xs">Program</Label>
+                    <Select 
+                      name="program"
+                      value={reportFilters.program}
+                      onValueChange={(value) => handleReportFilterChange('program', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Program" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Programs</SelectItem>
+                        {filterOptions.program?.map(prog => (
+                          <SelectItem key={prog.id || prog.name} value={prog.id || prog.name}>
+                            {prog.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Year Level Filter */} 
-              <div>
-                <Label htmlFor="reportYearLevel" className="text-xs">Year Level</Label>
-                <Select 
-                  name="yearLevel"
-                  value={reportFilters.yearLevel}
-                  onValueChange={(value) => handleReportFilterChange('yearLevel', value)}
-                >
-                  <SelectTrigger className="w-full mt-1 text-xs h-9">
-                    <SelectValue placeholder="Select Year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Year Levels</SelectItem>
-                    {filterOptions.yearLevel?.map(yl => (
-                      <SelectItem key={yl} value={yl}>{yl}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div>
+                    <Label htmlFor="reportYearLevel" className="text-xs">Year Level</Label>
+                    <Select 
+                      name="yearLevel"
+                      value={reportFilters.yearLevel}
+                      onValueChange={(value) => handleReportFilterChange('yearLevel', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Year Levels</SelectItem>
+                        {filterOptions.yearLevel?.map(yl => (
+                          <SelectItem key={yl} value={yl}>{yl}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Section Filter */} 
-              <div>
-                <Label htmlFor="reportSection" className="text-xs">Section</Label>
-                <Select 
-                  name="section"
-                  value={reportFilters.section}
-                  onValueChange={(value) => handleReportFilterChange('section', value)}
-                >
-                  <SelectTrigger className="w-full mt-1 text-xs h-9">
-                    <SelectValue placeholder="Select Section" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sections</SelectItem>
-                    {filterOptions.section?.map(sec => (
-                      <SelectItem key={sec} value={sec}>{sec}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div>
+                    <Label htmlFor="reportSection" className="text-xs">Section</Label>
+                    <Select 
+                      name="section"
+                      value={reportFilters.section}
+                      onValueChange={(value) => handleReportFilterChange('section', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Section" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sections</SelectItem>
+                        {filterOptions.section?.map(sec => (
+                          <SelectItem key={sec} value={sec}>{sec}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Status Filter (Student Status, Payment Status, or Remittance Status) */} 
-              <div>
-                <Label htmlFor="reportStatus" className="text-xs">Status</Label>
-                <Select 
-                  name="status"
-                  value={reportFilters.status}
-                  onValueChange={(value) => handleReportFilterChange('status', value)}
-                >
-                  <SelectTrigger className="w-full mt-1 text-xs h-9">
-                    <SelectValue placeholder="Select Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    {filterOptions.status?.map(stat => (
-                      <SelectItem key={stat} value={stat}>{stat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div>
+                    <Label htmlFor="reportStatus" className="text-xs">Status</Label>
+                    <Select 
+                      name="status"
+                      value={reportFilters.status}
+                      onValueChange={(value) => handleReportFilterChange('status', value)}
+                    >
+                      <SelectTrigger className="w-full mt-1 text-xs h-9">
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {filterOptions.status?.map(stat => (
+                          <SelectItem key={stat} value={stat}>{stat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
 
               {/* Remitted By Filter (Only for Remittance Report) */} 
               {title === 'remittance' && (

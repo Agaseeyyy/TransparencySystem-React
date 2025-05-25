@@ -587,7 +587,16 @@ export const emailService = {
 export const expenseService = {
   // Get all expenses with optional filters and pagination
   getExpenses: async (params = {}) => {
-    const response = await api.get('/api/expenses', { params });
+    // Clean up params to remove empty or 'all' values
+    const cleanParams = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '' && value !== 'all') {
+        cleanParams[key] = value;
+      }
+    });
+    
+    console.log('Sending expense API request with params:', cleanParams); // Debug log
+    const response = await api.get('/api/expenses', { params: cleanParams });
     return response.data;
   },
 
@@ -752,6 +761,48 @@ export const expenseService = {
     const response = await api.get('/api/expenses/transparency/report', { params });
     return response.data;
   },
+
+  // Export Methods
+  
+  // Export expenses with filters
+  exportExpenses: async (params = {}) => {
+    const response = await api.get('/api/expenses/export', { params });
+    return response.data;
+  },
+
+  // Export expenses by department
+  exportExpensesByDepartment: async (departmentId) => {
+    const response = await api.get(`/api/expenses/export/department/${departmentId}`);
+    return response.data;
+  },
+
+  // Export expenses by academic year
+  exportExpensesByAcademicYear: async (academicYear) => {
+    const response = await api.get(`/api/expenses/export/academic-year/${academicYear}`);
+    return response.data;
+  },
+
+  // Export transparency report
+  exportTransparencyReport: async (params = {}) => {
+    const response = await api.get('/api/expenses/export/transparency-report', { params });
+    return response.data;
+  },
+
+  // Generate expense report (matching the payment pattern)
+  generateExpenseReport: async (params = {}) => {
+    // Remove 'reportFormat' and 'fields' from params if they exist, as they are for frontend use
+    const { reportFormat, fields, ...apiParams } = params;
+    
+    // Only include valid filter parameters for the API
+    Object.keys(apiParams).forEach(key => {
+      if (apiParams[key] === 'all' || apiParams[key] === '') {
+        delete apiParams[key];
+      }
+    });
+    
+    const response = await api.get('/api/expenses/export', { params: apiParams });
+    return response.data;
+  },
 };
 
 // Dashboard related API calls
@@ -812,5 +863,49 @@ export const fileUtils = {
       console.error('Error deleting file:', error);
       throw error;
     }
-  }
+  },
+  
+  // Export utilities
+  downloadJsonAsFile: (data, filename) => {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
+  
+  // Export to CSV
+  exportToCsv: (data, filename) => {
+    if (!data || data.length === 0) return;
+    
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => 
+        headers.map(header => {
+          let cell = row[header];
+          if (cell === null || cell === undefined) cell = '';
+          if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+            cell = `"${cell.replace(/"/g, '""')}"`;
+          }
+          return cell;
+        }).join(',')
+      )
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
 };

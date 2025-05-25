@@ -3,6 +3,7 @@ package com.agaseeyyy.transparencysystem.expenses;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -262,8 +263,8 @@ public class ExpenseService {
     
     // Get all expenses with pagination and filtering
     public Page<Expenses> getAllExpenses(
-            ExpenseCategory category,
-            ExpenseStatus status,
+            ExpenseCategory expenseCategory,
+            ExpenseStatus expenseStatus,
             ApprovalStatus approvalStatus,
             String departmentId,
             Integer createdBy,
@@ -287,7 +288,7 @@ public class ExpenseService {
         Pageable pageable = PageRequest.of(page, size, sort);
         
         Specification<Expenses> spec = ExpenseSpecification.buildFilterSpecification(
-            category, status, approvalStatus, departmentId, createdBy, approvedBy,
+            expenseCategory, expenseStatus, approvalStatus, departmentId, createdBy, approvedBy,
             academicYear, semester, startDate, endDate, minAmount, maxAmount,
             vendorSupplier, budgetAllocation, isRecurring, searchTerm
         );
@@ -328,90 +329,148 @@ public class ExpenseService {
     
     // Dashboard Analytics Methods
     
-    // Get total expenses by category
+    // Get total expenses by category - fix method call
     public Map<ExpenseCategory, Double> getTotalExpensesByCategory() {
-        List<Object[]> results = expenseRepository.getExpensesSummaryByCategory();
-        return results.stream()
-            .collect(Collectors.toMap(
-                result -> (ExpenseCategory) result[0],
-                result -> result[2] != null ? (Double) result[2] : 0.0
-            ));
+        Map<ExpenseCategory, Double> categoryTotals = new HashMap<>();
+        
+        // Get all categories and calculate totals for each
+        for (ExpenseCategory category : ExpenseCategory.values()) {
+            Double total = expenseRepository.getTotalExpensesByCategory(category);
+            if (total != null && total > 0) {
+                categoryTotals.put(category, total);
+            }
+        }
+        
+        return categoryTotals;
     }
     
-    // Get monthly expenses summary
+    // Get monthly expenses summary - updated to handle Object[] conversion
     public List<Map<String, Object>> getMonthlyExpensesSummary() {
         List<Object[]> results = expenseRepository.getMonthlyExpensesSummary();
         return results.stream()
-            .map(result -> Map.of(
-                "year", result[0],
-                "month", result[1],
-                "totalAmount", result[2] != null ? result[2] : 0.0
-            ))
+            .map(result -> {
+                Map<String, Object> monthData = new HashMap<>();
+                monthData.put("month", result[0]);
+                monthData.put("year", result[1]);
+                monthData.put("totalAmount", ((Number) result[2]).doubleValue());
+                monthData.put("expenseCount", ((Number) result[3]).longValue());
+                return monthData;
+            })
             .collect(Collectors.toList());
     }
     
-    // Get total expenses for current academic year
+    // Export Methods
+    
+    // Get all expenses for export with filters
+    public List<Expenses> getExpensesForExport(
+            ExpenseCategory expenseCategory,
+            ExpenseStatus expenseStatus,
+            ApprovalStatus approvalStatus,
+            String departmentId,
+            Integer createdBy,
+            Integer approvedBy,
+            String academicYear,
+            String semester,
+            LocalDate startDate,
+            LocalDate endDate,
+            Double minAmount,
+            Double maxAmount,
+            String vendorSupplier,
+            String budgetAllocation,
+            Boolean isRecurring,
+            String searchTerm
+    ) {
+        Specification<Expenses> spec = ExpenseSpecification.buildFilterSpecification(
+            expenseCategory, expenseStatus, approvalStatus, departmentId, createdBy, approvedBy,
+            academicYear, semester, startDate, endDate, minAmount, maxAmount,
+            vendorSupplier, budgetAllocation, isRecurring, searchTerm
+        );
+        
+        // Get all matching expenses without pagination for export
+        return expenseRepository.findAll(spec);
+    }
+    
+    // Get total for academic year
     public Double getTotalExpensesForAcademicYear(String academicYear) {
-        Double total = expenseRepository.getTotalExpensesByAcademicYear(academicYear);
-        return total != null ? total : 0.0;
+        return expenseRepository.getTotalExpensesByAcademicYear(academicYear);
     }
     
-    // Get total expenses by department
+    // Get total by department
     public Double getTotalExpensesByDepartment(String departmentId) {
-        Double total = expenseRepository.getTotalExpensesByDepartment(departmentId);
-        return total != null ? total : 0.0;
+        return expenseRepository.getTotalExpensesByDepartment(departmentId);
     }
     
-    // Get total expenses by date range
+    // Get total by date range
     public Double getTotalExpensesByDateRange(LocalDate startDate, LocalDate endDate) {
-        Double total = expenseRepository.getTotalExpensesByDateRange(startDate, endDate);
-        return total != null ? total : 0.0;
+        return expenseRepository.getTotalExpensesByDateRange(startDate, endDate);
     }
     
-    // Get expenses requiring review
-    public List<Expenses> getExpensesRequiringReview(Double threshold) {
-        return expenseRepository.findExpensesRequiringReview(threshold != null ? threshold : 10000.0);
-    }
-    
-    // Get recurring expenses
-    public List<Expenses> getRecurringExpenses() {
-        return expenseRepository.findRecurringExpenses();
-    }
-    
-    // Get top expense categories for transparency
+    // Get top expense categories - updated to handle Object[] conversion
     public List<Map<String, Object>> getTopExpenseCategories() {
         List<Object[]> results = expenseRepository.getTopExpenseCategories();
         return results.stream()
-            .map(result -> Map.of(
-                "category", result[0],
-                "totalAmount", result[1] != null ? result[1] : 0.0
-            ))
+            .map(result -> {
+                Map<String, Object> categoryData = new HashMap<>();
+                categoryData.put("category", result[0]);
+                categoryData.put("totalAmount", ((Number) result[1]).doubleValue());
+                categoryData.put("expenseCount", ((Number) result[2]).longValue());
+                return categoryData;
+            })
             .collect(Collectors.toList());
     }
     
-    // Get expenses by created user
+    // Get expenses by created user - fix method name
     public List<Expenses> getExpensesByCreatedUser(Integer accountId) {
         return expenseRepository.findByCreatedByAccountAccountId(accountId);
     }
     
-    // Get expenses by department
+    // Get expenses by department - fix method name
     public List<Expenses> getExpensesByDepartment(String departmentId) {
         return expenseRepository.findByDepartmentDepartmentId(departmentId);
     }
     
-    // Transparency report methods
+    // Get recurring expenses - fix method name
+    public List<Expenses> getRecurringExpenses() {
+        return expenseRepository.findByIsRecurringTrue();
+    }
+    
+    // Get expenses requiring review - provide a default implementation
+    public List<Expenses> getExpensesRequiringReview(Double threshold) {
+        // If the repository method doesn't exist, use a specification-based approach
+        Specification<Expenses> spec = (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.greaterThanOrEqualTo(root.get("amount"), threshold);
+        };
+        return expenseRepository.findAll(spec);
+    }
+    
+    // Generate transparency report
     public Map<String, Object> generateTransparencyReport(String academicYear, String semester) {
-        Map<String, Object> report = Map.of(
-            "academicYear", academicYear,
-            "semester", semester,
-            "totalExpenses", getTotalExpensesForAcademicYear(academicYear),
-            "expensesByCategory", getTotalExpensesByCategory(),
-            "monthlyBreakdown", getMonthlyExpensesSummary(),
-            "topCategories", getTopExpenseCategories(),
-            "pendingApprovals", getPendingApprovalExpenses().size(),
-            "totalApprovedExpenses", expenseRepository.findByApprovalStatus(ApprovalStatus.APPROVED).size(),
-            "totalPaidExpenses", expenseRepository.findByExpenseStatus(ExpenseStatus.PAID).size()
-        );
+        // Implementation for transparency report
+        Map<String, Object> report = new HashMap<>();
+        
+        // Get expenses for the specified period
+        List<Expenses> expenses = expenseRepository.findByAcademicYearAndSemester(academicYear, semester);
+        
+        // Calculate totals
+        Double totalAmount = expenses.stream()
+            .filter(e -> e.getExpenseStatus() == ExpenseStatus.PAID)
+            .mapToDouble(e -> e.getAmount() != null ? e.getAmount().doubleValue() : 0.0)
+            .sum();
+        
+        // Group by category
+        Map<ExpenseCategory, Double> categoryTotals = expenses.stream()
+            .filter(e -> e.getExpenseStatus() == ExpenseStatus.PAID)
+            .collect(Collectors.groupingBy(
+                Expenses::getExpenseCategory,
+                Collectors.summingDouble(e -> e.getAmount() != null ? e.getAmount().doubleValue() : 0.0)
+            ));
+        
+        report.put("academicYear", academicYear);
+        report.put("semester", semester);
+        report.put("totalExpenses", expenses.size());
+        report.put("totalAmount", totalAmount);
+        report.put("categoryBreakdown", categoryTotals);
+        report.put("expenses", expenses);
         
         return report;
     }

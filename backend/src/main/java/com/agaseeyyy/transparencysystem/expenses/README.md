@@ -137,6 +137,12 @@ The main entity with comprehensive expense tracking capabilities:
 - `GET /api/expenses/statuses` - Get all expense statuses
 - `GET /api/expenses/generate-reference` - Generate unique reference
 
+### Export Endpoints
+- `GET /api/expenses/export` - Export filtered expenses as JSON
+- `GET /api/expenses/export/department/{departmentId}` - Export by department
+- `GET /api/expenses/export/academic-year/{academicYear}` - Export by academic year
+- `GET /api/expenses/export/transparency-report` - Generate transparency report
+
 ## Service Layer
 
 ### ExpenseService
@@ -218,9 +224,16 @@ Dynamic query building using JPA Criteria API for:
 
 ### ExpenseDTO
 Simplified expense representation for frontend:
-- All expense fields
+- All expense fields with proper JSON formatting
 - Related entity information (names instead of IDs)
 - Calculated fields (total amount, net amount)
+- JSON date formatting for proper serialization
+
+### ExpenseInputDTO
+Input DTO for creating/updating expenses:
+- Validation annotations for required fields
+- String representations of enum values for easier frontend handling
+- Proper date formatting
 
 ### ExpenseSummaryDTO
 Dashboard summary with:
@@ -241,6 +254,12 @@ Dashboard summary with:
 1. **Email Service**: Approval notifications
 2. **File Storage**: Receipt/invoice attachments
 3. **Reporting Service**: PDF generation for reports
+
+### Export Functionality
+1. **Filtered Export**: Export expenses with all available filters
+2. **Department Export**: Export expenses by specific department
+3. **Academic Year Export**: Export expenses for specific academic year
+4. **Transparency Reports**: Generate comprehensive transparency reports for public disclosure
 
 ## Usage Examples
 

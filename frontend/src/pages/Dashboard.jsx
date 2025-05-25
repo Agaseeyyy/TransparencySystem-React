@@ -49,13 +49,13 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 bg-gray-100 md:p-8">
-      <header className="mb-8">
-        <div className="flex items-center gap-3 pb-4 mb-6 border-b border-gray-300">
-          <LayoutDashboard className="w-8 h-8 text-rose-600" />
+    <div className="min-h-screen p-2 bg-white md:p-4 rounded-xl">
+      <header className="mb-4">
+        <div className="flex items-center gap-2 pb-2 mb-3 border-b border-gray-300">
+          <LayoutDashboard className="w-6 h-6 text-rose-600" />
           <div>
-            <h1 className="text-xl font-semibold text-gray-800 md:text-2xl">Transparency System Dashboard</h1>
-            <p className="text-sm text-gray-500 md:text-base">{welcomeMessage}</p>
+            <h1 className="text-lg font-semibold text-gray-800 md:text-xl">Transparency System Dashboard</h1>
+            <p className="text-xs text-gray-500 md:text-sm">{welcomeMessage}</p>
           </div>
         </div>
       </header>

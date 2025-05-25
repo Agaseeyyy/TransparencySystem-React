@@ -32,14 +32,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 const StatCard = ({ title, value, icon, description, color = 'text-gray-600', gradient = 'from-gray-500 to-gray-600' }) => (
   <Card className="relative overflow-hidden transition-all duration-300 transform border-0 shadow-lg group hover:shadow-xl hover:-translate-y-1">
     <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10 group-hover:opacity-20 transition-opacity duration-300`}></div>
-    <CardHeader className="relative z-10 flex flex-row items-center justify-between pb-2 space-y-0">
-      <CardTitle className="text-sm font-medium text-gray-700">{title}</CardTitle>
-      <div className={`p-2 rounded-full bg-gradient-to-br ${gradient} text-white shadow-lg`}>
-        {React.createElement(icon, { className: "w-4 h-4" })}
+    <CardHeader className="relative z-10 flex flex-row items-center justify-between pb-1 space-y-0">
+      <CardTitle className="text-xs font-medium text-gray-700">{title}</CardTitle>
+      <div className={`p-1 rounded-full bg-gradient-to-br ${gradient} text-white shadow-lg`}>
+        {React.createElement(icon, { className: "w-3 h-3" })}
       </div>
     </CardHeader>
-    <CardContent className="relative z-10">
-      <div className={`text-3xl font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
+    <CardContent className="relative z-10 pb-2">
+      <div className={`text-xl font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
         {value}
       </div>
       {description && <p className="mt-1 text-xs text-gray-500">{description}</p>}
@@ -69,56 +69,56 @@ const FeeTransparencyCard = ({ fee }) => {
 
   return (
     <Card className="overflow-hidden transition-all duration-300 border-0 shadow-lg group hover:shadow-xl bg-gradient-to-br from-white to-gray-50">
-      <CardHeader className="relative pb-4 overflow-hidden text-white bg-gradient-to-r from-rose-500 to-pink-500">
-        <div className="absolute top-0 right-0 w-32 h-32 translate-x-16 -translate-y-16 rounded-full bg-white/10"></div>
+      <CardHeader className="relative pb-2 overflow-hidden text-white bg-gradient-to-r from-rose-500 to-pink-500">
+        <div className="absolute top-0 right-0 w-20 h-20 translate-x-8 -translate-y-8 rounded-full bg-white/10"></div>
         <div className="relative z-10">
-          <CardTitle className="flex items-center gap-2 text-lg font-bold text-white">
-            <Receipt className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-sm font-bold text-white">
+            <Receipt className="w-4 h-4" />
             {fee.feeName}
           </CardTitle>
           {fee.feeDescription && (
-            <CardDescription className="mt-1 text-sm text-rose-100">
+            <CardDescription className="mt-1 text-xs text-rose-100">
               {fee.feeDescription}
             </CardDescription>
           )}
         </div>
       </CardHeader>
       
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="p-3 space-y-3">
         {/* Financial Summary */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="p-3 text-center border border-green-200 rounded-lg bg-green-50">
-            <TrendingUp className="w-5 h-5 mx-auto mb-1 text-green-600" />
+        <div className="grid grid-cols-3 gap-2">
+          <div className="p-2 text-center border border-green-200 rounded-lg bg-green-50">
+            <TrendingUp className="w-3 h-3 mx-auto mb-1 text-green-600" />
             <p className="text-xs font-medium text-green-700">Collected</p>
-            <p className="text-lg font-bold text-green-600">{formatCurrency(collected)}</p>
+            <p className="text-sm font-bold text-green-600">{formatCurrency(collected)}</p>
           </div>
-          <div className="p-3 text-center border border-red-200 rounded-lg bg-red-50">
-            <TrendingDown className="w-5 h-5 mx-auto mb-1 text-red-600" />
+          <div className="p-2 text-center border border-red-200 rounded-lg bg-red-50">
+            <TrendingDown className="w-3 h-3 mx-auto mb-1 text-red-600" />
             <p className="text-xs font-medium text-red-700">Spent</p>
-            <p className="text-lg font-bold text-red-600">{formatCurrency(spent)}</p>
+            <p className="text-sm font-bold text-red-600">{formatCurrency(spent)}</p>
           </div>
-          <div className="p-3 text-center border border-blue-200 rounded-lg bg-blue-50">
-            <Wallet className="w-5 h-5 mx-auto mb-1 text-blue-600" />
+          <div className="p-2 text-center border border-blue-200 rounded-lg bg-blue-50">
+            <Wallet className="w-3 h-3 mx-auto mb-1 text-blue-600" />
             <p className="text-xs font-medium text-blue-700">Balance</p>
-            <p className="text-lg font-bold text-blue-600">{formatCurrency(balance)}</p>
+            <p className="text-sm font-bold text-blue-600">{formatCurrency(balance)}</p>
           </div>
         </div>
 
         {/* Budget Utilization */}
         {collected > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Budget Utilization</span>
+              <span className="text-xs font-medium text-gray-700">Budget Utilization</span>
               <span className={`text-xs px-2 py-1 rounded-full ${status.bg} ${status.color} font-medium`}>
                 {status.text}
               </span>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
                 <span className="text-gray-600">{budgetUtilization.toFixed(1)}%</span>
                 <span className="text-gray-600">{formatCurrency(collected)}</span>
               </div>
-              <div className="w-full h-3 overflow-hidden bg-gray-200 rounded-full">
+              <div className="w-full h-2 overflow-hidden bg-gray-200 rounded-full">
                 <div 
                   className={`h-full bg-gradient-to-r ${getUtilizationColor(budgetUtilization)} transition-all duration-500 rounded-full relative overflow-hidden`}
                   style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
@@ -132,25 +132,25 @@ const FeeTransparencyCard = ({ fee }) => {
 
         {/* Expense Breakdown */}
         {fee.expenseBreakdown && fee.expenseBreakdown.length > 0 && (
-          <div className="pt-4 border-t border-gray-200">
-            <div className="flex items-center gap-2 mb-3">
-              <BarChart3 className="w-4 h-4 text-gray-600" />
-              <h4 className="text-sm font-semibold text-gray-700">Recent Expenses</h4>
+          <div className="pt-2 border-t border-gray-200">
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart3 className="w-3 h-3 text-gray-600" />
+              <h4 className="text-xs font-semibold text-gray-700">Recent Expenses</h4>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {fee.expenseBreakdown.slice(0, 3).map((exp, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 transition-colors rounded-lg bg-gray-50 hover:bg-gray-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-rose-500"></div>
-                    <span className="text-sm text-gray-700 font-medium truncate max-w-[120px]">
+                <div key={idx} className="flex items-center justify-between p-1 transition-colors rounded-lg bg-gray-50 hover:bg-gray-100">
+                  <div className="flex items-center gap-1">
+                    <div className="w-1 h-1 rounded-full bg-rose-500"></div>
+                    <span className="text-xs text-gray-700 font-medium truncate max-w-[100px]">
                       {exp.expenseTitle || 'Unnamed Expense'}
                     </span>
                   </div>
-                  <span className="text-sm font-bold text-rose-600">{formatCurrency(exp.amount)}</span>
+                  <span className="text-xs font-bold text-rose-600">{formatCurrency(exp.amount)}</span>
                 </div>
               ))}
               {fee.expenseBreakdown.length > 3 && (
-                <p className="mt-2 text-xs text-center text-gray-500">
+                <p className="mt-1 text-xs text-center text-gray-500">
                   +{fee.expenseBreakdown.length - 3} more expenses
                 </p>
               )}
@@ -164,22 +164,22 @@ const FeeTransparencyCard = ({ fee }) => {
 
 const ExpenseCategorySummaryItem = ({ categorySummary }) => (
   <Card className="overflow-hidden text-center transition-all duration-300 transform border-0 shadow-lg group hover:shadow-xl hover:-translate-y-1 bg-gradient-to-br from-white to-gray-50">
-    <CardHeader className="relative pb-3 text-white bg-gradient-to-r from-orange-400 to-rose-500">
-      <div className="absolute top-0 right-0 w-20 h-20 translate-x-10 -translate-y-10 rounded-full bg-white/20"></div>
-      <div className="relative z-10 flex items-center justify-center gap-2">
-        <Target className="w-5 h-5" />
-        <CardTitle className="text-base font-bold">
+    <CardHeader className="relative pb-2 text-white bg-gradient-to-r from-orange-400 to-rose-500">
+      <div className="absolute top-0 right-0 w-12 h-12 translate-x-6 -translate-y-6 rounded-full bg-white/20"></div>
+      <div className="relative z-10 flex items-center justify-center gap-1">
+        <Target className="w-3 h-3" />
+        <CardTitle className="text-xs font-bold">
           {categorySummary.categoryName.replace(/_/g, ' ')}
         </CardTitle>
       </div>
     </CardHeader>
-    <CardContent className="p-4">
-      <div className="space-y-2">
-        <p className="text-2xl font-bold text-transparent bg-gradient-to-r from-rose-600 to-orange-600 bg-clip-text">
+    <CardContent className="p-2">
+      <div className="space-y-1">
+        <p className="text-lg font-bold text-transparent bg-gradient-to-r from-rose-600 to-orange-600 bg-clip-text">
           {formatCurrency(categorySummary.totalAmountSpent)}
         </p>
         <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
-          <Activity className="w-3 h-3" />
+          <Activity className="w-2 h-2" />
           <span>{categorySummary.numberOfExpenses} expense{categorySummary.numberOfExpenses !== 1 ? 's' : ''}</span>
         </div>
       </div>
@@ -283,60 +283,60 @@ const PublicDashboardDisplay = () => {
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-black/20"></div>
           <div className="absolute top-0 left-0 w-full h-full">
-            <div className="absolute w-32 h-32 rounded-full top-10 left-10 bg-white/10"></div>
-            <div className="absolute w-24 h-24 rounded-full top-32 right-20 bg-white/10"></div>
-            <div className="absolute w-40 h-40 rounded-full bottom-10 left-1/3 bg-white/10"></div>
+            <div className="absolute w-20 h-20 rounded-full top-10 left-10 bg-white/10"></div>
+            <div className="absolute w-16 h-16 rounded-full top-20 right-20 bg-white/10"></div>
+            <div className="absolute w-24 h-24 rounded-full bottom-10 left-1/3 bg-white/10"></div>
           </div>
         </div>
         
-        <div className="relative z-10 px-6 py-16 mx-auto max-w-7xl lg:px-8">
-          <div className="space-y-6 text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
-                <Shield className="w-8 h-8 text-white" />
+        <div className="relative z-10 px-4 py-8 mx-auto max-w-7xl lg:px-8">
+          <div className="space-y-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+                <Shield className="w-5 h-5 text-white" />
               </div>
-              <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
-                <Eye className="w-8 h-8 text-white" />
+              <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+                <Eye className="w-5 h-5 text-white" />
               </div>
-              <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
-                <Building2 className="w-8 h-8 text-white" />
+              <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+                <Building2 className="w-5 h-5 text-white" />
               </div>
             </div>
             
-            <h1 className="text-5xl font-bold tracking-tight text-white md:text-6xl">
+            <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
               Financial Transparency
-              <span className="block mt-2 text-3xl font-medium md:text-4xl text-rose-100">
+              <span className="block mt-1 text-xl font-medium md:text-2xl text-rose-100">
                 Portal
               </span>
             </h1>
             
-            <p className="max-w-2xl mx-auto text-xl text-rose-100">
+            <p className="max-w-2xl mx-auto text-sm text-rose-100">
               Complete oversight of institutional funds and their utilization. 
               Ensuring accountability and transparency in financial management.
             </p>
             
             <div className="flex items-center justify-center gap-2 text-rose-100">
-              <Users className="w-5 h-5" />
-              <span className="text-sm">Public Access • Real-time Data • Full Transparency</span>
+              <Users className="w-4 h-4" />
+              <span className="text-xs">Public Access • Real-time Data • Full Transparency</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="px-6 py-12 mx-auto space-y-12 max-w-7xl">
+      <div className="px-4 py-6 mx-auto space-y-6 max-w-7xl">
         {/* Overall Summary Stats */}
-        <section className="space-y-6">
-          <div className="space-y-2 text-center">
-            <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-gray-800">
-              <Calculator className="w-8 h-8 text-rose-500" />
+        <section className="space-y-4">
+          <div className="space-y-1 text-center">
+            <h2 className="flex items-center justify-center gap-2 text-xl font-bold text-gray-800">
+              <Calculator className="w-5 h-5 text-rose-500" />
               Financial Overview
             </h2>
-            <p className="max-w-2xl mx-auto text-gray-600">
+            <p className="max-w-2xl mx-auto text-sm text-gray-600">
               Current status of all collected fees, expenses, and remaining balances
             </p>
           </div>
           
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <StatCard 
               title="Total Collections" 
               value={formatCurrency(summary.totalCollectedOverall)} 
@@ -362,30 +362,30 @@ const PublicDashboardDisplay = () => {
         </section>
 
         {/* Fee Transparency Section */}
-        <section className="space-y-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <h2 className="flex items-center gap-3 text-3xl font-bold text-gray-800">
-                <PieChart className="w-8 h-8 text-rose-500" />
+        <section className="space-y-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-1">
+              <h2 className="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <PieChart className="w-5 h-5 text-rose-500" />
                 Fee Breakdown & Utilization
               </h2>
-              <p className="text-gray-600">
+              <p className="text-sm text-gray-600">
                 Detailed breakdown of each fee type and how funds are being utilized
               </p>
             </div>
             
-            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
               <div className="relative">
-                <Search className="absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
+                <Search className="absolute w-3 h-3 text-gray-400 transform -translate-y-1/2 left-2 top-1/2" />
                 <Input 
                   placeholder="Search fees..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 sm:w-64 border-rose-200 focus:border-rose-500 focus:ring-rose-500"
+                  className="w-full pl-8 text-sm sm:w-48 border-rose-200 focus:border-rose-500 focus:ring-rose-500"
                 />
               </div>
               <Select value={sortOrder} onValueChange={setSortOrder}>
-                <SelectTrigger className="w-full sm:w-48 border-rose-200 focus:border-rose-500 focus:ring-rose-500">
+                <SelectTrigger className="w-full text-sm sm:w-36 border-rose-200 focus:border-rose-500 focus:ring-rose-500">
                   <SelectValue placeholder="Sort by..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -399,20 +399,20 @@ const PublicDashboardDisplay = () => {
           </div>
           
           {filteredAndSortedFees.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
               {filteredAndSortedFees.map(fee => (
                 <FeeTransparencyCard key={fee.feeName} fee={fee} />
               ))}
             </div>
           ) : (
             <Card className="border-0 shadow-lg">
-              <CardContent className="p-12 space-y-4 text-center">
-                <div className="flex items-center justify-center w-16 h-16 mx-auto bg-gray-100 rounded-full">
-                  <Search className="w-8 h-8 text-gray-400" />
+              <CardContent className="p-6 space-y-3 text-center">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-gray-100 rounded-full">
+                  <Search className="w-6 h-6 text-gray-400" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-700">No Fees Found</h3>
-                  <p className="text-gray-500">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-gray-700">No Fees Found</h3>
+                  <p className="text-xs text-gray-500">
                     {searchTerm ? 
                       `No fees match "${searchTerm}". Try adjusting your search.` :
                       'No fee data available at this time.'
@@ -426,18 +426,18 @@ const PublicDashboardDisplay = () => {
 
         {/* Top Expense Categories */}
         {summary.topExpenseCategories && summary.topExpenseCategories.length > 0 && (
-          <section className="space-y-6">
-            <div className="space-y-2 text-center">
-              <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-gray-800">
-                <BarChart3 className="w-8 h-8 text-rose-500" />
+          <section className="space-y-4">
+            <div className="space-y-1 text-center">
+              <h2 className="flex items-center justify-center gap-2 text-xl font-bold text-gray-800">
+                <BarChart3 className="w-5 h-5 text-rose-500" />
                 Expense Categories
               </h2>
-              <p className="max-w-2xl mx-auto text-gray-600">
+              <p className="max-w-2xl mx-auto text-sm text-gray-600">
                 Top spending categories showing where institutional funds are being allocated
               </p>
             </div>
             
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {summary.topExpenseCategories.map(catSummary => (
                 <ExpenseCategorySummaryItem key={catSummary.categoryName} categorySummary={catSummary} />
               ))}
@@ -446,28 +446,28 @@ const PublicDashboardDisplay = () => {
         )}
 
         {/* Footer Info */}
-        <section className="pt-8">
+        <section className="pt-4">
           <Card className="border-0 shadow-lg bg-gradient-to-r from-gray-50 to-gray-100">
-            <CardContent className="p-8 space-y-4 text-center">
+            <CardContent className="p-4 space-y-2 text-center">
               <div className="flex items-center justify-center gap-2 text-gray-600">
-                <Award className="w-5 h-5" />
-                <span className="font-medium">Committed to Financial Transparency</span>
+                <Award className="w-4 h-4" />
+                <span className="text-sm font-medium">Committed to Financial Transparency</span>
               </div>
-              <p className="max-w-2xl mx-auto text-sm text-gray-500">
+              <p className="max-w-2xl mx-auto text-xs text-gray-500">
                 This dashboard provides real-time access to financial information in accordance with 
                 institutional transparency policies. All data is updated regularly to ensure accuracy.
               </p>
-              <div className="flex items-center justify-center gap-6 text-xs text-gray-400">
+              <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
                 <div className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
+                  <CheckCircle className="w-2 h-2" />
                   <span>Real-time Data</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
+                  <Shield className="w-2 h-2" />
                   <span>Secure Access</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Eye className="w-3 h-3" />
+                  <Eye className="w-2 h-2" />
                   <span>Full Transparency</span>
                 </div>
               </div>
@@ -479,4 +479,4 @@ const PublicDashboardDisplay = () => {
   );
 };
 
-export default PublicDashboardDisplay; 
+export default PublicDashboardDisplay;

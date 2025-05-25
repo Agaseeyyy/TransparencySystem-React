@@ -6,24 +6,24 @@ import { formatCurrency, formatDate } from '../utils/formatUtils';
 
 const StatCard = ({ title, value, icon, description, color = 'text-gray-600', bgColor = 'bg-gray-50', trend, borderColor = 'border-l-gray-300' }) => (
   <Card className={`group hover:shadow-lg transition-all duration-300 border-l-4 ${borderColor} shadow-md bg-gradient-to-br from-white to-rose-50/30`}>
-    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+    <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
       <div className="space-y-1">
-        <CardTitle className="text-sm font-medium text-gray-600 group-hover:text-gray-800 transition-colors">
+        <CardTitle className="text-xs font-medium text-gray-600 group-hover:text-gray-800 transition-colors">
           {title}
         </CardTitle>
         {trend && (
           <div className={`flex items-center space-x-1 text-xs ${trend > 0 ? 'text-green-600' : 'text-rose-600'}`}>
-            {trend > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-            <span>{Math.abs(trend)}% from last month</span>
+            {trend > 0 ? <ArrowUpRight className="w-2 h-2" /> : <ArrowDownRight className="w-2 h-2" />}
+            <span className="text-xs">{Math.abs(trend)}% from last month</span>
           </div>
         )}
       </div>
-      <div className={`p-2 rounded-xl ${bgColor} group-hover:scale-110 transition-transform duration-300`}>
-        {React.createElement(icon, { className: `w-5 h-5 ${color}` })}
+      <div className={`p-1 rounded-xl ${bgColor} group-hover:scale-110 transition-transform duration-300`}>
+        {React.createElement(icon, { className: `w-4 h-4 ${color}` })}
       </div>
     </CardHeader>
-    <CardContent>
-      <div className={`text-3xl font-bold ${color} group-hover:scale-105 transition-transform duration-300`}>
+    <CardContent className="pb-2">
+      <div className={`text-xl font-bold ${color} group-hover:scale-105 transition-transform duration-300`}>
         {value}
       </div>
       {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
@@ -32,16 +32,16 @@ const StatCard = ({ title, value, icon, description, color = 'text-gray-600', bg
 );
 
 const RecentTransactionItem = ({ transaction }) => (
-  <li className="flex items-center justify-between py-4 px-4 hover:bg-rose-50/50 rounded-lg transition-colors duration-200 group border-l-2 border-l-transparent hover:border-l-rose-300">
-    <div className="flex items-center space-x-3">
+  <li className="flex items-center justify-between py-2 px-3 hover:bg-rose-50/50 rounded-lg transition-colors duration-200 group border-l-2 border-l-transparent hover:border-l-rose-300">
+    <div className="flex items-center space-x-2">
       <div className={`w-2 h-2 rounded-full ${transaction.amount >= 0 ? 'bg-green-500' : 'bg-rose-500'}`}></div>
       <div>
-        <p className="font-medium text-gray-800 group-hover:text-gray-900">{transaction.description}</p>
-        <p className="text-sm text-gray-500">{transaction.type} • {transaction.userInvolved}</p>
+        <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900">{transaction.description}</p>
+        <p className="text-xs text-gray-500">{transaction.type} • {transaction.userInvolved}</p>
       </div>
     </div>
     <div className="text-right">
-      <p className={`font-semibold text-lg ${transaction.amount >= 0 ? 'text-green-600' : 'text-rose-600'}`}>
+      <p className={`font-semibold text-sm ${transaction.amount >= 0 ? 'text-green-600' : 'text-rose-600'}`}>
         {formatCurrency(transaction.amount)}
       </p>
       <p className="text-xs text-gray-400">{formatDate(transaction.date, true)}</p>
@@ -112,28 +112,28 @@ const AdminDashboardDisplay = () => {
   }
 
   return (
-    <div className="space-y-8 p-6 bg-gradient-to-br from-rose-50 via-white to-pink-50 min-h-screen">
+    <div className="space-y-4 p-4 bg-gradient-to-br from-rose-50 via-white to-pink-50 min-h-screen">
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-rose-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-rose-600 bg-clip-text text-transparent">
             Admin Dashboard
           </h2>
-          <p className="text-gray-600 mt-2">Comprehensive overview of financial operations and system metrics</p>
+          <p className="text-sm text-gray-600 mt-1">Comprehensive overview of financial operations and system metrics</p>
         </div>
-        <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-rose-100">
+        <div className="flex items-center space-x-2 bg-white px-3 py-1 rounded-xl shadow-sm border border-rose-100">
           <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium text-gray-600">Live Data</span>
+          <span className="text-xs font-medium text-gray-600">Live Data</span>
         </div>
       </div>
       
       {/* Overall Financials */}
       <section>
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">Financial Overview</h3>
-          <p className="text-gray-600">Key financial metrics and performance indicators</p>
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-gray-800 mb-1">Financial Overview</h3>
+          <p className="text-sm text-gray-600">Key financial metrics and performance indicators</p>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
           <StatCard 
             title="Total Collections" 
             value={formatCurrency(summary.totalCollections)} 
@@ -175,11 +175,11 @@ const AdminDashboardDisplay = () => {
 
       {/* Payment Summaries */}
       <section>
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">Payment Analytics</h3>
-          <p className="text-gray-600">Detailed breakdown of payment transactions and status</p>
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-gray-800 mb-1">Payment Analytics</h3>
+          <p className="text-sm text-gray-600">Detailed breakdown of payment transactions and status</p>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           <StatCard 
             title="Total Payments" 
             value={summary.totalPaymentsCount?.toLocaleString()} 
@@ -200,18 +200,18 @@ const AdminDashboardDisplay = () => {
           />
           {summary.paymentsByStatus && (
             <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-rose-300">
-              <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-t-lg">
-                <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
-                  <BarChart2 className="w-5 h-5 mr-2 text-rose-600" />
+              <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-t-lg pb-1">
+                <CardTitle className="text-sm font-semibold text-gray-800 flex items-center">
+                  <BarChart2 className="w-4 h-4 mr-2 text-rose-600" />
                   Payment Status Breakdown
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
+              <CardContent className="p-3">
+                <div className="space-y-2">
                   {Object.entries(summary.paymentsByStatus.counts || {}).map(([status, count]) => (
-                    <div key={status} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <span className="font-medium text-gray-700">{status}</span>
-                      <span className="font-bold text-gray-900">{count?.toLocaleString()}</span>
+                    <div key={status} className="flex justify-between items-center py-1 px-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <span className="text-xs font-medium text-gray-700">{status}</span>
+                      <span className="text-xs font-bold text-gray-900">{count?.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -223,11 +223,11 @@ const AdminDashboardDisplay = () => {
 
       {/* Expense Summaries */}
       <section>
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">Expense Management</h3>
-          <p className="text-gray-600">Overview of organizational expenses and approvals</p>
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-gray-800 mb-1">Expense Management</h3>
+          <p className="text-sm text-gray-600">Overview of organizational expenses and approvals</p>
         </div>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           <StatCard 
             title="Total Expenses" 
             value={summary.totalExpensesCount?.toLocaleString()} 
@@ -248,29 +248,29 @@ const AdminDashboardDisplay = () => {
           />
           {summary.expensesByStatus && (
             <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-rose-400">
-              <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-t-lg">
-                <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
-                  <PieChart className="w-5 h-5 mr-2 text-rose-600" />
+              <CardHeader className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-t-lg pb-1">
+                <CardTitle className="text-sm font-semibold text-gray-800 flex items-center">
+                  <PieChart className="w-4 h-4 mr-2 text-rose-600" />
                   Expense Status Overview
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-gray-700 text-sm">Count by Status</h4>
+              <CardContent className="p-3">
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <h4 className="font-medium text-gray-700 text-xs">Count by Status</h4>
                     {Object.entries(summary.expensesByStatus.counts || {}).map(([status, count]) => (
-                      <div key={status} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                        <span className="font-medium text-gray-700">{status}</span>
-                        <span className="font-bold text-gray-900">{count?.toLocaleString()}</span>
+                      <div key={status} className="flex justify-between items-center py-1 px-2 bg-gray-50 rounded-lg">
+                        <span className="text-xs font-medium text-gray-700">{status}</span>
+                        <span className="text-xs font-bold text-gray-900">{count?.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
-                  <div className="space-y-2 border-t pt-4">
-                    <h4 className="font-medium text-gray-700 text-sm">Amount by Status</h4>
+                  <div className="space-y-1 border-t pt-2">
+                    <h4 className="font-medium text-gray-700 text-xs">Amount by Status</h4>
                     {Object.entries(summary.expensesByStatus.amounts || {}).map(([status, amount]) => (
-                      <div key={status + '-amount'} className="flex justify-between items-center py-2 px-3 bg-red-50 rounded-lg">
-                        <span className="font-semibold text-red-700">{status}</span>
-                        <span className="font-bold text-red-800">{formatCurrency(amount)}</span>
+                      <div key={status + '-amount'} className="flex justify-between items-center py-1 px-2 bg-red-50 rounded-lg">
+                        <span className="text-xs font-semibold text-red-700">{status}</span>
+                        <span className="text-xs font-bold text-red-800">{formatCurrency(amount)}</span>
                       </div>
                     ))}
                   </div>
@@ -284,19 +284,19 @@ const AdminDashboardDisplay = () => {
       {/* Recent Activity */}
       {summary.recentTransactions && summary.recentTransactions.length > 0 && (
         <section>
-          <div className="mb-6">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">Recent Activity</h3>
-            <p className="text-gray-600">Latest financial transactions and activities</p>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Recent Activity</h3>
+            <p className="text-sm text-gray-600">Latest financial transactions and activities</p>
           </div>
           <Card className="border-l-4 border-l-rose-400 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="bg-gradient-to-r from-rose-50/30 to-transparent">
-              <CardTitle className="flex items-center text-gray-800">
-                <Clock className="w-5 h-5 mr-2 text-rose-600" />
+            <CardHeader className="bg-gradient-to-r from-rose-50/30 to-transparent pb-1">
+              <CardTitle className="flex items-center text-gray-800 text-sm">
+                <Clock className="w-4 h-4 mr-2 text-rose-600" />
                 Recent Transactions
               </CardTitle>
-              <CardDescription>Last 10 important activities.</CardDescription>
+              <CardDescription className="text-xs">Last 10 important activities.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-2">
               <ul className="divide-y divide-gray-100">
                 {summary.recentTransactions.map(transaction => (
                   <RecentTransactionItem key={transaction.id + transaction.type} transaction={transaction} />
@@ -309,39 +309,39 @@ const AdminDashboardDisplay = () => {
 
       {/* Fee Utilization Breakdown Section */}
       <section>
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">Fee Utilization Breakdown</h3>
-          <p className="text-gray-600">Detailed analysis of fee collection and expenditure by category</p>
+        <div className="mb-4">
+          <h3 className="text-lg font-bold text-gray-800 mb-1">Fee Utilization Breakdown</h3>
+          <p className="text-sm text-gray-600">Detailed analysis of fee collection and expenditure by category</p>
         </div>
         {feeUtilizationData.length > 0 ? (
           <Card className="overflow-hidden border-l-4 border-l-rose-400 hover:shadow-lg transition-all duration-300">
-            <CardHeader className="bg-gradient-to-r from-rose-50/30 to-transparent">
-              <CardTitle className="flex items-center text-gray-800">
-                <BarChart2 className="w-5 h-5 mr-2 text-rose-600" />
+            <CardHeader className="bg-gradient-to-r from-rose-50/30 to-transparent pb-1">
+              <CardTitle className="flex items-center text-gray-800 text-sm">
+                <BarChart2 className="w-4 h-4 mr-2 text-rose-600" />
                 Financial Breakdown by Fee Type
               </CardTitle>
-              <CardDescription>Comprehensive view of collections, remittances, and expenses</CardDescription>
+              <CardDescription className="text-xs">Comprehensive view of collections, remittances, and expenses</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gradient-to-r from-rose-50 to-pink-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-left text-rose-700 uppercase">Fee Type</th>
-                      <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-right text-rose-700 uppercase">Collected</th>
-                      <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-right text-rose-700 uppercase">Remitted</th>
-                      <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-right text-rose-700 uppercase">Expenses</th>
-                      <th scope="col" className="px-6 py-3 text-xs font-medium tracking-wider text-right text-rose-700 uppercase">Net Balance</th>
+                      <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-left text-rose-700 uppercase">Fee Type</th>
+                      <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-right text-rose-700 uppercase">Collected</th>
+                      <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-right text-rose-700 uppercase">Remitted</th>
+                      <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-right text-rose-700 uppercase">Expenses</th>
+                      <th scope="col" className="px-3 py-2 text-xs font-medium tracking-wider text-right text-rose-700 uppercase">Net Balance</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {feeUtilizationData.map((fee) => (
                       <tr key={fee.feeId} className="hover:bg-rose-50/30 transition-colors duration-200">
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{fee.feeType}</td>
-                        <td className="px-6 py-4 text-sm text-right text-gray-700 whitespace-nowrap">{formatCurrency(fee.totalCollected)}</td>
-                        <td className="px-6 py-4 text-sm text-right text-gray-700 whitespace-nowrap">{formatCurrency(fee.totalRemitted)}</td>
-                        <td className="px-6 py-4 text-sm text-right text-red-600 whitespace-nowrap">{formatCurrency(fee.totalExpenses)}</td>
-                        <td className={`px-6 py-4 text-sm font-semibold text-right whitespace-nowrap ${parseFloat(fee.netBalance) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <td className="px-3 py-2 text-xs font-medium text-gray-900 whitespace-nowrap">{fee.feeType}</td>
+                        <td className="px-3 py-2 text-xs text-right text-gray-700 whitespace-nowrap">{formatCurrency(fee.totalCollected)}</td>
+                        <td className="px-3 py-2 text-xs text-right text-gray-700 whitespace-nowrap">{formatCurrency(fee.totalRemitted)}</td>
+                        <td className="px-3 py-2 text-xs text-right text-red-600 whitespace-nowrap">{formatCurrency(fee.totalExpenses)}</td>
+                        <td className={`px-3 py-2 text-xs font-semibold text-right whitespace-nowrap ${parseFloat(fee.netBalance) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatCurrency(fee.netBalance)}
                         </td>
                       </tr>
@@ -352,10 +352,10 @@ const AdminDashboardDisplay = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="p-8 text-center bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-2xl">
-            <Package className="w-12 h-12 mx-auto mb-4 text-rose-400" />
-            <h3 className="text-lg font-semibold text-rose-700 mb-2">No Fee Data Available</h3>
-            <p className="text-rose-600">No fee utilization data available at this time.</p>
+          <div className="p-6 text-center bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-2xl">
+            <Package className="w-8 h-8 mx-auto mb-3 text-rose-400" />
+            <h3 className="text-sm font-semibold text-rose-700 mb-1">No Fee Data Available</h3>
+            <p className="text-xs text-rose-600">No fee utilization data available at this time.</p>
           </div>
         )}
       </section>
@@ -363,11 +363,11 @@ const AdminDashboardDisplay = () => {
       {/* Other Key Metrics (if available) */}
       {summary.otherMetrics && Object.keys(summary.otherMetrics).length > 0 && (
         <section>
-          <div className="mb-6">
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">Other Key Metrics</h3>
-            <p className="text-gray-600">Additional system metrics and performance indicators</p>
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">Other Key Metrics</h3>
+            <p className="text-sm text-gray-600">Additional system metrics and performance indicators</p>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {Object.entries(summary.otherMetrics).map(([key, value]) => (
               <StatCard 
                 key={key} 
@@ -386,4 +386,4 @@ const AdminDashboardDisplay = () => {
   );
 };
 
-export default AdminDashboardDisplay; 
+export default AdminDashboardDisplay;

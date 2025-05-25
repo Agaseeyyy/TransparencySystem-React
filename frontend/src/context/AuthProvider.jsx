@@ -72,11 +72,18 @@ export const AuthProvider = ({ children }) => {
       // Save token first for API authentication
       setToken(data.token);
       
-      // For Class Treasurers, fetch complete account data including student information
+      // Base user data with name extraction from email as fallback
+      const emailParts = data.email.split('@')[0].split('.');
+      const fallbackFirstName = emailParts[0] ? emailParts[0].charAt(0).toUpperCase() + emailParts[0].slice(1) : 'User';
+      const fallbackLastName = emailParts[1] ? emailParts[1].charAt(0).toUpperCase() + emailParts[1].slice(1) : '';
+      
       let completeUserData = {
         email: data.email,
         role: userRole,
-        accountId: data.accountId
+        accountId: data.accountId,
+        firstName: data.firstName || fallbackFirstName,
+        lastName: data.lastName || fallbackLastName,
+        middleInitial: data.middleInitial || ''
       };
       
       if (data.role === 'Class_Treasurer') {
@@ -91,15 +98,16 @@ export const AuthProvider = ({ children }) => {
             
             completeUserData = {
               ...completeUserData,
+              // Override with actual student data if available
+              firstName: student.firstName || completeUserData.firstName,
+              lastName: student.lastName || completeUserData.lastName,
+              middleInitial: student.middleInitial || completeUserData.middleInitial,
               // Extract class information from the nested structure
               program: program.programId,
               programCode: program.programId,
               programName: program.programName,
               yearLevel: student.yearLevel,
               section: student.section,
-              firstName: student.firstName,
-              lastName: student.lastName,
-              middleInitial: student.middleInitial,
               studentId: student.studentId,
               // Store complete objects for reference
               studentInfo: student,
@@ -113,13 +121,13 @@ export const AuthProvider = ({ children }) => {
             if (accountDetails.programCode) {
               completeUserData = {
                 ...completeUserData,
+                firstName: accountDetails.firstName || completeUserData.firstName,
+                lastName: accountDetails.lastName || completeUserData.lastName,
+                middleInitial: accountDetails.middleInitial || completeUserData.middleInitial,
                 program: accountDetails.programCode,
                 programCode: accountDetails.programCode,
                 yearLevel: accountDetails.yearLevel,
                 section: accountDetails.section,
-                firstName: accountDetails.firstName,
-                lastName: accountDetails.lastName,
-                middleInitial: accountDetails.middleInitial,
                 studentId: accountDetails.studentId
               };
               console.log('Class Treasurer data from direct account fields:', completeUserData);

@@ -98,7 +98,10 @@ const Sidebar = ({ collapsed, mobileOpen, closeMobile }) => {
               {!collapsed && (
                 <div>
                   <div className="font-medium text-gray-800">
-                    {user?.firstName} {user?.lastName}
+                    {user?.firstName && user?.lastName 
+                      ? `${user.firstName} ${user.lastName}`
+                      : user?.email?.split('@')[0] || 'User'
+                    }
                   </div>
                   <div className="text-sm text-red-600">{user?.role}</div>
                 </div>

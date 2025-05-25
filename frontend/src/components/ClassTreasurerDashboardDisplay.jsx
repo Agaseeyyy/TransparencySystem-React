@@ -6,31 +6,31 @@ import { formatCurrency, formatDate } from '../utils/formatUtils';
 
 const StatCard = ({ title, value, icon, description, color = 'text-gray-600' }) => (
   <Card className={`border-l-4 border-${color.split('-')[1]}-500`}>
-    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      {React.createElement(icon, { className: `w-4 h-4 ${color}` })}
+    <CardHeader className="flex flex-row items-center justify-between pb-1 space-y-0">
+      <CardTitle className="text-xs font-medium">{title}</CardTitle>
+      {React.createElement(icon, { className: `w-3 h-3 ${color}` })}
     </CardHeader>
-    <CardContent>
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
+    <CardContent className="pb-2">
+      <div className={`text-lg font-bold ${color}`}>{value}</div>
       {description && <p className="text-xs text-gray-500">{description}</p>}
     </CardContent>
   </Card>
 );
 
 const TransactionListItem = ({ transaction, type }) => (
-  <li className="py-3 border-b last:border-b-0">
+  <li className="py-2 border-b last:border-b-0">
     <div className="flex items-center justify-between">
       <div>
-        <p className="font-medium text-gray-800">
+        <p className="text-sm font-medium text-gray-800">
           {type === 'remittance' ? `To: ${transaction.remittedTo || 'N/A'}` : transaction.description}
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-xs text-gray-500">
           {type === 'payment' && transaction.userInvolved ? `${transaction.userInvolved} - ` : ''}
           Status: {transaction.status}
         </p>
       </div>
       <div className="text-right">
-        <p className={`font-semibold ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <p className={`text-sm font-semibold ${transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
           {formatCurrency(transaction.amount)}
         </p>
         <p className="text-xs text-gray-400">{formatDate(transaction.date, true)}</p>
@@ -43,13 +43,13 @@ const TransactionListItem = ({ transaction, type }) => (
 );
 
 const StudentPaymentStatusItem = ({ studentStatus }) => (
-  <li className="flex items-center justify-between py-3 border-b last:border-b-0">
+  <li className="flex items-center justify-between py-2 border-b last:border-b-0">
     <div>
-      <p className="font-medium text-gray-800">{studentStatus.studentName}</p>
-      <p className="text-sm text-gray-500">{studentStatus.feeType}</p>
+      <p className="text-sm font-medium text-gray-800">{studentStatus.studentName}</p>
+      <p className="text-xs text-gray-500">{studentStatus.feeType}</p>
     </div>
     <div className="text-right">
-      <p className={`font-semibold ${studentStatus.paymentStatus === 'Paid' ? 'text-green-600' : (studentStatus.paymentStatus === 'Partially Paid' ? 'text-yellow-600' : 'text-red-600')}`}>
+      <p className={`text-sm font-semibold ${studentStatus.paymentStatus === 'Paid' ? 'text-green-600' : (studentStatus.paymentStatus === 'Partially Paid' ? 'text-yellow-600' : 'text-red-600')}`}>
         {studentStatus.paymentStatus}
       </p>
       <p className="text-xs text-gray-500">
@@ -94,27 +94,27 @@ const ClassTreasurerDashboardDisplay = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold tracking-tight text-gray-800">Class Treasurer Dashboard</h2>
-      <div className="text-gray-600">
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold tracking-tight text-gray-800">Class Treasurer Dashboard</h2>
+      <div className="text-sm text-gray-600">
         <p>Welcome, <span className="font-semibold">{summary.treasurerName}</span>!</p>
         <p>Managing: <span className="font-semibold">{summary.className}</span></p>
       </div>
 
       {/* Remittance Summary */}
       <section>
-        <h3 className="mb-4 text-xl font-semibold text-gray-700">Your Remittance Summary</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <h3 className="mb-3 text-lg font-semibold text-gray-700">Your Remittance Summary</h3>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           <StatCard title="Total Remittances Made" value={summary.totalRemittancesMadeCount?.toLocaleString()} icon={Package} color="text-blue-600" />
           <StatCard title="Total Amount Remitted" value={formatCurrency(summary.totalAmountRemittedByTreasurer)} icon={TrendingUp} color="text-green-600" />
           {summary.remittancesByStatus && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">Remittances by Status</CardTitle>
+              <CardHeader className="pb-1">
+                <CardTitle className="text-xs font-medium">Remittances by Status</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pb-2">
                 {Object.entries(summary.remittancesByStatus.counts || {}).map(([status, count]) => (
-                  <div key={status} className="flex justify-between py-1 text-sm">
+                  <div key={status} className="flex justify-between py-1 text-xs">
                     <span>{status}</span>
                     <span>{count?.toLocaleString()} ({formatCurrency(summary.remittancesByStatus.amounts?.[status] || 0)})</span>
                   </div>
@@ -124,12 +124,12 @@ const ClassTreasurerDashboardDisplay = () => {
           )}
         </div>
         {summary.recentRemittancesByTreasurer && summary.recentRemittancesByTreasurer.length > 0 && (
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Recent Remittances</CardTitle>
-              <CardDescription>Your last few remittance activities.</CardDescription>
+          <Card className="mt-3">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-sm">Recent Remittances</CardTitle>
+              <CardDescription className="text-xs">Your last few remittance activities.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-2">
               <ul className="divide-y divide-gray-100">
                 {summary.recentRemittancesByTreasurer.map(tx => <TransactionListItem key={tx.id} transaction={tx} type="remittance" />)}
               </ul>
@@ -140,18 +140,18 @@ const ClassTreasurerDashboardDisplay = () => {
 
       {/* Payment Summary for Managed Fees */}
       <section>
-        <h3 className="mb-4 text-xl font-semibold text-gray-700">Class Collection Summary</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <h3 className="mb-3 text-lg font-semibold text-gray-700">Class Collection Summary</h3>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <StatCard title="Total Collected (Managed Fees)" value={formatCurrency(summary.totalCollectedForManagedFees)} icon={DollarSign} color="text-teal-600" />
           <StatCard title="Total Payments (Managed Fees)" value={summary.totalPaymentsForManagedFeesCount?.toLocaleString()} icon={Users} color="text-cyan-600" />
         </div>
         {summary.recentPaymentsForManagedFees && summary.recentPaymentsForManagedFees.length > 0 && (
-           <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Recent Payments Received</CardTitle>
-              <CardDescription>Last few payments collected for your class.</CardDescription>
+           <Card className="mt-3">
+            <CardHeader className="pb-1">
+              <CardTitle className="text-sm">Recent Payments Received</CardTitle>
+              <CardDescription className="text-xs">Last few payments collected for your class.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-2">
               <ul className="divide-y divide-gray-100">
                 {summary.recentPaymentsForManagedFees.map(tx => <TransactionListItem key={tx.id} transaction={tx} type="payment" />)}
               </ul>
@@ -163,13 +163,13 @@ const ClassTreasurerDashboardDisplay = () => {
       {/* Student Payment Statuses */}
       {summary.studentPaymentStatuses && summary.studentPaymentStatuses.length > 0 && (
         <section>
-          <h3 className="mb-4 text-xl font-semibold text-gray-700">Student Payment Status (Managed Fees)</h3>
+          <h3 className="mb-3 text-lg font-semibold text-gray-700">Student Payment Status (Managed Fees)</h3>
           <Card>
-            <CardHeader>
-              <CardTitle>Overview of Student Payments</CardTitle>
-              <CardDescription>Status of payments from students in your class for the fees you manage.</CardDescription>
+            <CardHeader className="pb-1">
+              <CardTitle className="text-sm">Overview of Student Payments</CardTitle>
+              <CardDescription className="text-xs">Status of payments from students in your class for the fees you manage.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-2">
               <ul className="divide-y divide-gray-100">
                 {summary.studentPaymentStatuses.map(sps => (
                   <StudentPaymentStatusItem key={sps.studentId + sps.feeType} studentStatus={sps} />
@@ -183,4 +183,4 @@ const ClassTreasurerDashboardDisplay = () => {
   );
 };
 
-export default ClassTreasurerDashboardDisplay; 
+export default ClassTreasurerDashboardDisplay;

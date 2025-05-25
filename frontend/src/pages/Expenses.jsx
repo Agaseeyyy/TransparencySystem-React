@@ -103,11 +103,15 @@ const Expenses = () => {
   const [expenseToDelete, setExpenseToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Card expansion state - only one card can be expanded at a time
+  const [expandedCardId, setExpandedCardId] = useState(null);
+
   // Reset page when switching tabs or changing filters
   useEffect(() => {
     setPage(0);
     setPageError('');
     setPageSuccess('');
+    setExpandedCardId(null); // Collapse all cards when switching tabs or filters
   }, [activeTab, cardFilters, viewMode]);
 
   // Fetch selectors
@@ -189,6 +193,7 @@ const Expenses = () => {
   useEffect(() => {
     setPage(0);
     setSize(viewMode === 'cards' ? 6 : 10);
+    setExpandedCardId(null); // Collapse all cards when switching view modes
   }, [viewMode, activeTab]);
 
   // Reset card filters when switching away from cards view
@@ -742,6 +747,8 @@ const Expenses = () => {
                   expense={expense} 
                   openForm={openForm}
                   handleDelete={() => handleDeleteRequest(expense)}
+                  expandedCardId={expandedCardId}
+                  setExpandedCardId={setExpandedCardId}
                 />
               ))
             ) : (

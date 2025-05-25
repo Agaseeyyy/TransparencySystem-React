@@ -15,9 +15,11 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
-  const [expanded, setExpanded] = useState(false);
+const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expandedCardId, setExpandedCardId }) => {
   const { can } = useAuth();
+  
+  // Check if this card is the currently expanded one
+  const expanded = expandedCardId === expense.expenseId;
 
   // Log current card's ID and its expanded state whenever it renders
   console.log(`ExpenseCard Rendered: ID = ${expense?.expenseId}, Expanded = ${expanded}`);
@@ -50,7 +52,7 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
   };
 
   return (
-    <Card className={`overflow-hidden hover:shadow-lg hover:border-rose-200 transition-all duration-300 border-l-4 border-l-rose-500 ${className}`}>
+    <Card className={`h-full flex flex-col overflow-hidden hover:shadow-lg hover:border-rose-200 transition-all duration-300 border-l-4 border-l-rose-500 ${className}`}>
       <CardHeader className="p-6 pb-4 bg-gradient-to-r from-rose-50/60 to-transparent">
         <div className="flex flex-col gap-3">
           <div className="flex items-start justify-between">
@@ -63,7 +65,7 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-xl font-semibold leading-tight tracking-tight text-gray-800 break-words">{expense.expenseTitle}</CardTitle>
+            <CardTitle className="text-xl font-semibold leading-tight tracking-tight text-gray-800 break-words line-clamp-2">{expense.expenseTitle}</CardTitle>
             <CardDescription className="flex flex-wrap items-center gap-2 mt-3 text-sm">
               <div className="flex items-center gap-1.5 bg-gray-50/80 py-1 px-2 rounded-md">
                 <Building size={16} className="flex-shrink-0 text-rose-500" /> 
@@ -78,7 +80,7 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
         </div>
       </CardHeader>
       
-      <CardContent className="p-5 pt-3">
+      <CardContent className="flex-1 p-5 pt-3">
         <div className="flex flex-wrap gap-2 mb-4">
           <Badge 
             variant="secondary" 
@@ -97,7 +99,7 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
             <span>{formatLabel(expense.expenseCategory)}</span>
           </Badge>
           {fileUtils.hasFile(expense.documentationPath) && (
-            <Badge variant="outline" className="flex items-center px-3 py-1 text-sm bg-blue-50 border-blue-200 text-blue-700">
+            <Badge variant="outline" className="flex items-center px-3 py-1 text-sm text-blue-700 border-blue-200 bg-blue-50">
               <FileText size={12} className="flex-shrink-0 mr-2" />
               <span>Has Documentation</span>
             </Badge>
@@ -167,14 +169,14 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
                           href={fileUtils.getFileViewUrl(expense.documentationPath)}
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 text-xs underline"
+                          className="text-xs text-blue-600 underline hover:text-blue-800"
                         >
                           View
                         </a>
                         <a 
                           href={fileUtils.getFileDownloadUrl(expense.documentationPath)}
                           download
-                          className="text-green-600 hover:text-green-800 text-xs underline"
+                          className="text-xs text-green-600 underline hover:text-green-800"
                         >
                           Download
                         </a>
@@ -243,7 +245,8 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
           className="w-full py-2 mt-4 text-sm font-medium text-rose-500 hover:text-rose-700 hover:bg-rose-50"
           onClick={() => {
             console.log(`Button Clicked: ID = ${expense?.expenseId}, Current Expanded = ${expanded}, Toggling to = ${!expanded}`);
-            setExpanded(!expanded);
+            // Toggle: if this card is expanded, collapse it; if not expanded, expand it
+            setExpandedCardId(expanded ? null : expense.expenseId);
           }}
         >
           {expanded ? (

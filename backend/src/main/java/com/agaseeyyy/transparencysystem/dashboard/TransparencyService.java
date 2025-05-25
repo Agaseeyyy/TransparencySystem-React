@@ -8,13 +8,11 @@ import com.agaseeyyy.transparencysystem.enums.Status;
 import com.agaseeyyy.transparencysystem.remittances.RemittanceStatus;
 import com.agaseeyyy.transparencysystem.expenses.Expenses.ExpenseStatus;
 import com.agaseeyyy.transparencysystem.expenses.Expenses.ApprovalStatus;
-import com.agaseeyyy.transparencysystem.accounts.Accounts.Role;
 import com.agaseeyyy.transparencysystem.expenses.ExpenseRepository;
 import com.agaseeyyy.transparencysystem.fees.FeeRepository;
 import com.agaseeyyy.transparencysystem.fees.FeeService;
 import com.agaseeyyy.transparencysystem.fees.Fees;
 import com.agaseeyyy.transparencysystem.payments.PaymentRepository;
-import com.agaseeyyy.transparencysystem.payments.PaymentService;
 import com.agaseeyyy.transparencysystem.payments.Payments;
 import com.agaseeyyy.transparencysystem.remittances.RemittanceRepository;
 import com.agaseeyyy.transparencysystem.remittances.RemittanceService;
@@ -27,24 +25,21 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
@@ -237,7 +232,7 @@ public class TransparencyService {
                 }
             }
             transformedRow.put("remittanceProgress", collected.compareTo(BigDecimal.ZERO) > 0 ? 
-                (remitted.divide(collected, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100))) : BigDecimal.ZERO);
+                (remitted.divide(collected, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100))) : BigDecimal.ZERO);
             transformedRow.put("pendingRemittance", collected.subtract(remitted));
             
             result.add(transformedRow);
@@ -433,16 +428,6 @@ public class TransparencyService {
         }
     }
 
-    // Method to get the currently authenticated user's account (if available)
-    private Optional<Accounts> getCurrentUserAccount() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal())) {
-            String username = authentication.getName();
-            return Optional.ofNullable(accountRepository.findByEmail(username));
-        }
-        return Optional.empty();
-    }
-
     public AdminDashboardSummaryDto getAdminDashboardSummary() {
         AdminDashboardSummaryDto summary = new AdminDashboardSummaryDto();
 
@@ -451,29 +436,32 @@ public class TransparencyService {
         List<Remittances> allRemittances = remittanceRepository.findAll();
         List<Accounts> allAccounts = accountRepository.findAll();
 
-        // Helper to convert Double to BigDecimal, handling nulls
-        Function<Double, BigDecimal> toBigDecimal = val -> val == null ? BigDecimal.ZERO : BigDecimal.valueOf(val);
-        // Overload for existing BigDecimal to handle nulls to ZERO (though less common for amounts)
+        // Helper to handle nulls to ZERO for BigDecimal
         Function<BigDecimal, BigDecimal> safeBigDecimal = val -> val == null ? BigDecimal.ZERO : val;
 
         // 1. Overall Financials
-        summary.setTotalCollections(allPayments.stream()
-            .filter(p -> p.getStatus() == Status.Paid && p.getAmount() != null)
+        BigDecimal totalCollections = allPayments.stream()
+            .filter(p -> (p.getStatus() == Status.Paid || p.getStatus() == Status.Remitted) && p.getAmount() != null)
             .map(Payments::getAmount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add));
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        summary.setTotalCollections(totalCollections);
 
-        summary.setTotalExpenses(allExpenses.stream()
+        BigDecimal totalExpenses = allExpenses.stream()
             .filter(e -> e.getAmount() != null && 
                          (e.getExpenseStatus() == ExpenseStatus.PAID || e.getApprovalStatus() == ApprovalStatus.APPROVED))
             .map(Expenses::getAmount)
-            .reduce(BigDecimal.ZERO, BigDecimal::add));
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        summary.setTotalExpenses(totalExpenses);
 
-        summary.setTotalRemitted(allRemittances.stream()
-            .filter(r -> r.getAmountRemitted() != null && r.getStatus() == RemittanceStatus.COMPLETED)
+        BigDecimal totalRemitted = allRemittances.stream()
+            .filter(r -> r.getAmountRemitted() != null && 
+                         (r.getStatus() == RemittanceStatus.COMPLETED || r.getStatus() == RemittanceStatus.PARTIAL))
             .map(Remittances::getAmountRemitted)
-            .reduce(BigDecimal.ZERO, BigDecimal::add));
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        summary.setTotalRemitted(totalRemitted);
 
-        summary.setNetBalance(safeBigDecimal.apply(summary.getTotalCollections()).subtract(safeBigDecimal.apply(summary.getTotalExpenses())));
+        BigDecimal netBalance = safeBigDecimal.apply(totalCollections).subtract(safeBigDecimal.apply(totalExpenses));
+        summary.setNetBalance(netBalance);
 
         // 2. Payment Summaries
         summary.setTotalPaymentsCount(allPayments.size());
@@ -781,10 +769,10 @@ public class TransparencyService {
     public PublicDashboardSummaryDto getPublicDashboardSummary() {
         PublicDashboardSummaryDto summary = new PublicDashboardSummaryDto();
 
-        // 1. Calculate total collections from PAID Payments
+        // 1. Calculate total collections from PAID and REMITTED Payments
         BigDecimal totalCollectedOverall = paymentRepository.findAll().stream()
-            .filter(p -> p.getStatus() == Status.Paid && p.getFee() != null && p.getFee().getAmount() != null)
-            .map(p -> p.getFee().getAmount())
+            .filter(p -> (p.getStatus() == Status.Paid || p.getStatus() == Status.Remitted) && p.getAmount() != null)
+            .map(Payments::getAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         summary.setTotalCollectedOverall(totalCollectedOverall);
 
@@ -808,8 +796,8 @@ public class TransparencyService {
             FeeTransparencyDto feeDto = new FeeTransparencyDto(fee.getFeeType(), fee.getDescription());
 
             BigDecimal collectedForThisFee = paymentRepository.findByFee_FeeId(fee.getFeeId()).stream()
-                .filter(p -> p.getStatus() == Status.Paid && p.getFee() != null && p.getFee().getAmount() != null)
-                .map(p -> p.getFee().getAmount())
+                .filter(p -> (p.getStatus() == Status.Paid || p.getStatus() == Status.Remitted) && p.getAmount() != null)
+                .map(Payments::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
             feeDto.setTotalCollectedForFee(collectedForThisFee);
 

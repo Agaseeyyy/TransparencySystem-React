@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.UUID;
+import java.security.Principal;
 
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,8 @@ import com.agaseeyyy.transparencysystem.fees.FeeRepository;
 import com.agaseeyyy.transparencysystem.fees.Fees;
 import com.agaseeyyy.transparencysystem.students.StudentRepository;
 import com.agaseeyyy.transparencysystem.students.Students;
+import com.agaseeyyy.transparencysystem.accounts.AccountRepository;
+import com.agaseeyyy.transparencysystem.accounts.Accounts;
 import com.agaseeyyy.transparencysystem.enums.Status;
 import com.agaseeyyy.transparencysystem.exception.ResourceAlreadyExistsException;
 
@@ -36,14 +39,16 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final FeeRepository feeRepository;
     private final StudentRepository studentRepository;
+    private final AccountRepository accountRepository;
     @PersistenceContext
     private EntityManager entityManager;
 
     // Dependencies Injection
-    public PaymentService(PaymentRepository paymentRepository, FeeRepository feeRepository, StudentRepository studentRepository) {
+    public PaymentService(PaymentRepository paymentRepository, FeeRepository feeRepository, StudentRepository studentRepository, AccountRepository accountRepository) {
         this.paymentRepository = paymentRepository;
         this.feeRepository = feeRepository;
         this.studentRepository = studentRepository;
+        this.accountRepository = accountRepository;
     }
 
     // Static Methods
@@ -76,6 +81,7 @@ public class PaymentService {
     }
 
     public Page<PaymentDTO> getStudentsPaymentStatus(
+            Principal principal,
             Integer feeId, 
             String program, 
             String yearLevel, 
@@ -85,6 +91,17 @@ public class PaymentService {
             String sortDirection,
             int pageNumber,
             int pageSize) {
+        
+        // Check if the user is a Class Treasurer and apply class-based filtering
+        if (principal != null && isClassTreasurer(principal)) {
+            ClassTreasurerDetails treasurerDetails = getClassTreasurerDetails(principal.getName());
+            if (treasurerDetails != null) {
+                // Override the program, year level, and section parameters with the treasurer's class details
+                program = treasurerDetails.getProgram();
+                yearLevel = treasurerDetails.getYearLevel();
+                section = treasurerDetails.getSection();
+            }
+        }
         
         // Validate fee exists
         feeRepository.findById(feeId)
@@ -111,7 +128,26 @@ public class PaymentService {
         return new PageImpl<>(dtoList, pageable, resultPage.getTotalElements());
     }
 
-    public List <Payments> getPaymentByStudentDeets(String programCode, Year yearLevel, Character section) {
+    public List <Payments> getPaymentByStudentDeets(Principal principal, String programCode, Year yearLevel, Character section) {
+        // Check if the user is a Class Treasurer and apply class-based filtering
+        if (principal != null && isClassTreasurer(principal)) {
+            ClassTreasurerDetails treasurerDetails = getClassTreasurerDetails(principal.getName());
+            if (treasurerDetails != null) {
+                // Override the program, year level, and section parameters with the treasurer's class details
+                programCode = treasurerDetails.getProgram();
+                try {
+                    yearLevel = Year.of(Integer.parseInt(treasurerDetails.getYearLevel()));
+                } catch (NumberFormatException e) {
+                    // In case year level is not a valid number, keep the original
+                }
+                try {
+                    section = treasurerDetails.getSection().charAt(0);
+                } catch (Exception e) {
+                    // In case section is not valid, keep the original
+                }
+            }
+        }
+        
         return paymentRepository.findPaymentsByStudentDetails(programCode, yearLevel, section);
     }
 
@@ -180,7 +216,26 @@ public class PaymentService {
 
 
      // Calculates the total amount of payments for a given student's class details and fee ID.
-     public Double calculateTotalPaymentsPerClass(String program, Year yearLevel, Character section, Integer feeId) {
+     public Double calculateTotalPaymentsPerClass(Principal principal, String program, Year yearLevel, Character section, Integer feeId) {
+        // Check if the user is a Class Treasurer and apply class-based filtering
+        if (principal != null && isClassTreasurer(principal)) {
+            ClassTreasurerDetails treasurerDetails = getClassTreasurerDetails(principal.getName());
+            if (treasurerDetails != null) {
+                // Override the program, year level, and section parameters with the treasurer's class details
+                program = treasurerDetails.getProgram();
+                try {
+                    yearLevel = Year.of(Integer.parseInt(treasurerDetails.getYearLevel()));
+                } catch (NumberFormatException e) {
+                    // In case year level is not a valid number, keep the original
+                }
+                try {
+                    section = treasurerDetails.getSection().charAt(0);
+                } catch (Exception e) {
+                    // In case section is not valid, keep the original
+                }
+            }
+        }
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Double> cq = cb.createQuery(Double.class);
         Root<Payments> root = cq.from(Payments.class);
@@ -238,7 +293,7 @@ public class PaymentService {
      */
     public List<Students> findStudentsWhoHaventPaid(Integer feeId) {
         // Validate fee exists
-        Fees fee = feeRepository.findById(feeId)
+        feeRepository.findById(feeId)
             .orElseThrow(() -> new RuntimeException("Fee not found with id " + feeId));
             
         // Get all students
@@ -309,6 +364,7 @@ public class PaymentService {
     }
 
     public Page<PaymentDTO> getPaymentsWithFilters(
+            Principal principal,
             Long feeId,
             Long studentId,
             String status,
@@ -317,12 +373,24 @@ public class PaymentService {
             String section,
             Pageable pageable
     ) {
+        // Check if the user is a Class Treasurer and apply class-based filtering
+        if (principal != null && isClassTreasurer(principal)) {
+            ClassTreasurerDetails treasurerDetails = getClassTreasurerDetails(principal.getName());
+            if (treasurerDetails != null) {
+                // Override the program, year level, and section parameters with the treasurer's class details
+                program = treasurerDetails.getProgram();
+                yearLevel = treasurerDetails.getYearLevel();
+                section = treasurerDetails.getSection();
+            }
+        }
+
         Specification<Payments> spec = PaymentSpecification.filterBy(feeId, studentId, status, program, yearLevel, section);
         Page<Payments> paymentsPage = paymentRepository.findAll(spec, pageable);
         return paymentsPage.map(this::convertToDTO);
     }
 
     public List<PaymentDTO> generatePaymentReport(
+            Principal principal,
             Integer feeId,
             String program,
             String yearLevel,
@@ -332,6 +400,17 @@ public class PaymentService {
     ) {
         if (feeId == null) {
             throw new IllegalArgumentException("Fee ID cannot be null for generating this report.");
+        }
+
+        // Check if the user is a Class Treasurer and apply class-based filtering
+        if (principal != null && isClassTreasurer(principal)) {
+            ClassTreasurerDetails treasurerDetails = getClassTreasurerDetails(principal.getName());
+            if (treasurerDetails != null) {
+                // Override the program, year level, and section parameters with the treasurer's class details
+                program = treasurerDetails.getProgram();
+                yearLevel = treasurerDetails.getYearLevel();
+                section = treasurerDetails.getSection();
+            }
         }
 
         StringBuilder queryString = new StringBuilder(
@@ -446,5 +525,57 @@ public class PaymentService {
         dto.setPaymentDate(payment.getPaymentDate());
         dto.setRemarks(payment.getRemarks());
         return dto;
+    }
+
+    // Helper class for Class Treasurer details
+    private static class ClassTreasurerDetails {
+        private final String program;
+        private final String yearLevel;
+        private final String section;
+
+        public ClassTreasurerDetails(String program, String yearLevel, String section) {
+            this.program = program;
+            this.yearLevel = yearLevel;
+            this.section = section;
+        }
+
+        public String getProgram() { return program; }
+        public String getYearLevel() { return yearLevel; }
+        public String getSection() { return section; }
+    }
+
+    // Helper method to check if the current user is a Class Treasurer
+    private boolean isClassTreasurer(Principal principal) {
+        if (principal == null || principal.getName() == null) {
+            return false;
+        }
+        
+        try {
+            Accounts account = accountRepository.findByEmail(principal.getName());
+            return account != null && "Class_Treasurer".equals(account.getRole());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // Helper method to get Class Treasurer's class details
+    private ClassTreasurerDetails getClassTreasurerDetails(String username) {
+        try {
+            Accounts treasurerAccount = accountRepository.findByEmail(username);
+            if (treasurerAccount != null && treasurerAccount.getStudent() != null) {
+                Students treasurerStudentInfo = treasurerAccount.getStudent();
+                
+                String program = treasurerStudentInfo.getProgram() != null ? 
+                    treasurerStudentInfo.getProgram().getProgramId() : null;
+                String yearLevel = treasurerStudentInfo.getYearLevel() != null ? 
+                    String.valueOf(treasurerStudentInfo.getYearLevel()) : null;
+                String section = String.valueOf(treasurerStudentInfo.getSection());
+                
+                return new ClassTreasurerDetails(program, yearLevel, section);
+            }
+        } catch (Exception e) {
+            // Log error if needed
+        }
+        return null;
     }
 }

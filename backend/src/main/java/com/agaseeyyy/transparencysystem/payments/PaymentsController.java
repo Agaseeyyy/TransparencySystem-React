@@ -2,7 +2,7 @@ package com.agaseeyyy.transparencysystem.payments;
 
 import java.time.Year;
 import java.util.List;
-import java.util.Map;
+import java.security.Principal;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,9 @@ public class PaymentsController {
     
     // REST API Endpoints
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
     public ResponseEntity<Page<PaymentDTO>> getPayments(
+            Principal principal,
             @RequestParam(required = false) Long feeId,
             @RequestParam(required = false) Long studentId,
             @RequestParam(required = false) String status,
@@ -38,7 +40,7 @@ public class PaymentsController {
             @RequestParam(defaultValue = "desc") String sortDirection
     ) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.fromString(sortDirection), sortField));
-        Page<PaymentDTO> payments = paymentService.getPaymentsWithFilters(feeId, studentId, status, program, yearLevel, section, pageable);
+        Page<PaymentDTO> payments = paymentService.getPaymentsWithFilters(principal, feeId, studentId, status, program, yearLevel, section, pageable);
         return ResponseEntity.ok(payments);
     }
 
@@ -46,6 +48,7 @@ public class PaymentsController {
      @GetMapping("/fee/{feeId}/status")
      @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
      public Page<PaymentDTO> displayStudentsPaymentStatus(
+             Principal principal,
              @PathVariable Integer feeId,
              @RequestParam(required = false) String program,
              @RequestParam(required = false) String yearLevel,
@@ -55,22 +58,32 @@ public class PaymentsController {
              @RequestParam(defaultValue = "desc") String sortDirection,
              @RequestParam(defaultValue = "0") int pageNumber,
              @RequestParam(defaultValue = "10") int pageSize) {
-         return paymentService.getStudentsPaymentStatus(feeId, program, yearLevel, section, status, sortField, sortDirection, pageNumber, pageSize);
+         return paymentService.getStudentsPaymentStatus(principal, feeId, program, yearLevel, section, status, sortField, sortDirection, pageNumber, pageSize);
      }
 
     @GetMapping("/students/{program}/{yearLevel}/{section}")
     @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
-    public List <Payments> getPaymentByStudentDeets(@PathVariable String program, @PathVariable Year yearLevel, @PathVariable Character section) {
-        return paymentService.getPaymentByStudentDeets(program, yearLevel, section);
+    public List <Payments> getPaymentByStudentDeets(
+            Principal principal,
+            @PathVariable String program, 
+            @PathVariable String yearLevel, 
+            @PathVariable Character section) {
+        return paymentService.getPaymentByStudentDeets(principal, program, Year.of(Integer.parseInt(yearLevel)), section);
     }
 
     @GetMapping("/students/{program}/{yearLevel}/{section}/fees/{feeId}")
     @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
-    public Double displayTotalPaymentsPerClass(@PathVariable String program,
-                                                       @PathVariable Year yearLevel,
-                                                       @PathVariable Character section,
-                                                       @PathVariable Integer feeId) {
-        return paymentService.calculateTotalPaymentsPerClass(program, yearLevel, section, feeId);
+    public Double displayTotalPaymentsPerClass(
+            Principal principal,
+            @PathVariable String program,
+            @PathVariable String yearLevel,
+            @PathVariable Character section,
+            @PathVariable Integer feeId) {
+        try {
+            return paymentService.calculateTotalPaymentsPerClass(principal, program, Year.of(Integer.parseInt(yearLevel)), section, feeId);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid year level format: " + yearLevel);
+        }
     }
     
     // Add new payment
@@ -100,7 +113,9 @@ public class PaymentsController {
     }
 
     @GetMapping("/report")
+    @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
     public ResponseEntity<List<PaymentDTO>> getPaymentsReport(
+            Principal principal,
             @RequestParam(required = true) Integer feeId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String program,
@@ -110,7 +125,7 @@ public class PaymentsController {
             @RequestParam(defaultValue = "asc") String sortDirection
     ) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
-        List<PaymentDTO> payments = paymentService.generatePaymentReport(feeId, program, yearLevel, section, status, sort);
+        List<PaymentDTO> payments = paymentService.generatePaymentReport(principal, feeId, program, yearLevel, section, status, sort);
         return ResponseEntity.ok(payments);
     }
 }

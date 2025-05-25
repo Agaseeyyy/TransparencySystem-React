@@ -316,6 +316,18 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
               )}
             </div>
           )}
+
+          {expense.approvalStatus === 'APPROVED' && expense.expenseStatus !== 'PAID' && can.manageTransaction() && (
+            <Button 
+              variant="outline"
+              size="sm"
+              className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+              onClick={() => openForm('pay', expense)}
+            >
+              <CreditCard className="w-4 h-4 mr-1.5 flex-shrink-0" />
+              <span>Mark as Paid</span>
+            </Button>
+          )}
         </div>
 
         {/* Desktop buttons (side by side) */}
@@ -366,6 +378,18 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "", expanded
               >
                 <Ban className="flex-shrink-0 w-4 h-4 mr-2" />
                 <span>Reject</span>
+              </Button>
+            )}
+
+            {can.manageTransaction() && expense.approvalStatus === 'APPROVED' && expense.expenseStatus !== 'PAID' && (
+              <Button 
+                variant="outline"
+                size="sm"
+                className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+                onClick={() => openForm('pay', expense)}
+              >
+                <CreditCard className="flex-shrink-0 w-4 h-4 mr-2" />
+                <span>Mark as Paid</span>
               </Button>
             )}
           </div>

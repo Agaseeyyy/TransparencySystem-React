@@ -534,6 +534,29 @@ export const expenseService = {
     );
     return response.data;
   },
+
+  // Mark an expense as paid
+  markAsPaid: async (expenseId, paymentDate = null) => {
+    // Get the current user's accountId from localStorage
+    const userString = localStorage.getItem('auth_user');
+    const user = userString ? JSON.parse(userString) : null;
+    const accountId = user?.accountId;
+    
+    if (!accountId) {
+      throw new Error('User account ID is required to mark an expense as paid');
+    }
+    
+    const requestBody = {};
+    if (paymentDate) {
+      requestBody.paymentDate = paymentDate;
+    }
+    
+    const response = await api.post(`/api/expenses/${expenseId}/pay`, 
+      requestBody,
+      { params: { paidByAccountId: accountId } }
+    );
+    return response.data;
+  },
 };
 
 // Dashboard related API calls

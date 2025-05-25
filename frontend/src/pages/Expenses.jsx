@@ -11,7 +11,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Badge } from '../components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from '../components/ui/pagination';
-import { AlertCircle, Receipt, Pencil, CheckCircle, Ban, FileText, Grid, List, ArrowUpDown, Filter, ChevronDown, Search } from 'lucide-react';
+import { AlertCircle, Receipt, Pencil, CheckCircle, Ban, FileText, Grid, List, ArrowUpDown, Filter, ChevronDown, Search, CreditCard } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import ActionButton from '../components/ActionButton';
 import { ExpenseCard } from '../components/ExpenseComponents';
@@ -382,6 +382,9 @@ const Expenses = () => {
       } else if (dialogMode === 'reject' && selectedExpense) {
         const rejected = await expenseService.rejectExpense(selectedExpense.expenseId, form.approvalRemarks || '');
         successMsg = `Expense '${rejected.expenseTitle}' rejected.`;
+      } else if (dialogMode === 'pay' && selectedExpense) {
+        const paid = await expenseService.markAsPaid(selectedExpense.expenseId, form.paymentDate || null);
+        successMsg = `Expense '${paid.expenseTitle}' marked as paid.`;
       }
       setOpenDialog(false);
       setSelectedExpense(null);
@@ -523,6 +526,11 @@ const Expenses = () => {
               label: 'Reject',
               onClick: () => openForm('reject', row),
               disabled: row.approvalStatus === 'REJECTED',
+            },
+            {
+              label: 'Mark as Paid',
+              onClick: () => openForm('pay', row),
+              disabled: row.approvalStatus !== 'APPROVED' || row.expenseStatus === 'PAID',
             },
           ]}
         />
@@ -933,12 +941,19 @@ const Expenses = () => {
                   Reject Expense
                 </div>
               )}
+              {dialogMode === 'pay' && (
+                <div className="flex items-center text-blue-600">
+                  <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
+                  Mark as Paid
+                </div>
+              )}
             </DialogTitle>
             <DialogDescription>
               {dialogMode === 'create' && 'Fill in the details to record a new expense.'}
               {dialogMode === 'edit' && 'Make changes to update the expense record.'}
               {dialogMode === 'approve' && 'Approve this expense and provide any comments.'}
               {dialogMode === 'reject' && 'Reject this expense and provide a reason.'}
+              {dialogMode === 'pay' && 'Mark this expense as paid and optionally specify a payment date.'}
             </DialogDescription>
           </DialogHeader>
           
@@ -991,6 +1006,59 @@ const Expenses = () => {
                     className={`cursor-pointer ${dialogMode === 'approve' ? 'bg-green-600 hover:bg-green-600/90' : 'bg-rose-600 hover:bg-rose-600/90'}`}
                   >
                     {dialogMode === 'approve' ? 'Approve Expense' : 'Reject Expense'}
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
+
+            {/* Payment Form */}
+            {dialogMode === 'pay' && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="paymentDate">Payment Date (Optional)</Label>
+                  <Input 
+                    id="paymentDate"
+                    name="paymentDate" 
+                    type="date"
+                    value={form.paymentDate || ''} 
+                    onChange={handleFormChange} 
+                    placeholder="Select payment date" 
+                    className="mt-1"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Leave blank to use today's date
+                  </p>
+                </div>
+
+                <div className="p-3 border rounded-md bg-blue-50 border-blue-200">
+                  <div className="flex items-start">
+                    <AlertCircle className="w-4 h-4 mr-2 text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-700">
+                      <p className="font-medium">Marking as Paid</p>
+                      <p>This expense will be marked as PAID and cannot be undone. Make sure the payment has been processed.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter className="flex justify-end gap-2 mt-6">
+                  <Button 
+                    type="button" 
+                    className="cursor-pointer" 
+                    variant="outline" 
+                    onClick={() => {
+                      setOpenDialog(false);
+                      setSelectedExpense(null);
+                      setForm({ ...defaultExpense });
+                      setError('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="cursor-pointer bg-blue-600 hover:bg-blue-600/90"
+                  >
+                    Mark as Paid
                   </Button>
                 </DialogFooter>
               </div>

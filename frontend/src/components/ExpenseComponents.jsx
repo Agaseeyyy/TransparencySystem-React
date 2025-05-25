@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip";
 import { Separator } from "../components/ui/separator";
 import { formatCurrency, formatDate } from "../utils/formatUtils";
+import { fileUtils } from "../utils/apiService";
 import { useAuth } from "../context/AuthProvider";
 import { 
   ChevronDown, ChevronUp, Receipt, FileText, Banknote, Calendar, Building,
@@ -95,6 +96,12 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
             <TagsIcon size={12} className="flex-shrink-0 mr-2" />
             <span>{formatLabel(expense.expenseCategory)}</span>
           </Badge>
+          {fileUtils.hasFile(expense.documentationPath) && (
+            <Badge variant="outline" className="flex items-center px-3 py-1 text-sm bg-blue-50 border-blue-200 text-blue-700">
+              <FileText size={12} className="flex-shrink-0 mr-2" />
+              <span>Has Documentation</span>
+            </Badge>
+          )}
         </div>
 
         {/* Basic info in grid for wider layout */}
@@ -145,6 +152,38 @@ const ExpenseCard = ({ expense, openForm, handleDelete, className = "" }) => {
               <div>
                 <div className="mb-1 font-medium text-gray-700">Budget Allocation</div>
                 <div className="text-gray-800">{expense.budgetAllocation || '-'}</div>
+              </div>
+              
+              <div>
+                <div className="mb-1 font-medium text-gray-700">Documentation</div>
+                <div className="text-gray-800">
+                  {fileUtils.hasFile(expense.documentationPath) ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs text-gray-600">
+                        📎 {fileUtils.getFileName(expense.documentationPath)}
+                      </span>
+                      <div className="flex gap-2">
+                        <a 
+                          href={fileUtils.getFileViewUrl(expense.documentationPath)}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 text-xs underline"
+                        >
+                          View
+                        </a>
+                        <a 
+                          href={fileUtils.getFileDownloadUrl(expense.documentationPath)}
+                          download
+                          className="text-green-600 hover:text-green-800 text-xs underline"
+                        >
+                          Download
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">No file attached</span>
+                  )}
+                </div>
               </div>
               
               <div>

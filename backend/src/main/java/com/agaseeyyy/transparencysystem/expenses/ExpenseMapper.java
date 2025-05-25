@@ -58,6 +58,7 @@ public class ExpenseMapper {
         dto.setCreatedAt(expense.getCreatedAt());
         dto.setUpdatedAt(expense.getUpdatedAt());
         dto.setRemarks(expense.getRemarks());
+        dto.setDocumentationPath(expense.getDocumentationPath());
         
         // Safe handling of related entities - extract only what we need
         if (expense.getCreatedByAccount() != null) {
@@ -186,6 +187,9 @@ public class ExpenseMapper {
         }
         if (inputDTO.getRemarks() != null) {
             expense.setRemarks(inputDTO.getRemarks());
+        }
+        if (inputDTO.getDocumentationPath() != null) {
+            expense.setDocumentationPath(inputDTO.getDocumentationPath());
         }
         
         // Handle related entities

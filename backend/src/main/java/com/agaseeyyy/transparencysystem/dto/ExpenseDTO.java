@@ -35,6 +35,7 @@ public class ExpenseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String remarks;
+    private String documentationPath;
     
     // Related entity information
     private String createdByName;
@@ -332,5 +333,13 @@ public class ExpenseDTO {
     
     public void setNetAmount(BigDecimal netAmount) {
         this.netAmount = netAmount;
+    }
+    
+    public String getDocumentationPath() {
+        return documentationPath;
+    }
+    
+    public void setDocumentationPath(String documentationPath) {
+        this.documentationPath = documentationPath;
     }
 }

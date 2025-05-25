@@ -9,12 +9,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.agaseeyyy.transparencysystem.dto.ExpenseDTO;
 import com.agaseeyyy.transparencysystem.dto.ExpenseInputDTO;
 import com.agaseeyyy.transparencysystem.expenses.Expenses.ApprovalStatus;
 import com.agaseeyyy.transparencysystem.expenses.Expenses.ExpenseCategory;
 import com.agaseeyyy.transparencysystem.expenses.Expenses.ExpenseStatus;
+import com.agaseeyyy.transparencysystem.util.FileUploadService;
 
 import jakarta.validation.Valid;
 
@@ -25,10 +27,12 @@ public class ExpenseController {
     
     private final ExpenseService expenseService;
     private final ExpenseMapper expenseMapper;
+    private final FileUploadService fileUploadService;
     
-    public ExpenseController(ExpenseService expenseService, ExpenseMapper expenseMapper) {
+    public ExpenseController(ExpenseService expenseService, ExpenseMapper expenseMapper, FileUploadService fileUploadService) {
         this.expenseService = expenseService;
         this.expenseMapper = expenseMapper;
+        this.fileUploadService = fileUploadService;
     }
     
     // Create new expense
@@ -39,6 +43,32 @@ public class ExpenseController {
         Expenses expense = expenseMapper.toEntity(expenseDTO, null);
         Expenses createdExpense = expenseService.createExpense(expense, createdByAccountId);
         return ResponseEntity.status(HttpStatus.CREATED).body(expenseMapper.toDTO(createdExpense));
+    }
+    
+    // Create new expense with file upload
+    @PostMapping(value = "/with-file", consumes = "multipart/form-data")
+    public ResponseEntity<ExpenseDTO> createExpenseWithFile(
+            @RequestParam("expenseData") String expenseDataJson,
+            @RequestParam("createdByAccountId") Integer createdByAccountId,
+            @RequestParam(value = "documentation", required = false) MultipartFile documentationFile) {
+        try {
+            // Parse JSON data
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            ExpenseInputDTO expenseDTO = mapper.readValue(expenseDataJson, ExpenseInputDTO.class);
+            
+            // Handle file upload if provided
+            if (documentationFile != null && !documentationFile.isEmpty()) {
+                String filePath = fileUploadService.uploadExpenseDocumentation(documentationFile);
+                expenseDTO.setDocumentationPath(filePath);
+            }
+            
+            Expenses expense = expenseMapper.toEntity(expenseDTO, null);
+            Expenses createdExpense = expenseService.createExpense(expense, createdByAccountId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(expenseMapper.toDTO(createdExpense));
+        } catch (Exception e) {
+            throw new com.agaseeyyy.transparencysystem.exception.BadRequestException("Failed to create expense: " + e.getMessage());
+        }
     }
     
     // Get all expenses with filtering and pagination
@@ -102,6 +132,39 @@ public class ExpenseController {
         Expenses expense = expenseMapper.toEntity(expenseDTO, null);
         Expenses updatedExpense = expenseService.updateExpense(id, expense);
         return ResponseEntity.ok(expenseMapper.toDTO(updatedExpense));
+    }
+    
+    // Update expense with file upload
+    @PutMapping(value = "/{id}/with-file", consumes = "multipart/form-data")
+    public ResponseEntity<ExpenseDTO> updateExpenseWithFile(
+            @PathVariable Long id,
+            @RequestParam("expenseData") String expenseDataJson,
+            @RequestParam(value = "documentation", required = false) MultipartFile documentationFile) {
+        try {
+            Expenses existingExpense = expenseService.getExpenseById(id)
+                .orElseThrow(() -> new com.agaseeyyy.transparencysystem.exception.ResourceNotFoundException("Expense not found with ID: " + id));
+            
+            // Parse JSON data
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            ExpenseInputDTO expenseDTO = mapper.readValue(expenseDataJson, ExpenseInputDTO.class);
+            
+            // Handle file upload if provided
+            if (documentationFile != null && !documentationFile.isEmpty()) {
+                // Delete old file if exists
+                if (existingExpense.getDocumentationPath() != null) {
+                    fileUploadService.deleteFile(existingExpense.getDocumentationPath());
+                }
+                String filePath = fileUploadService.uploadExpenseDocumentation(documentationFile);
+                expenseDTO.setDocumentationPath(filePath);
+            }
+            
+            Expenses expense = expenseMapper.toEntity(expenseDTO, existingExpense);
+            Expenses updatedExpense = expenseService.updateExpense(id, expense);
+            return ResponseEntity.ok(expenseMapper.toDTO(updatedExpense));
+        } catch (Exception e) {
+            throw new com.agaseeyyy.transparencysystem.exception.BadRequestException("Failed to update expense: " + e.getMessage());
+        }
     }
     
     // Approve expense

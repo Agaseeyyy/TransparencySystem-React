@@ -43,6 +43,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                 // Adding rule for public API v1 endpoints
                 .requestMatchers("/api/v1/public/**").permitAll()
+                // File serving endpoints - allow public access only for viewing files
+                .requestMatchers("/api/files/serve").permitAll()
+                .requestMatchers("/api/files/*/*").permitAll()
                 // Auth verification endpoint - requires authentication
                 .requestMatchers("/api/auth/verify").authenticated()
                 // Default - require authentication for everything else

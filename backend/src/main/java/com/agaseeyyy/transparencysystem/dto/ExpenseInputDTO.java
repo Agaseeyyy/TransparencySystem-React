@@ -90,6 +90,9 @@ public class ExpenseInputDTO {
     @NotNull(message = "Related Fee ID is required")
     private Integer relatedFeeId;
     
+    @Size(max = 500, message = "Documentation path cannot exceed 500 characters")
+    private String documentationPath; // Path to uploaded documentation/receipts
+    
     // Default constructor
     public ExpenseInputDTO() {}
     
@@ -252,5 +255,13 @@ public class ExpenseInputDTO {
     
     public void setRelatedFeeId(Integer relatedFeeId) {
         this.relatedFeeId = relatedFeeId;
+    }
+    
+    public String getDocumentationPath() {
+        return documentationPath;
+    }
+    
+    public void setDocumentationPath(String documentationPath) {
+        this.documentationPath = documentationPath;
     }
 }

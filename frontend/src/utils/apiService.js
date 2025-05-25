@@ -443,9 +443,53 @@ export const expenseService = {
     return response.data;
   },
 
+  // Create a new expense with file upload
+  createExpenseWithFile: async (expenseData, documentationFile) => {
+    // Get the current user's accountId from localStorage
+    const userString = localStorage.getItem('auth_user');
+    const user = userString ? JSON.parse(userString) : null;
+    const accountId = user?.accountId;
+    
+    if (!accountId) {
+      throw new Error('User account ID is required to create an expense');
+    }
+
+    const formData = new FormData();
+    formData.append('expenseData', JSON.stringify(expenseData));
+    formData.append('createdByAccountId', accountId);
+    
+    if (documentationFile) {
+      formData.append('documentation', documentationFile);
+    }
+
+    const response = await api.post('/api/expenses/with-file', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // Update an existing expense
   updateExpense: async (expenseId, expenseData) => {
     const response = await api.put(`/api/expenses/${expenseId}`, expenseData);
+    return response.data;
+  },
+
+  // Update an existing expense with file upload
+  updateExpenseWithFile: async (expenseId, expenseData, documentationFile) => {
+    const formData = new FormData();
+    formData.append('expenseData', JSON.stringify(expenseData));
+    
+    if (documentationFile) {
+      formData.append('documentation', documentationFile);
+    }
+
+    const response = await api.put(`/api/expenses/${expenseId}/with-file`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 
@@ -510,5 +554,45 @@ export const dashboardService = {
   getFeeUtilizationBreakdown: async () => {
     const response = await api.get('/api/v1/dashboard/admin/fee-utilization');
     return response.data;
+  }
+};
+
+// File utility functions
+export const fileUtils = {
+  // Generate file view URL
+  getFileViewUrl: (path) => {
+    if (!path) return null;
+    return `http://localhost:8080/api/files/serve?path=${encodeURIComponent(path)}`;
+  },
+  
+  // Generate file download URL
+  getFileDownloadUrl: (path) => {
+    if (!path) return null;
+    return `http://localhost:8080/api/files/serve?path=${encodeURIComponent(path)}&download=true`;
+  },
+  
+  // Extract filename from path
+  getFileName: (path) => {
+    if (!path) return null;
+    return path.split('/').pop();
+  },
+  
+  // Check if file exists based on path
+  hasFile: (path) => {
+    return path && path.length > 0;
+  },
+  
+  // Delete file
+  deleteFile: async (path) => {
+    if (!path) return false;
+    try {
+      const response = await api.delete('/api/files/delete', {
+        params: { path }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      throw error;
+    }
   }
 };

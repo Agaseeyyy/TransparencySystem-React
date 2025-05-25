@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.security.Principal;
+import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
@@ -216,7 +217,7 @@ public class PaymentService {
 
 
      // Calculates the total amount of payments for a given student's class details and fee ID.
-     public Double calculateTotalPaymentsPerClass(Principal principal, String program, Year yearLevel, Character section, Integer feeId) {
+     public BigDecimal calculateTotalPaymentsPerClass(Principal principal, String program, Year yearLevel, Character section, Integer feeId) {
         // Check if the user is a Class Treasurer and apply class-based filtering
         if (principal != null && isClassTreasurer(principal)) {
             ClassTreasurerDetails treasurerDetails = getClassTreasurerDetails(principal.getName());
@@ -237,7 +238,7 @@ public class PaymentService {
         }
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Double> cq = cb.createQuery(Double.class);
+        CriteriaQuery<BigDecimal> cq = cb.createQuery(BigDecimal.class);
         Root<Payments> root = cq.from(Payments.class);
 
         // Base specification for student details and fee
@@ -253,13 +254,13 @@ public class PaymentService {
 
         cq.select(cb.sum(root.get("fee").get("amount"))); 
 
-        TypedQuery<Double> query = entityManager.createQuery(cq);
+        TypedQuery<BigDecimal> query = entityManager.createQuery(cq);
 
         try {
-            Double totalAmount = query.getSingleResult();
-            return totalAmount != null ? totalAmount : 0.0;
+            BigDecimal totalAmount = query.getSingleResult();
+            return totalAmount != null ? totalAmount : BigDecimal.ZERO;
         } catch (NoResultException e) {
-            return 0.0;
+            return BigDecimal.ZERO;
         }
     }
 

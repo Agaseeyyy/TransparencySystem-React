@@ -3,6 +3,7 @@ package com.agaseeyyy.transparencysystem.payments;
 import java.time.Year;
 import java.util.List;
 import java.security.Principal;
+import java.math.BigDecimal;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -73,7 +74,7 @@ public class PaymentsController {
 
     @GetMapping("/students/{program}/{yearLevel}/{section}/fees/{feeId}")
     @PreAuthorize("hasAnyAuthority('Admin', 'Org_Treasurer', 'Class_Treasurer')")
-    public Double displayTotalPaymentsPerClass(
+    public BigDecimal displayTotalPaymentsPerClass(
             Principal principal,
             @PathVariable String program,
             @PathVariable String yearLevel,

@@ -206,6 +206,7 @@ const Remittance = () => {
             key: 'treasurer',
             label: 'Class Treasurer',
             sortable: true,
+            sortKey: 'account.student.lastName', // Use correct property path
             render: (_, row) => {
                 const name = row.lastName ? 
                     `${row.lastName}, ${row.firstName} ${row.middleInitial ? row.middleInitial + '.' : ""}` : '-';
@@ -220,14 +221,14 @@ const Remittance = () => {
             key: 'program',
             label: 'Program',
             sortable: true,
-            sortKey: 'program',
+            sortKey: 'account.student.program.programId', // Use correct property path
             render: (_, row) => row.programCode || '-'
         },
         {
             key: 'yearAndSection',
             label: 'Year & Section',
             sortable: true,
-            sortKey: 'yearAndSection',
+            sortKey: 'account.student.yearLevel', // Use correct property path
             render: (_, row) => (
                 <span>
                     {row.yearLevel && row.section ? `${row.yearLevel}-${row.section}` : '-'}
@@ -507,12 +508,6 @@ const Remittance = () => {
         
         if (name === 'fee') {
             setSelectedFeeType(value === 'all' ? null : value);
-            // Data fetching is handled by the main useEffect reacting to filters.fee change.
-            // If user explicitly selects "all" in listOfFees, clear data immediately.
-            if (viewMode === 'listOfFees' && value === 'all') {
-                 setUnremittedTreasurers([]); 
-                 setTotalElements(0);
-            }
         }
     };
 
@@ -524,11 +519,9 @@ const Remittance = () => {
         setPageSuccess('');
         
         if (mode === 'listOfFees') {
-            // Default sort for "List of Fees" view
-            setSortField('student.lastName'); 
+            // Default sort for "List of Fees" view - use correct property path for Remittances
+            setSortField('account.student.lastName'); 
             setSortDirection('asc');
-            // Auto-select logic will be handled by the new useEffect.
-            // If a fee is already selected, main data fetching useEffect will pick it up.
         } else { // mode === 'records'
             // Default sort for "Records" view
             setSortField('remittanceDate');
@@ -545,7 +538,6 @@ const Remittance = () => {
             })); 
             setSelectedFeeType(null);
         }
-        // The main data fetching useEffect will handle fetching based on new viewMode and current filters.fee
     };
 
     // Handlers for pagination and sorting
@@ -729,7 +721,7 @@ const Remittance = () => {
         const saveFormData = {
             feeType: formData.get('feeType'),
             userId: formData.get('userId'),
-            amountRemitted: totalRemittance // Use calculated total instead of input
+            amountRemitted: totalRemittance
         };
 
         setFormError('');
@@ -743,40 +735,52 @@ const Remittance = () => {
         }
 
         try {
-            // Find treasurer details for success message
-            const treasurer = users.find(u => String(u.accountId) === String(saveFormData.userId));
-            let treasurerName = `Treasurer ID ${saveFormData.userId}`; // Fallback
-            if (treasurer) {
-                const lastName = treasurer.lastName || '';
-                const firstName = treasurer.firstName || '';
-                const middleInitial = treasurer.middleInitial ? ` ${treasurer.middleInitial}.` : '';
-                treasurerName = `${lastName}, ${firstName}${middleInitial}`.replace(/^, | ,$/, '').trim();
-                if (treasurerName === "," || treasurerName === "") treasurerName = `Treasurer ID ${saveFormData.userId}`;
+            let response;
+            let successMsg = '';
+            
+            // Find user details for the success message
+            const selectedUser = users.find(u => String(u.accountId) === String(saveFormData.userId));
+            let userNameToDisplay = `User ID ${saveFormData.userId}`; // Fallback
+            if (selectedUser) {
+                const lastName = selectedUser.lastName || '';
+                const firstName = selectedUser.firstName || '';
+                const middleInitial = selectedUser.middleInitial ? ` ${selectedUser.middleInitial}.` : '';
+                userNameToDisplay = `${lastName}, ${firstName}${middleInitial}`.replace(/^, | ,$/, '').trim();
+                if (userNameToDisplay === "," || userNameToDisplay === "") userNameToDisplay = `User ID ${saveFormData.userId}`;
             }
 
-            // Find fee details for success message
-            const fee = fees.find(f => String(f.feeId) === String(saveFormData.feeType));
-            const feeTypeName = fee ? fee.feeType : `Fee ID ${saveFormData.feeType}`;
-
             if (modalMode === 'edit') {
-                await remittanceService.updateRemittance(
+                response = await remittanceService.updateRemittance(
                     editingRemittance.id,
                     saveFormData.feeType,
                     saveFormData.userId,
                     saveFormData
                 );
-                setPageSuccess(`Remittance for ${treasurerName} (${feeTypeName}) updated successfully.`);
+                successMsg = `Remittance for ${userNameToDisplay} updated successfully.`;
             } else {
-                await remittanceService.addRemittance(
+                response = await remittanceService.addRemittance(
                     saveFormData.feeType,
                     saveFormData.userId,
                     saveFormData
                 );
-                setPageSuccess(`Remittance for ${treasurerName} (${feeTypeName}) recorded successfully.`);
+                successMsg = `Remittance for ${userNameToDisplay} recorded successfully.`;
             }
             
-            fetchRemittances();
+            console.log('Remittance response:', response); // Debug log
+            
+            // Close modal and refresh data (following Payment page pattern)
             closeModal();
+            
+            // Refresh the data based on current view mode
+            if (viewMode === 'listOfFees') {
+                await fetchUnremittedTreasurers(filters.fee);
+            } else {
+                await fetchRemittances();
+            }
+            
+            // Set success message after data refresh
+            setPageSuccess(successMsg);
+            
         } catch (err) {
             console.error(`Error ${modalMode === 'edit' ? 'updating' : 'adding'} remittance:`, err);
             
@@ -784,10 +788,8 @@ const Remittance = () => {
             
             if (err.response?.data?.message) {
                 errorMessage = err.response.data.message;
-            } else if (err.response?.status === 409) {
-                errorMessage = "This treasurer already has a remittance record for this fee";
-            } else if (err.response?.status === 404) {
-                errorMessage = "Treasurer or fee information not found";
+            } else if (err.response?.data?.success === false) {
+                errorMessage = err.response.data.message || errorMessage;
             } else if (err.message) {
                 errorMessage = err.message;
             }
@@ -796,17 +798,19 @@ const Remittance = () => {
         }
     };
 
-    // Side effects
+    // Side effects - update to clear messages on relevant changes
     useEffect(() => {
+        setPageError('');
+        setPageSuccess('');
+        
         if (viewMode === 'records') {
             fetchRemittances();
         } else if (viewMode === 'listOfFees') {
             if (filters.fee && filters.fee !== 'all') {
                 fetchUnremittedTreasurers(filters.fee);
             } else {
-                // Clear data or show a message if no fee is selected for "List of Fees"
                 setUnremittedTreasurers([]);
-                setTotalElements(0); // Or handle appropriately
+                setTotalElements(0);
             }
         }
     }, [currentPage, pageSize, sortField, sortDirection, filters, viewMode, user.accountId, location.search]);

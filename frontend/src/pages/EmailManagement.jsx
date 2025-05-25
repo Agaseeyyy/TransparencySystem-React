@@ -31,7 +31,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { studentService, feeService, programService, emailService } from '../utils/apiService'; // Import emailService
 
 const EmailManagement = () => {
-  const { user } = useAuth();
+  const { user, can } = useAuth();
   
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -224,7 +224,7 @@ const EmailManagement = () => {
   };
   
   // Check permissions
-  if (!user || (user.role !== 'Admin' && user.role !== 'Org_Treasurer')) {
+  if (!can.manageTransaction()) {
     return (
       <div className="container p-4 mx-auto">
         <Card className="w-full">

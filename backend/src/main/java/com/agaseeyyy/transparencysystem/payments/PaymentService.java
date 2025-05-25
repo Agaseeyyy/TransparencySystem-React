@@ -353,7 +353,19 @@ public class PaymentService {
         dto.setProgram((String) result[i++]);
         dto.setFeeId((Integer) result[i++]);
         dto.setFeeType((String) result[i++]);
-        dto.setAmount((Double) result[i++]);
+        
+        // Fix: Handle BigDecimal to Double conversion for amount field
+        Object amountObj = result[i++];
+        if (amountObj instanceof java.math.BigDecimal) {
+            dto.setAmount(((java.math.BigDecimal) amountObj).doubleValue());
+        } else if (amountObj instanceof Double) {
+            dto.setAmount((Double) amountObj);
+        } else if (amountObj != null) {
+            dto.setAmount(Double.valueOf(amountObj.toString()));
+        } else {
+            dto.setAmount(null);
+        }
+        
         dto.setPaymentId((String) result[i++]);
         String statusStr = (String) result[i++];
         dto.setStatus(statusStr != null ? Status.valueOf(statusStr) : Status.Pending);

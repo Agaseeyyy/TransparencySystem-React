@@ -2,6 +2,7 @@ package com.agaseeyyy.transparencysystem.payments;
 
 import java.time.LocalDate;
 import java.time.Year;
+import java.math.BigDecimal;
 
 import com.agaseeyyy.transparencysystem.enums.Status;
 
@@ -171,4 +172,4 @@ public class PaymentDTO {
     public void setProgramId(String programId) {
         this.programId = programId;
     }
-} 
+}

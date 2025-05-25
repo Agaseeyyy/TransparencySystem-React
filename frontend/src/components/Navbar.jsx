@@ -155,7 +155,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
       case '/expenses':
         return 'Expenses';
       case '/email-management':
-        return 'Email Management';
+        return 'Email Control Panel';
       case '/settings':
         return 'Settings';
       default:
@@ -333,7 +333,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
                   <Bell className="w-5 h-5" />
                 </button>
 
-                {/* Email Management Dropdown - Improved Design */}
+                {/* Mail Management Dropdown - Improved Design */}
                 {showNotifications && (
                   <div className="absolute right-0 z-10 mt-2 overflow-hidden transition-all duration-200 ease-out origin-top-right transform bg-white border border-gray-200 rounded-lg shadow-lg w-80">
                     {/* Header */}
@@ -341,7 +341,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
                       <div className="flex items-center justify-between">
                         <h3 className="flex items-center text-sm font-medium text-white">
                           <Send className="w-4 h-4 mr-2" />
-                          Email Management
+                          Quick Mail Center
                         </h3>
                         <button 
                           onClick={() => setShowNotifications(false)} 
@@ -432,7 +432,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
                           onClick={() => setShowNotifications(false)}
                         >
                           <Send className="w-4 h-4 mr-2" />
-                          <span>Open Email Management Console</span>
+                          <span>Open Mail Control Panel</span>
                         </Link>
                       </div>
                     )}

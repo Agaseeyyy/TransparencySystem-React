@@ -60,14 +60,14 @@ const LoginPage = () => {
   return (
     <>
       <section
-        className="relative h-screen -m-5 bg-center bg-cove"
-        style={{ backgroundImage: `url(${bg})`, }}
+        className="fixed inset-0 w-full h-full bg-center bg-cover"
+        style={{ backgroundImage: `url(${bg})` }}
       >
         {/* Dark overlay for better readability */}
         <div className="absolute inset-0 bg-black/50" />
 
         {/* Centered content */}
-        <div className="relative flex flex-col items-center justify-center h-full px-6 py-8 mx-auto">
+        <div className="relative flex flex-col items-center justify-center w-full h-full px-6 py-8">
           {/* Logo and title */}
           <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-white">
             <img

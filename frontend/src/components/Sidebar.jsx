@@ -5,16 +5,18 @@ import { useAuth } from "../context/AuthProvider"
 import { Link, useLocation } from "react-router-dom"
 import { 
   LayoutDashboard, 
-  CreditCard, 
+  Receipt, 
   GraduationCap, 
-  CircleDollarSign, 
-  Calendar, 
-  Users, 
-  School, 
+  ArrowUpCircle, 
+  FileText, 
+  DollarSign, 
+  Building2, 
+  BookOpen, 
+  UserCog, 
   Settings, 
   LogOut,
   X,
-  Send
+  Mail
 } from "lucide-react"
 import path from "path";
 
@@ -29,15 +31,15 @@ const Sidebar = ({ collapsed, mobileOpen, closeMobile }) => {
   // menu items
   const menuItems = [
     { path: "/dashboard", title: "Dashboard", icon: LayoutDashboard, access: "all" },
-    { path: "/payments", title: "Payments", icon: CreditCard, access: "all" },
+    { path: "/payments", title: "Payments", icon: Receipt, access: "all" },
     { path: "/students", title: "Students", icon: GraduationCap, access: "orgTreasurer" },
-    { path: "/remittances", title: "Remittance", icon: CircleDollarSign, access: "orgTreasurer" },
-    { path: "/expenses", title: "Expenses", icon: CircleDollarSign, access: "orgTreasurer" },
-    { path: "/fees", title: "Fees", icon: Calendar, access: "orgTreasurer" },
-    { path: "/departments", title: "Departments", icon: Users, access: "admin" },
-    { path: "/programs", title: "Programs", icon: School, access: "admin" },
-    { path: "/accounts", title: "Accounts", icon: Users, access: "admin" },
-    { path: "/email-management", title: "Email Management", icon: Send, access: "orgTreasurer" },
+    { path: "/remittances", title: "Remittance", icon: ArrowUpCircle, access: "orgTreasurer" },
+    { path: "/expenses", title: "Expenses", icon: FileText, access: "orgTreasurer" },
+    { path: "/fees", title: "Fees", icon: DollarSign, access: "orgTreasurer" },
+    { path: "/departments", title: "Departments", icon: Building2, access: "admin" },
+    { path: "/programs", title: "Programs", icon: BookOpen, access: "admin" },
+    { path: "/accounts", title: "Accounts", icon: UserCog, access: "admin" },
+    { path: "/email-management", title: "Email Control Panel", icon: Mail, access: "orgTreasurer" },
     { path: "/settings", title: "Settings", icon: Settings, access: "all" }
   ];
   

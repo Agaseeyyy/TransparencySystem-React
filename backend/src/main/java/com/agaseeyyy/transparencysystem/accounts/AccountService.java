@@ -34,10 +34,8 @@ import com.agaseeyyy.transparencysystem.enums.RemittanceStatus;
 import com.agaseeyyy.transparencysystem.remittances.RemittanceStatusCalculator;
 import com.agaseeyyy.transparencysystem.dto.AccountWithRemittanceStatusDTO;
 import com.agaseeyyy.transparencysystem.fees.FeeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Comparator;
 import java.util.ArrayList;
-import com.agaseeyyy.transparencysystem.dto.RemittanceSummary;
 import com.agaseeyyy.transparencysystem.remittances.RemittanceRepository;
 
 @Service
@@ -54,7 +52,6 @@ public class AccountService {
     private EntityManager entityManager;
     
     // Constructors
-    @Autowired
     public AccountService(AccountRepository accountRepository, StudentRepository studentRepository, 
                          PasswordEncoder passwordEncoder,
                          RemittanceStatusCalculator remittanceStatusCalculator,
@@ -116,12 +113,6 @@ public class AccountService {
 
     @Transactional
     public Accounts addNewAccount(Long studentId, Accounts newAccount) {
-        // Debug logging to see what we receive
-        System.out.println("DEBUG - Received account data:");
-        System.out.println("Email: " + (newAccount != null ? newAccount.getEmail() : "null"));
-        System.out.println("Password: " + (newAccount != null && newAccount.getPassword() != null ? "[PRESENT]" : "null"));
-        System.out.println("Role: " + (newAccount != null ? newAccount.getRole() : "null"));
-        
         if (newAccount == null || newAccount.getEmail() == null || newAccount.getEmail().isBlank() ||
             newAccount.getPassword() == null || newAccount.getPassword().isBlank() || 
             newAccount.getRole() == null) {

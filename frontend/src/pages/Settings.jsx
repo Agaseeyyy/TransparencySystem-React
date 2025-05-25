@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { User, Mail, Lock, Eye, EyeOff, Save, AlertCircle, CheckCircle, UserCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthProvider';
 import { accountService } from '../utils/apiService';
 
@@ -17,6 +18,27 @@ const Settings = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [errors, setErrors] = useState({});
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      } 
+    }
+  };
+    
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { type: "spring", stiffness: 300, damping: 24 }
+    }
+  };
 
   useEffect(() => {
     fetchProfile();
@@ -121,29 +143,49 @@ const Settings = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-b-2 rounded-full border-rose-600 animate-spin"></div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="w-8 h-8 border-b-2 rounded-full border-rose-600 animate-spin"
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen px-4 py-8 bg-gray-50">
+    <motion.div 
+      className="min-h-screen px-4 py-8 bg-gray-50"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="p-6 mb-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <motion.div 
+          variants={itemVariants}
+          className="p-6 mb-6 bg-white border border-gray-200 rounded-lg shadow-sm"
+        >
           <div className="flex items-center space-x-4">
-            <div className="p-3 rounded-full bg-rose-100">
+            <motion.div 
+              className="p-3 rounded-full bg-rose-100"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            >
               <UserCircle className="w-8 h-8 text-rose-600" />
-            </div>
+            </motion.div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
               <p className="text-gray-600">Update your account information and preferences</p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Profile Form */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <motion.div 
+          variants={itemVariants}
+          className="bg-white border border-gray-200 rounded-lg shadow-sm"
+        >
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Account Information</h2>
             <p className="mt-1 text-sm text-gray-600">Update your basic account details</p>
@@ -152,7 +194,10 @@ const Settings = () => {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* User Info Display */}
             {(currentUserData || user) && (
-              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+              <motion.div 
+                variants={itemVariants}
+                className="p-4 border border-gray-200 rounded-lg bg-gray-50"
+              >
                 <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                   <div>
                     <span className="font-medium text-gray-700">Name:</span>
@@ -189,51 +234,52 @@ const Settings = () => {
                     <span className="ml-2 text-gray-900">{currentUserData?.accountId || user?.accountId || 'N/A'}</span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Message Display */}
             {message.text && (
-              <div className={`flex items-center space-x-2 p-4 rounded-lg ${
-                message.type === 'success' 
-                  ? 'bg-green-50 text-green-800 border border-green-200' 
-                  : 'bg-red-50 text-red-800 border border-red-200'
-              }`}>
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className={`flex items-center space-x-2 p-4 rounded-lg ${
+                  message.type === 'success' 
+                    ? 'bg-green-50 text-green-800 border border-green-200' 
+                    : 'bg-red-50 text-red-800 border border-red-200'
+                }`}
+              >
                 {message.type === 'success' ? (
                   <CheckCircle className="w-5 h-5" />
                 ) : (
                   <AlertCircle className="w-5 h-5" />
                 )}
                 <span className="text-sm font-medium">{message.text}</span>
-              </div>
+              </motion.div>
             )}
 
             {/* Email Field */}
-            <div>
+            <motion.div variants={itemVariants}>
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 Email Address
               </label>
+              <p className="mb-2 text-xs text-gray-500">Email address cannot be changed</p>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Mail className="w-5 h-5 text-gray-400" />
                 </div>
-                <input
+                <motion.input
                   type="email"
                   value={profile.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  readOnly
+                  className="block w-full py-3 pl-10 pr-3 text-gray-500 border border-gray-300 rounded-lg cursor-not-allowed bg-gray-50"
                   placeholder="Enter your email address"
                 />
               </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
+            </motion.div>
 
             {/* Password Field */}
-            <div>
+            <motion.div variants={itemVariants}>
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 New Password
               </label>
@@ -242,7 +288,9 @@ const Settings = () => {
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Lock className="w-5 h-5 text-gray-400" />
                 </div>
-                <input
+                <motion.input
+                  whileFocus={{ scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 24 }}
                   type={showPassword ? 'text' : 'password'}
                   value={profile.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
@@ -251,7 +299,9 @@ const Settings = () => {
                   }`}
                   placeholder="Enter new password"
                 />
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
@@ -261,16 +311,28 @@ const Settings = () => {
                   ) : (
                     <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600" />
                   )}
-                </button>
+                </motion.button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+                <motion.p 
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1 text-sm text-red-600"
+                >
+                  {errors.password}
+                </motion.p>
               )}
-            </div>
+            </motion.div>
 
             {/* Confirm Password Field */}
             {profile.password && (
-              <div>
+              <motion.div 
+                variants={itemVariants}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
                 <label className="block mb-2 text-sm font-medium text-gray-700">
                   Confirm New Password
                 </label>
@@ -278,7 +340,9 @@ const Settings = () => {
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <Lock className="w-5 h-5 text-gray-400" />
                   </div>
-                  <input
+                  <motion.input
+                    whileFocus={{ scale: 1.01 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 24 }}
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={profile.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
@@ -287,7 +351,9 @@ const Settings = () => {
                     }`}
                     placeholder="Confirm new password"
                   />
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute inset-y-0 right-0 flex items-center pr-3"
@@ -297,24 +363,39 @@ const Settings = () => {
                     ) : (
                       <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600" />
                     )}
-                  </button>
+                  </motion.button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                  <motion.p 
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-1 text-sm text-red-600"
+                  >
+                    {errors.confirmPassword}
+                  </motion.p>
                 )}
-              </div>
+              </motion.div>
             )}
 
             {/* Submit Button */}
-            <div className="pt-4">
-              <button
+            <motion.div 
+              variants={itemVariants}
+              className="pt-4"
+            >
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={saving}
                 className="flex items-center justify-center w-full px-4 py-3 space-x-2 text-white transition-colors rounded-lg bg-rose-600 hover:bg-rose-700 focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>
-                    <div className="w-4 h-4 border-b-2 border-white rounded-full animate-spin"></div>
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-4 h-4 border-b-2 border-white rounded-full"
+                    />
                     <span>Saving...</span>
                   </>
                 ) : (
@@ -323,12 +404,12 @@ const Settings = () => {
                     <span>Save Changes</span>
                   </>
                 )}
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           </form>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

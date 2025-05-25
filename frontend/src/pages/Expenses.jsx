@@ -17,6 +17,7 @@ import { ExpenseCard } from '../components/ExpenseComponents';
 import { formatCurrency, formatDate } from '../utils/formatUtils';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 import { useAuth } from '../context/AuthProvider';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const EXPENSE_CATEGORIES = [
   'OFFICE_SUPPLIES', 'UTILITIES', 'MAINTENANCE', 'TRANSPORTATION', 'COMMUNICATION', 'EVENTS', 'TRAINING', 'EQUIPMENT', 'SOFTWARE_LICENSES', 'PRINTING', 'CATERING', 'SECURITY', 'CLEANING', 'RENT', 'INSURANCE', 'LEGAL_FEES', 'CONSULTING', 'MARKETING', 'STUDENT_ACTIVITIES', 'EMERGENCY_FUND', 'MISCELLANEOUS'
@@ -107,6 +108,40 @@ const Expenses = () => {
 
   // Card expansion state - only one card can be expanded at a time
   const [expandedCardId, setExpandedCardId] = useState(null);
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      } 
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { type: "spring", stiffness: 300, damping: 24 }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { type: "spring", stiffness: 300, damping: 24 }
+    },
+    hover: {
+      scale: 1.02,
+      transition: { type: "spring", stiffness: 400, damping: 17 }
+    }
+  };
 
   // Reset page when switching tabs or changing filters
   useEffect(() => {
@@ -567,7 +602,12 @@ const Expenses = () => {
   ];
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 bg-gray-50/30">
+    <motion.div 
+      className="min-h-screen p-4 sm:p-6 bg-gray-50/30"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Page header with actions - only show in cards view */}
       {viewMode === 'cards' && (
         <div className="flex flex-col items-start justify-between gap-4 mb-6 sm:flex-row sm:items-center">
@@ -787,6 +827,7 @@ const Expenses = () => {
                   handleDelete={() => handleDeleteRequest(expense)}
                   expandedCardId={expandedCardId}
                   setExpandedCardId={setExpandedCardId}
+                  variants={cardVariants}
                 />
               ))
             ) : (
@@ -1520,7 +1561,7 @@ const Expenses = () => {
         loading={isDeleting}
         confirmButtonText="Delete Expense"
       />
-    </div>
+    </motion.div>
   );
 };
 

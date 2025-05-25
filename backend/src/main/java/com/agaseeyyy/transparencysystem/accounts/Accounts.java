@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.Year;
 
 import com.agaseeyyy.transparencysystem.students.Students;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,7 +25,7 @@ public class Accounts {
     private String email;
 
     @Column(name = "password", nullable = false)
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(name = "created_at", nullable = false)

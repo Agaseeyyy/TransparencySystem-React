@@ -266,6 +266,11 @@ function Account() {
         const formData = new FormData(e.currentTarget);
         const accountData = Object.fromEntries(formData.entries());
 
+        // For add mode, ensure the email from editingAccount state is included
+        if (modalMode === 'add' && editingAccount?.email) {
+            accountData.email = editingAccount.email;
+        }
+
         if (!accountData.email || !accountData.role || (modalMode === 'add' && !accountData.password)) {
             setFormError("Email, Role, and Password (for new accounts) are required.");
             return;
@@ -440,9 +445,12 @@ function Account() {
                                     name="studentId"
                                     value={editingAccount?.studentId ? String(editingAccount.studentId) : undefined}
                                     onValueChange={(value) => {
+                                        const selectedStudent = students.find(s => String(s.studentId) === String(value));
                                         setEditingAccount(prev => ({
                                             ...prev || {}, 
-                                            studentId: value
+                                            studentId: value,
+                                            // Auto-populate email with the selected student's email for new accounts
+                                            email: modalMode === 'add' && selectedStudent ? selectedStudent.email : (prev?.email || '')
                                         }));
                                     }}
                                     required
@@ -465,11 +473,24 @@ function Account() {
                                     id="email"
                                     name="email"
                                     type="email"
-                                    defaultValue={editingAccount?.email || undefined}
-                                    placeholder="student@my.cspc.edu.ph"
+                                    value={editingAccount?.email || ''}
+                                    onChange={(e) => {
+                                        // Allow manual editing in edit mode
+                                        if (modalMode === 'edit') {
+                                            setEditingAccount(prev => ({
+                                                ...prev || {},
+                                                email: e.target.value
+                                            }));
+                                        }
+                                    }}
+                                    placeholder={modalMode === 'add' ? "Select a student to auto-populate email" : "student@my.cspc.edu.ph"}
                                     className="mt-1"
+                                    readOnly
                                     required
                                 />
+                                {modalMode === 'add' && (
+                                    <p className="mt-1 text-xs text-muted-foreground">Email will be auto-populated from the selected student's record</p>
+                                )}
                             </div>
                             <div className="col-span-2">
                                 <Label htmlFor="role">Role <span className="text-rose-600">*</span></Label>

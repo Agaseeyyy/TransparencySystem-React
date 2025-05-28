@@ -258,7 +258,7 @@ const Navbar = ({ collapsed, toggleSidebar }) => {
                                 </div>
                                 <div className="flex items-center mt-1 text-xs text-gray-500">
                                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-400 mr-1.5"></span>
-                                  {student.program?.programCode || 'N/A Program'} - Year {student.yearLevel || 'N/A'}
+                                  {student.program || 'N/A Program'} - Year {student.yearLevel || 'N/A'}
                                 </div>
                               </div>
                             ))}

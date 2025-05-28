@@ -54,9 +54,14 @@ function Account() {
             label: "Full Name",
             sortable: true,
             sortKey: "student.lastName",
-            render: (_, row) => (
-                <div className="font-medium">{`${row.lastName}, ${row.firstName} ${row.middleInitial || ""}.`}</div>
-            ),
+            render: (_, row) => {
+                if (!row.lastName || !row.firstName) {
+                    return <div className="font-medium text-gray-500">-</div>;
+                }
+                return (
+                    <div className="font-medium">{`${row.lastName}, ${row.firstName} ${row.middleInitial || ""}.`}</div>
+                );
+            },
         },
         {
             key: "role",
@@ -89,13 +94,22 @@ function Account() {
             key: "actions",
             label: "Actions",
             adminOnly: true,
-            render: (_, row) => (
-                <ActionButton 
-                    row={row} idField="accountId" 
-                    onEdit={() => handleEdit(row)} 
-                    onDelete={() => handleDeleteRequest(row)}
-                />
-            ),
+            render: (_, row) => {
+                if (row.email === "admin@admin.com") {
+                    return (
+                        <span className="text-sm italic text-gray-500">
+                            Cannot delete this account
+                        </span>
+                    );
+                }
+                return (
+                    <ActionButton 
+                        row={row} idField="accountId" 
+                        onEdit={() => handleEdit(row)} 
+                        onDelete={() => handleDeleteRequest(row)}
+                    />
+                );
+            },
         },
     ]
 

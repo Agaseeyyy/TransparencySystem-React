@@ -25,10 +25,26 @@ public class ExpenseSpecification {
         };
     }
     
+    // Add method to handle the column key from frontend for category
+    public static Specification<Expenses> hasExpenseCategory(ExpenseCategory expenseCategory) {
+        return (root, query, cb) -> {
+            if (expenseCategory == null) return null;
+            return cb.equal(root.get("expenseCategory"), expenseCategory);
+        };
+    }
+    
     public static Specification<Expenses> hasStatus(ExpenseStatus status) {
         return (root, query, cb) -> {
             if (status == null) return null;
             return cb.equal(root.get("expenseStatus"), status);
+        };
+    }
+    
+    // Add method to handle the column key from frontend
+    public static Specification<Expenses> hasExpenseStatus(ExpenseStatus expenseStatus) {
+        return (root, query, cb) -> {
+            if (expenseStatus == null) return null;
+            return cb.equal(root.get("expenseStatus"), expenseStatus);
         };
     }
     
@@ -222,6 +238,41 @@ public class ExpenseSpecification {
     ) {
         return Specification.where(hasCategory(category))
                 .and(hasStatus(status))
+                .and(hasApprovalStatus(approvalStatus))
+                .and(hasDepartment(departmentId))
+                .and(hasCreatedBy(createdBy))
+                .and(hasApprovedBy(approvedBy))
+                .and(hasAcademicYear(academicYear))
+                .and(hasSemester(semester))
+                .and(hasExpenseDateBetween(startDate, endDate))
+                .and(hasAmountBetween(minAmount, maxAmount))
+                .and(hasVendorSupplier(vendorSupplier))
+                .and(hasBudgetAllocation(budgetAllocation))
+                .and(isRecurring(isRecurring))
+                .and(hasSearchTerm(searchTerm));
+    }
+    
+    // Add overloaded method that accepts both expenseCategory and expenseStatus parameters
+    public static Specification<Expenses> buildFilterSpecificationWithFrontendParams(
+            ExpenseCategory expenseCategory,
+            ExpenseStatus expenseStatus,
+            ApprovalStatus approvalStatus,
+            String departmentId,
+            Integer createdBy,
+            Integer approvedBy,
+            String academicYear,
+            String semester,
+            LocalDate startDate,
+            LocalDate endDate,
+            Double minAmount,
+            Double maxAmount,
+            String vendorSupplier,
+            String budgetAllocation,
+            Boolean isRecurring,
+            String searchTerm
+    ) {
+        return Specification.where(hasExpenseCategory(expenseCategory))
+                .and(hasExpenseStatus(expenseStatus))
                 .and(hasApprovalStatus(approvalStatus))
                 .and(hasDepartment(departmentId))
                 .and(hasCreatedBy(createdBy))

@@ -287,7 +287,7 @@ public class ExpenseService {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
         
-        Specification<Expenses> spec = ExpenseSpecification.buildFilterSpecification(
+        Specification<Expenses> spec = ExpenseSpecification.buildFilterSpecificationWithFrontendParams(
             expenseCategory, expenseStatus, approvalStatus, departmentId, createdBy, approvedBy,
             academicYear, semester, startDate, endDate, minAmount, maxAmount,
             vendorSupplier, budgetAllocation, isRecurring, searchTerm
@@ -380,7 +380,7 @@ public class ExpenseService {
             Boolean isRecurring,
             String searchTerm
     ) {
-        Specification<Expenses> spec = ExpenseSpecification.buildFilterSpecification(
+        Specification<Expenses> spec = ExpenseSpecification.buildFilterSpecificationWithFrontendParams(
             expenseCategory, expenseStatus, approvalStatus, departmentId, createdBy, approvedBy,
             academicYear, semester, startDate, endDate, minAmount, maxAmount,
             vendorSupplier, budgetAllocation, isRecurring, searchTerm

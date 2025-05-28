@@ -75,7 +75,7 @@ public class ExpenseController {
     @GetMapping
     public ResponseEntity<Page<ExpenseDTO>> getAllExpenses(
             @RequestParam(required = false) ExpenseCategory category,
-            @RequestParam(required = false) ExpenseStatus status,
+            @RequestParam(required = false) ExpenseStatus expenseStatus,
             @RequestParam(required = false) ApprovalStatus approvalStatus,
             @RequestParam(required = false) String departmentId,
             @RequestParam(required = false) Integer createdBy,
@@ -96,7 +96,7 @@ public class ExpenseController {
             @RequestParam(defaultValue = "DESC") String sortDirection) {
         
         Page<Expenses> expenses = expenseService.getAllExpenses(
-            category, status, approvalStatus, departmentId, createdBy, approvedBy,
+            category, expenseStatus, approvalStatus, departmentId, createdBy, approvedBy,
             academicYear, semester, startDate, endDate, minAmount, maxAmount,
             vendorSupplier, budgetAllocation, isRecurring, searchTerm,
             page, size, sortBy, sortDirection
@@ -327,7 +327,8 @@ public class ExpenseController {
     @GetMapping("/export")
     public ResponseEntity<List<ExpenseDTO>> exportExpenses(
             @RequestParam(required = false) ExpenseCategory category,
-            @RequestParam(required = false) ExpenseStatus status,
+            @RequestParam(required = false) ExpenseCategory expenseCategory,
+            @RequestParam(required = false) ExpenseStatus expenseStatus,
             @RequestParam(required = false) ApprovalStatus approvalStatus,
             @RequestParam(required = false) String departmentId,
             @RequestParam(required = false) Integer createdBy,
@@ -343,8 +344,11 @@ public class ExpenseController {
             @RequestParam(required = false) Boolean isRecurring,
             @RequestParam(required = false) String searchTerm) {
         
+        // Use category if expenseCategory is null (for backward compatibility)
+        ExpenseCategory finalCategory = expenseCategory != null ? expenseCategory : category;
+        
         List<Expenses> expenses = expenseService.getExpensesForExport(
-            category, status, approvalStatus, departmentId, createdBy, approvedBy,
+            finalCategory, expenseStatus, approvalStatus, departmentId, createdBy, approvedBy,
             academicYear, semester, startDate, endDate, minAmount, maxAmount,
             vendorSupplier, budgetAllocation, isRecurring, searchTerm
         );

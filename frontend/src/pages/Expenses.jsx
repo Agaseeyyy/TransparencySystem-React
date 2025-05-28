@@ -25,12 +25,12 @@ const EXPENSE_CATEGORIES = [
 const PAYMENT_METHODS = [
   'CASH', 'CHECK', 'BANK_TRANSFER', 'CREDIT_CARD', 'DEBIT_CARD', 'ONLINE_PAYMENT', 'PETTY_CASH'
 ];
-const EXPENSE_STATUSES = ['PENDING', 'PAID', 'CANCELLED', 'REFUNDED', 'DISPUTED'];
-const APPROVAL_STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'REQUIRES_REVIEW'];
+const EXPENSE_STATUSES = ['PENDING', 'PAID'];
+const APPROVAL_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
 const RECURRING_FREQUENCIES = [
   'DAILY', 'WEEKLY', 'MONTHLY', 'QUARTERLY', 'SEMESTERLY', 'ANNUALLY'
 ];
-const SEMESTERS = ['1st', '2nd', 'Summer'];
+const SEMESTERS = ['1st', '2nd'];
 const ACADEMIC_YEARS = Array.from({length: 5}, (_, i) => `${2020 + i}-${2021 + i}`);
 
 const defaultExpense = {
@@ -181,8 +181,6 @@ const Expenses = () => {
         params.approvalStatus = 'APPROVED';
       } else if (activeTab === 'rejected') {
         params.approvalStatus = 'REJECTED';
-      } else if (activeTab === 'requiresReview') {
-        params.approvalStatus = 'REQUIRES_REVIEW';
       }
 
       // Add card filters when in card view
@@ -191,7 +189,7 @@ const Expenses = () => {
           params.searchTerm = cardFilters.search.trim();
         }
         if (cardFilters.category && cardFilters.category !== 'all' && cardFilters.category !== '') {
-          params.expenseCategory = cardFilters.category;
+          params.category = cardFilters.category;
         }
         if (cardFilters.department && cardFilters.department !== 'all' && cardFilters.department !== '') {
           params.departmentId = cardFilters.department;
@@ -481,9 +479,9 @@ const Expenses = () => {
     }
   };
 
-  // Filter options for DataTable
+  // Filter options for DataTable - use category consistently
   const filterOptions = {
-    expenseCategory: EXPENSE_CATEGORIES.map(cat => ({ value: cat, label: cat.replace(/_/g, ' ') })),
+    category: EXPENSE_CATEGORIES.map(cat => ({ value: cat, label: cat.replace(/_/g, ' ') })),
     departmentId: departments.map(dep => ({ value: dep.departmentId, label: dep.departmentName })),
     approvalStatus: APPROVAL_STATUSES.map(status => ({ value: status, label: status.replace(/_/g, ' ') })),
     academicYear: ACADEMIC_YEARS.map(year => ({ value: year, label: year })),
@@ -544,7 +542,6 @@ const Expenses = () => {
       if (status === 'APPROVED') statusClass = 'bg-green-100 text-green-700';
       else if (status === 'PENDING') statusClass = 'bg-yellow-100 text-yellow-700';
       else if (status === 'REJECTED') statusClass = 'bg-rose-100 text-rose-700';
-      else if (status === 'REQUIRES_REVIEW') statusClass = 'bg-blue-100 text-blue-700';
       else statusClass = 'bg-gray-100 text-gray-700';
       return <span className={`px-2 py-1 text-xs font-medium rounded-full ${statusClass}`}>{status ? status.replace(/_/g, ' ') : '-'}</span>;
     }},
@@ -673,13 +670,7 @@ const Expenses = () => {
                     {expenses.filter(exp => exp.approvalStatus === 'REJECTED').length}
                   </Badge>
                 </TabsTrigger>
-                <TabsTrigger value="requiresReview" className="flex items-center gap-1 text-xs sm:text-sm data-[state=active]:bg-rose-600 data-[state=active]:text-white">
-                  <AlertCircle className="w-3 h-3" /> 
-                  <span className="hidden sm:inline">Review</span>
-                  <Badge variant="secondary" className="ml-1 bg-blue-100 text-blue-700 px-1.5 py-0 text-xs">
-                    {expenses.filter(exp => exp.approvalStatus === 'REQUIRES_REVIEW').length}
-                  </Badge>
-                </TabsTrigger>
+                
               </TabsList>
               
               <div className="flex items-center gap-2">

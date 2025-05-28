@@ -817,6 +817,12 @@ export const expenseService = {
     // Remove 'reportFormat' and 'fields' from params if they exist, as they are for frontend use
     const { reportFormat, fields, ...apiParams } = params;
     
+    // Map category to expenseCategory for backend consistency
+    if (apiParams.category && apiParams.category !== 'all') {
+      apiParams.expenseCategory = apiParams.category;
+      delete apiParams.category;
+    }
+    
     // Only include valid filter parameters for the API
     Object.keys(apiParams).forEach(key => {
       if (apiParams[key] === 'all' || apiParams[key] === '') {

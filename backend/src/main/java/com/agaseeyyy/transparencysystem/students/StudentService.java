@@ -204,146 +204,146 @@ public class StudentService {
         return studentRepository.findAll(spec, sort);
     }
 
-    // Initialize default student
-    @PostConstruct
-    public void initializeDefaultStudent() {
-        try {
-            if (studentRepository.findById(202000001L).isEmpty()) {
-                // Get the BSIT program first
-                Programs bsitProgram = programRepository.findById("BSIT").orElse(null);
+    // // Initialize default student
+    // @PostConstruct
+    // public void initializeDefaultStudent() {
+    //     try {
+    //         if (studentRepository.findById(202000001L).isEmpty()) {
+    //             // Get the BSIT program first
+    //             Programs bsitProgram = programRepository.findById("BSIT").orElse(null);
                 
-                if (bsitProgram != null) {
-                    Students defaultStudent = new Students();
-                    defaultStudent.setStudentId(202000001L);
-                    defaultStudent.setLastName("Dela Cruz");
-                    defaultStudent.setFirstName("Juan");
-                    defaultStudent.setMiddleInitial('D');
-                    defaultStudent.setEmail("juan.delacruz@student.cspc.edu.ph");
-                    defaultStudent.setProgram(bsitProgram);
-                    defaultStudent.setYearLevel(Year.of(4));
-                    defaultStudent.setSection('A');
-                    defaultStudent.setStatus(Students.Status.Active);
+    //             if (bsitProgram != null) {
+    //                 Students defaultStudent = new Students();
+    //                 defaultStudent.setStudentId(202000001L);
+    //                 defaultStudent.setLastName("Dela Cruz");
+    //                 defaultStudent.setFirstName("Juan");
+    //                 defaultStudent.setMiddleInitial('D');
+    //                 defaultStudent.setEmail("juan.delacruz@student.cspc.edu.ph");
+    //                 defaultStudent.setProgram(bsitProgram);
+    //                 defaultStudent.setYearLevel(Year.of(4));
+    //                 defaultStudent.setSection('A');
+    //                 defaultStudent.setStatus(Students.Status.Active);
                     
-                    studentRepository.save(defaultStudent);
-                    System.out.println("Default student created successfully!");
+    //                 studentRepository.save(defaultStudent);
+    //                 System.out.println("Default student created successfully!");
                     
-                    // Generate 200 random students
-                    generateRandomStudents();
-                } else {
-                    System.out.println("Could not create default student: BSIT program not found");
-                }
-            } else {
-                System.out.println("Default student already exists.");
+    //                 // Generate 200 random students
+    //                 generateRandomStudents();
+    //             } else {
+    //                 System.out.println("Could not create default student: BSIT program not found");
+    //             }
+    //         } else {
+    //             System.out.println("Default student already exists.");
                 
-                // Check if we need to generate random students
-                if (studentRepository.count() < 200) {
-                    generateRandomStudents();
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error creating default student: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    //             // Check if we need to generate random students
+    //             if (studentRepository.count() < 200) {
+    //                 generateRandomStudents();
+    //             }
+    //         }
+    //     } catch (Exception e) {
+    //         System.err.println("Error creating default student: " + e.getMessage());
+    //         e.printStackTrace();
+    //     }
+    // }
 
-    /**
-     * Generates 200 random students for testing purposes
-     */
-    private void generateRandomStudents() {
-        try {
-            System.out.println("Generating 200 random students...");
-            Random random = new Random();
-            List<Programs> availablePrograms = programRepository.findAll();
+    // /**
+    //  * Generates 200 random students for testing purposes
+    //  */
+    // private void generateRandomStudents() {
+    //     try {
+    //         System.out.println("Generating 200 random students...");
+    //         Random random = new Random();
+    //         List<Programs> availablePrograms = programRepository.findAll();
             
-            if (availablePrograms.isEmpty()) {
-                System.err.println("No programs available to assign to students");
-                return;
-            }
+    //         if (availablePrograms.isEmpty()) {
+    //             System.err.println("No programs available to assign to students");
+    //             return;
+    //         }
             
-            // Sample data for random generation
-            String[] firstNames = {
-                "John", "Jane", "Michael", "Sarah", "David", "Emily", "Daniel", "Sofia", "Matthew", "Olivia",
-                "Joshua", "Emma", "Andrew", "Ava", "Christopher", "Mia", "Ryan", "Isabella", "Joseph", "Sophia",
-                "Maria", "Carlos", "Ana", "Miguel", "Gabriela", "Jose", "Carmen", "Juan", "Laura", "Pedro",
-                "Diego", "Valentina", "Fernando", "Camila", "Alejandro", "Lucia", "Eduardo", "Isabella", "Javier", "Elena"
-            };
+    //         // Sample data for random generation
+    //         String[] firstNames = {
+    //             "John", "Jane", "Michael", "Sarah", "David", "Emily", "Daniel", "Sofia", "Matthew", "Olivia",
+    //             "Joshua", "Emma", "Andrew", "Ava", "Christopher", "Mia", "Ryan", "Isabella", "Joseph", "Sophia",
+    //             "Maria", "Carlos", "Ana", "Miguel", "Gabriela", "Jose", "Carmen", "Juan", "Laura", "Pedro",
+    //             "Diego", "Valentina", "Fernando", "Camila", "Alejandro", "Lucia", "Eduardo", "Isabella", "Javier", "Elena"
+    //         };
             
-            String[] lastNames = {
-                "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
-                "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin",
-                "Reyes", "Santos", "Cruz", "Diaz", "Gonzales", "Torres", "Flores", "Rivera", "Perez", "Ramirez",
-                "Ramos", "De la Cruz", "Bautista", "Castro", "Fernandez", "Mendoza", "Castillo", "Morales", "Aquino", "Villanueva"
-            };
+    //         String[] lastNames = {
+    //             "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
+    //             "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin",
+    //             "Reyes", "Santos", "Cruz", "Diaz", "Gonzales", "Torres", "Flores", "Rivera", "Perez", "Ramirez",
+    //             "Ramos", "De la Cruz", "Bautista", "Castro", "Fernandez", "Mendoza", "Castillo", "Morales", "Aquino", "Villanueva"
+    //         };
             
-            // Generate student IDs starting from a base year
-            int baseYear = 2020;
-            int currentYear = Year.now().getValue();
-            int digit = 2; // Starting digit after default student
-            int studentsCreated = 0;
+    //         // Generate student IDs starting from a base year
+    //         int baseYear = 2020;
+    //         int currentYear = Year.now().getValue();
+    //         int digit = 2; // Starting digit after default student
+    //         int studentsCreated = 0;
             
-            while (studentsCreated < 200) {
-                // Generate a random student ID with format: YYYY00001, YYYY00002, etc.
-                int randomYearOffset = random.nextInt(currentYear - baseYear + 1);
-                int year = baseYear + randomYearOffset;
-                Long studentId = Long.parseLong(year + String.format("%05d", digit++));
+    //         while (studentsCreated < 200) {
+    //             // Generate a random student ID with format: YYYY00001, YYYY00002, etc.
+    //             int randomYearOffset = random.nextInt(currentYear - baseYear + 1);
+    //             int year = baseYear + randomYearOffset;
+    //             Long studentId = Long.parseLong(year + String.format("%05d", digit++));
                 
-                // Skip if student ID already exists
-                if (studentRepository.existsById(studentId)) {
-                    continue;
-                }
+    //             // Skip if student ID already exists
+    //             if (studentRepository.existsById(studentId)) {
+    //                 continue;
+    //             }
                 
-                Students student = new Students();
+    //             Students student = new Students();
                 
-                // Random name
-                String firstName = firstNames[random.nextInt(firstNames.length)];
-                String lastName = lastNames[random.nextInt(lastNames.length)];
-                char middleInitial = (char) ('A' + random.nextInt(26));
+    //             // Random name
+    //             String firstName = firstNames[random.nextInt(firstNames.length)];
+    //             String lastName = lastNames[random.nextInt(lastNames.length)];
+    //             char middleInitial = (char) ('A' + random.nextInt(26));
                 
-                // Random program
-                Programs program = availablePrograms.get(random.nextInt(availablePrograms.size()));
+    //             // Random program
+    //             Programs program = availablePrograms.get(random.nextInt(availablePrograms.size()));
                 
-                // Random year level (1-4)
-                int yearLevel = random.nextInt(4) + 1;
+    //             // Random year level (1-4)
+    //             int yearLevel = random.nextInt(4) + 1;
                 
-                // Random section (A-F)
-                char section = (char) ('A' + random.nextInt(6));
+    //             // Random section (A-F)
+    //             char section = (char) ('A' + random.nextInt(6));
                 
-                // Random status (mostly active)
-                Students.Status status;
-                int statusRandom = random.nextInt(10);
-                if (statusRandom < 8) {
-                    status = Students.Status.Active;
-                } else if (statusRandom < 9) {
-                    status = Students.Status.Inactive;
-                } else {
-                    status = Students.Status.Graduated;
-                }
+    //             // Random status (mostly active)
+    //             Students.Status status;
+    //             int statusRandom = random.nextInt(10);
+    //             if (statusRandom < 8) {
+    //                 status = Students.Status.Active;
+    //             } else if (statusRandom < 9) {
+    //                 status = Students.Status.Inactive;
+    //             } else {
+    //                 status = Students.Status.Graduated;
+    //             }
                 
-                // Set student properties
-                student.setStudentId(studentId);
-                student.setFirstName(firstName);
-                student.setLastName(lastName);
-                student.setMiddleInitial(middleInitial);
-                student.setEmail(firstName.toLowerCase() + "." + lastName.toLowerCase() + "@student.cspc.edu.ph");
-                student.setProgram(program);
-                student.setYearLevel(Year.of(yearLevel));
-                student.setSection(section);
-                student.setStatus(status);
+    //             // Set student properties
+    //             student.setStudentId(studentId);
+    //             student.setFirstName(firstName);
+    //             student.setLastName(lastName);
+    //             student.setMiddleInitial(middleInitial);
+    //             student.setEmail(firstName.toLowerCase() + "." + lastName.toLowerCase() + "@student.cspc.edu.ph");
+    //             student.setProgram(program);
+    //             student.setYearLevel(Year.of(yearLevel));
+    //             student.setSection(section);
+    //             student.setStatus(status);
                 
-                // Save student to database
-                studentRepository.save(student);
-                studentsCreated++;
+    //             // Save student to database
+    //             studentRepository.save(student);
+    //             studentsCreated++;
                 
-                if (studentsCreated % 20 == 0) {
-                    System.out.println("Generated " + studentsCreated + " students so far...");
-                }
-            }
+    //             if (studentsCreated % 20 == 0) {
+    //                 System.out.println("Generated " + studentsCreated + " students so far...");
+    //             }
+    //         }
             
-            System.out.println("Successfully generated 200 random students");
-        } catch (Exception e) {
-            System.err.println("Error generating random students: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    //         System.out.println("Successfully generated 200 random students");
+    //     } catch (Exception e) {
+    //         System.err.println("Error generating random students: " + e.getMessage());
+    //         e.printStackTrace();
+    //     }
+    // }
 
 }

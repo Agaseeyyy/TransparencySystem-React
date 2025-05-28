@@ -1,0 +1,22 @@
+-- Sample Students Data with proper String program_id references
+INSERT INTO students (student_id, last_name, first_name, middle_initial, email, year_level, section, status, program_id) VALUES
+(2021001001, 'Garcia', 'Maria', 'A', 'maria.garcia@university.edu', 1, 'A', 'Active', 'BSIT'),
+(2021001002, 'Santos', 'Juan', 'B', 'juan.santos@university.edu', 1, 'A', 'Active', 'BSIT'),
+(2021001003, 'Reyes', 'Ana', 'C', 'ana.reyes@university.edu', 1, 'B', 'Active', 'BSCS'),
+(2021001004, 'Cruz', 'Carlos', 'D', 'carlos.cruz@university.edu', 1, 'B', 'Inactive', 'BSCS'),
+(2021001005, 'Gonzalez', 'Sofia', 'E', 'sofia.gonzalez@university.edu', 1, 'C', 'Active', 'BSIS'),
+(2022002001, 'Rodriguez', 'Miguel', 'F', 'miguel.rodriguez@university.edu', 2, 'A', 'Active', 'BSIT'),
+(2022002002, 'Lopez', 'Isabella', 'G', 'isabella.lopez@university.edu', 2, 'A', 'Active', 'BSIT'),
+(2022002003, 'Morales', 'Diego', 'H', 'diego.morales@university.edu', 2, 'B', 'Active', 'BSCS'),
+(2022002004, 'Herrera', 'Camila', 'I', 'camila.herrera@university.edu', 2, 'B', 'Inactive', 'BSCS'),
+(2022002005, 'Jimenez', 'Alejandro', 'J', 'alejandro.jimenez@university.edu', 1, 'C', 'Active', 'BSIS'),
+(2023003001, 'Vargas', 'Lucia', 'K', 'lucia.vargas@university.edu', 3, 'A', 'Active', 'BSIT'),
+(2023003002, 'Castillo', 'Fernando', 'L', 'fernando.castillo@university.edu', 3, 'A', 'Active', 'BSIT'),
+(2023003003, 'Ortega', 'Valentina', 'M', 'valentina.ortega@university.edu', 3, 'B', 'Active', 'BSCS'),
+(2023003004, 'Mendoza', 'Sebastian', 'N', 'sebastian.mendoza@university.edu', 3, 'B', 'Active', 'BSCS'),
+(2023003005, 'Torres', 'Gabriela', 'O', 'gabriela.torres@university.edu', 1, 'C', 'Inactive', 'BSIS'),
+(2024004001, 'Flores', 'Adrian', 'P', 'adrian.flores@university.edu', 4, 'A', 'Active', 'BSIT'),
+(2024004002, 'Ramos', 'Natalia', 'Q', 'natalia.ramos@university.edu', 4, 'A', 'Active', 'BSIT'),
+(2024004003, 'Gutierrez', 'Daniel', 'R', 'daniel.gutierrez@university.edu', 4, 'B', 'Active', 'BSCS'),
+(2024004004, 'Aguilar', 'Martina', 'S', 'martina.aguilar@university.edu', 4, 'B', 'Active', 'BSCS'),
+(2020000001, 'Delgado', 'Ricardo', 'T', 'ricardo.delgado@university.edu', 4, 'A', 'Active', 'BSIS');

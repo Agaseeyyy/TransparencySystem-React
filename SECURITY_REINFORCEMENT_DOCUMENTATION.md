@@ -1114,7 +1114,8 @@ DB_PASSWORD=secure_password_here
 
 # JWT Configuration (use a cryptographically secure random string of at least 256 bits / 32 bytes)
 # Generate with: openssl rand -base64 32
-JWT_SECRET=your-base64-encoded-secret-key-at-least-256-bits
+# Example output: dGhpcyBpcyBhIHNhbXBsZSBzZWNyZXQga2V5IQ== (DO NOT USE - replace with your own)
+JWT_SECRET=<REPLACE_WITH_OUTPUT_FROM_OPENSSL_COMMAND>
 JWT_EXPIRATION=3600000
 
 # SMTP Configuration

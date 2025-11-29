@@ -73,6 +73,40 @@ The primary purposes of this system are:
 | **Authentication** | JWT (JSON Web Tokens) with Spring Security |
 | **Build Tools** | Maven (Backend), npm/Vite (Frontend) |
 
+#### System Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Frontend["🖥️ Frontend (React + Vite)"]
+        A[Login Page] --> B[AuthProvider Context]
+        B --> C[Protected Routes]
+        C --> D[Dashboard Components]
+        D --> E[API Service Layer]
+    end
+    
+    subgraph Backend["⚙️ Backend (Spring Boot)"]
+        F[Security Filter Chain] --> G[JWT Authentication Filter]
+        G --> H[Controllers]
+        H --> I[Services]
+        I --> J[Repositories]
+    end
+    
+    subgraph Database["🗄️ Database (MySQL)"]
+        K[(Accounts)]
+        L[(Students)]
+        M[(Payments)]
+        N[(Fees)]
+        O[(Remittances)]
+    end
+    
+    E -->|HTTP + JWT| F
+    J --> K
+    J --> L
+    J --> M
+    J --> N
+    J --> O
+```
+
 ### 1.5 User Roles
 
 | Role | Permissions |
@@ -110,18 +144,86 @@ Financial systems handling sensitive data require robust security measures becau
 
 The security assessment followed a comprehensive approach combining automated and manual testing techniques:
 
+#### Security Assessment Process Flowchart
+
+```mermaid
+flowchart TD
+    A[🔍 Start Security Assessment] --> B[📝 Code Review]
+    B --> C[🧪 Manual Testing]
+    C --> D[🔐 Authentication Testing]
+    D --> E[👤 Authorization Testing]
+    E --> F[📥 Input Validation Testing]
+    F --> G[🎫 Session Management Review]
+    G --> H[⚙️ Configuration Review]
+    H --> I{Vulnerabilities Found?}
+    I -->|Yes| J[📋 Document Findings]
+    J --> K[🔧 Implement Fixes]
+    K --> L[✅ Verify Fixes]
+    L --> I
+    I -->|No| M[📄 Generate Report]
+    M --> N[🏁 Assessment Complete]
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Security Assessment Process                    │
-├─────────────────────────────────────────────────────────────────┤
-│  1. Code Review        →  Static analysis of source code         │
-│  2. Manual Testing     →  Interactive testing of endpoints       │
-│  3. Authentication     →  Testing login/logout flows             │
-│  4. Authorization      →  Testing role-based access controls     │
-│  5. Input Validation   →  Testing for injection vulnerabilities  │
-│  6. Session Management →  Analyzing token handling               │
-│  7. Configuration      →  Reviewing security configurations      │
-└─────────────────────────────────────────────────────────────────┘
+
+#### Authentication Flow Diagram
+
+```mermaid
+flowchart TD
+    A[👤 User Access Login Page] --> B[📝 Enter Credentials]
+    B --> C[🔒 Submit to /api/auth/login]
+    C --> D{Valid Credentials?}
+    D -->|No| E[❌ Return 401 Unauthorized]
+    E --> F[Display Error Message]
+    F --> B
+    D -->|Yes| G[🎫 Generate JWT Token]
+    G --> H[📦 Return Token + User Data]
+    H --> I[💾 Store in LocalStorage]
+    I --> J[🔄 Set Authorization Header]
+    J --> K[➡️ Redirect to Dashboard]
+    K --> L{Token Expired?}
+    L -->|Yes| M[🚪 Logout User]
+    M --> A
+    L -->|No| N[✅ Access Protected Resources]
+```
+
+#### Role-Based Access Control Flow
+
+```mermaid
+flowchart TD
+    A[📨 API Request] --> B{Has JWT Token?}
+    B -->|No| C[❌ 401 Unauthorized]
+    B -->|Yes| D[🔍 Validate Token]
+    D --> E{Token Valid?}
+    E -->|No| C
+    E -->|Yes| F[📋 Extract User Role]
+    F --> G{Check Endpoint Permission}
+    G --> H{Admin Only?}
+    H -->|Yes| I{User is Admin?}
+    I -->|No| J[❌ 403 Forbidden]
+    I -->|Yes| K[✅ Allow Access]
+    H -->|No| L{Treasurer Required?}
+    L -->|Yes| M{User is Treasurer?}
+    M -->|No| J
+    M -->|Yes| K
+    L -->|No| K
+```
+
+#### Vulnerability Remediation Workflow
+
+```mermaid
+flowchart LR
+    A[🔍 Identify Vulnerability] --> B[📊 Assess Severity]
+    B --> C{Severity Level}
+    C -->|High| D[🚨 Immediate Fix Required]
+    C -->|Medium| E[⚠️ Schedule Fix]
+    C -->|Low| F[📝 Document for Review]
+    D --> G[💻 Implement Fix]
+    E --> G
+    F --> G
+    G --> H[🧪 Test Fix]
+    H --> I{Fix Verified?}
+    I -->|No| G
+    I -->|Yes| J[📄 Update Documentation]
+    J --> K[✅ Mark as Resolved]
 ```
 
 ### 2.2 Code Review Process
@@ -837,6 +939,30 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 ---
 
 ## 5. Testing and Verification
+
+### Testing Verification Workflow
+
+```mermaid
+flowchart TD
+    A[🧪 Start Testing] --> B[Authentication Tests]
+    B --> C{All Passed?}
+    C -->|No| D[🔧 Fix Issues]
+    D --> B
+    C -->|Yes| E[Authorization Tests]
+    E --> F{All Passed?}
+    F -->|No| G[🔧 Fix Issues]
+    G --> E
+    F -->|Yes| H[Input Validation Tests]
+    H --> I{All Passed?}
+    I -->|No| J[🔧 Fix Issues]
+    J --> H
+    I -->|Yes| K[Configuration Tests]
+    K --> L{All Passed?}
+    L -->|No| M[🔧 Fix Issues]
+    M --> K
+    L -->|Yes| N[✅ All Tests Passed]
+    N --> O[📄 Generate Test Report]
+```
 
 ### 5.1 Authentication Testing
 

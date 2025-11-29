@@ -4,13 +4,17 @@
 
 ## Cover Page
 
-**Institution:** [School Name]  
-**Course Title:** Web Security / Application Security  
-**Project Title:** Security Reinforcement for TransparencySystem-React  
-**Student Name(s):** [Student Name]  
-**Student Number:** [Student Number]  
-**Instructor:** [Instructor Name]  
-**Date Submitted:** [Date]
+> **Note:** Replace the bracketed placeholders below with your actual information before submission.
+
+| Field | Value |
+|-------|-------|
+| **Institution** | `[Your School/University Name]` |
+| **Course Title** | `[Course Title, e.g., Web Security / Application Security]` |
+| **Project Title** | Security Reinforcement for TransparencySystem-React |
+| **Student Name(s)** | `[Your Full Name]` |
+| **Student Number** | `[Your Student ID]` |
+| **Instructor** | `[Instructor Name]` |
+| **Date Submitted** | `[Submission Date]` |
 
 ---
 
@@ -207,9 +211,11 @@ The security assessment followed a comprehensive approach combining automated an
 
 **Evidence (application.properties):**
 ```properties
-jwt.secret=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+jwt.secret=<YOUR_SECRET_KEY_HERE>
 jwt.expiration=86400000
 ```
+
+*Note: The actual secret key was found hardcoded in the configuration file. The key shown above is redacted for security purposes.*
 
 ---
 
@@ -225,9 +231,11 @@ jwt.expiration=86400000
 
 **Evidence (application.properties):**
 ```properties
-spring.mail.username=bustargaagassi1018@gmail.com
-spring.mail.password=razf epgy ywqc kqsm
+spring.mail.username=<email-address>@gmail.com
+spring.mail.password=<app-password-redacted>
 ```
+
+*Note: Actual SMTP credentials were found hardcoded in the configuration file. The credentials shown above are redacted for security purposes.*
 
 ---
 
@@ -1122,10 +1130,12 @@ SPRING_PROFILES_ACTIVE=prod
 ---
 
 **Document Version:** 1.0  
-**Last Updated:** [Current Date]  
-**Author:** [Student Name]  
-**Reviewed By:** [Instructor Name]
+**Last Updated:** `[Current Date - Update before submission]`  
+**Author:** `[Your Name]`  
+**Reviewed By:** `[Instructor Name]`
 
 ---
+
+> **Submission Note:** Remember to update all placeholder fields marked with `[brackets]` or backticks before submitting this document.
 
 *This document is part of the Security Reinforcement Final Project for [Course Name]. All vulnerabilities identified were discovered in a controlled educational environment. The fixes proposed follow industry best practices and OWASP guidelines.*

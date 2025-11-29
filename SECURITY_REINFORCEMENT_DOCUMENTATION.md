@@ -402,9 +402,12 @@ console.log('AuthProvider - Current auth state:', {
 
 **Before Fix:**
 ```properties
-jwt.secret=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+# Hardcoded secret visible in source code
+jwt.secret=<HARDCODED_SECRET_KEY_REDACTED>
 jwt.expiration=86400000
 ```
+
+*Note: The actual secret key found in the repository has been redacted for security purposes.*
 
 **After Fix:**
 ```properties
@@ -434,9 +437,12 @@ jwt.expiration=${JWT_EXPIRATION:3600000}
 
 **Before Fix:**
 ```properties
-spring.mail.username=bustargaagassi1018@gmail.com
-spring.mail.password=razf epgy ywqc kqsm
+# Hardcoded SMTP credentials visible in source code
+spring.mail.username=<EMAIL_REDACTED>@gmail.com
+spring.mail.password=<APP_PASSWORD_REDACTED>
 ```
+
+*Note: Actual SMTP credentials found in the repository have been redacted for security purposes.*
 
 **After Fix:**
 ```properties
@@ -1106,8 +1112,9 @@ DB_URL=jdbc:mysql://localhost:3306/transparency_system
 DB_USERNAME=app_user
 DB_PASSWORD=secure_password_here
 
-# JWT Configuration
-JWT_SECRET=your-256-bit-secret-key-here-must-be-32-chars-minimum
+# JWT Configuration (use a cryptographically secure random string of at least 256 bits / 32 bytes)
+# Generate with: openssl rand -base64 32
+JWT_SECRET=your-base64-encoded-secret-key-at-least-256-bits
 JWT_EXPIRATION=3600000
 
 # SMTP Configuration
